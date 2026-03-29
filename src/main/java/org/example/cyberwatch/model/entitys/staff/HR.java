@@ -11,7 +11,8 @@ public class HR {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+    @OneToOne(optional = false)
+    @JoinColumn(name = "staff_id", nullable = false, unique = true)
     Staff staff;
 
     @Enumerated(EnumType.STRING)
@@ -20,4 +21,27 @@ public class HR {
     public HR() {
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Staff getStaff() {
+        return staff;
+    }
+
+    public void setStaff(Staff staff) {
+        this.staff = staff;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
 }

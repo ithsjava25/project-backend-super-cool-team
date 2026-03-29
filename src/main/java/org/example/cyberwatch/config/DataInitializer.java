@@ -23,13 +23,13 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         staffRepository.saveAll(List.of(
-                createStaff(199001010101L, "Alice", "Andersson", "alice@cyberwatch.local", "070-1111111", "CONSULTANT"),
-                createStaff(198805050505L, "Bob", "Berg", "bob@cyberwatch.local", "070-2222222", "HR"),
-                createStaff(197707070707L, "Carla", "Carlsson", "carla@cyberwatch.local", "070-3333333", "MANAGEMENT")
+                createStaff("19900101-0101", "Alice", "Andersson", "alice@cyberwatch.local", "070-1111111", "CONSULTANT"),
+                createStaff("19880505-0505", "Bob", "Berg", "bob@cyberwatch.local", "070-2222222", "HR"),
+                createStaff("19770707-0707", "Carla", "Carlsson", "carla@cyberwatch.local", "070-3333333", "MANAGEMENT")
         ));
     }
 
-    private Staff createStaff(Long ssn, String firstName, String lastName, String email, String phone, String role) {
+    private Staff createStaff(String ssn, String firstName, String lastName, String email, String phone, String role) {
         Staff staff = new Staff();
         staff.setSocialSecurityNumber(ssn);
         staff.setFirstName(firstName);

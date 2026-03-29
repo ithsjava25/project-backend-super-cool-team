@@ -1,4 +1,4 @@
 package org.example.cyberwatch.repository;
 
-public class TicketRepository {
+public interface TicketRepository {
 }

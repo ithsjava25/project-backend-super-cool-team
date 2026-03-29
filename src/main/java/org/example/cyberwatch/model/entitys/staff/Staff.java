@@ -13,8 +13,8 @@ public class Staff {
     @Column(name = "employee_id")
     Long id;
 
-    @Column(name = "social_security_number")
-    Long socialSecurityNumber;
+    @Column(name = "social_security_number", nullable = false, unique = true)
+    String socialSecurityNumber;
 
     @Column(name = "first_name")
     String firstName;
@@ -38,11 +38,11 @@ public class Staff {
 
     }
 
-    public Long getSocialSecurityNumber() {
+    public String getSocialSecurityNumber() {
         return socialSecurityNumber;
     }
 
-    public void setSocialSecurityNumber(Long socialSecurityNumber) {
+    public void setSocialSecurityNumber(String socialSecurityNumber) {
         this.socialSecurityNumber = socialSecurityNumber;
     }
 
