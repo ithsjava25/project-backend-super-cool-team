@@ -5,20 +5,18 @@
 - **ReportForm**: Case/problem form to be reported by staff
 - **EmploymentForm**: Employee-process (HR-only)
 - **Attachment**: Filemetadata + S3-key for uploaded files
-- **AuditEvent**: Logg for all important events
 
 ## Flow 1: ReportForm
 
 `SUBMITTED → IN_PROGRESS → RESOLVED → CLOSED`
 
-- Staff creates → HR assigns → Handläggare solves → HR/Manager closes
-- All actions logged in AuditEvent
+- Staff creates → HR assigns → case assignee solves it → HR/Manager closes
 
 ## Flow 2: EmploymentForm
 
 `DRAFT → SUBMITTED → APPROVED/REJECTED → COMPLETED`
 
-- HR fills out the form → HR submits → Manager approves → System creates a Staff with the submitted info automatiskt
+- HR fills out the form → HR submits → Manager approves → System creates a Staff with the submitted info automatically
 - Only HR can create an EmploymentForm
 
 ## Authorization
@@ -30,9 +28,7 @@
 ## MVP Order
 
 1. Enums (Status, Priority, IssueType, Department)
-2. ReportForm CRUD + behörigheter
+2. ReportForm CRUD + authorization
 3. EmploymentForm + auto-create Staff
-4. S3-filhantering + nedladdning
-5. Real-time updates
-
+4. S3-file + Download
 
