@@ -5,7 +5,7 @@ public enum Status {
     DRAFT,
     SUBMITTED,
     IN_PROGRESS,
-    WAITING_FOR_USER, //
+    WAITING_FOR_USER, // Används när man väntar på mer information etc.
     RESOLVED,
     CLOSED,
     REOPENED
