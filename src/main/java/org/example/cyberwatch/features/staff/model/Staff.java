@@ -3,6 +3,7 @@ package org.example.cyberwatch.features.staff.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import org.example.cyberwatch.shared.model.enums.Department;
+import org.example.cyberwatch.shared.model.enums.Role;
 
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
 //Differs from Employee form wich is the process/form HR uses to create a new employee.
@@ -28,7 +29,8 @@ public class Staff {
     @Column(name = "phone_number")
     String phoneNumber;
 
-    String role;
+    @Enumerated(EnumType.STRING)
+    Role role;
 
     @Enumerated(EnumType.STRING)
     Department department;
@@ -46,11 +48,11 @@ public class Staff {
         this.socialSecurityNumber = socialSecurityNumber;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 

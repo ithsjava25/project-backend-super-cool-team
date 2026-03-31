@@ -5,6 +5,6 @@ public enum Role {
     CTO,
     CONSULTANT,
     HR,
-    PROJEKTMANAGER,
+    PROJECT_MANAGER,
     ADMIN
 }
