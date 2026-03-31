@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.form.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.cyberwatch.features.staff.model.Staff;
@@ -10,8 +11,8 @@ import org.example.cyberwatch.shared.model.enums.Priority;
 import org.example.cyberwatch.shared.model.enums.Status;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -44,11 +45,12 @@ public class ReportForm {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false)
+    @NotNull(message = "Staff cannot be null")
     private Staff staff;
 
-    // List to keep order among attachments
     @OneToMany(mappedBy = "reportForm", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attachment> attachments = new ArrayList<>();
+    @OrderColumn(name = "attachment_order")
+    private Set<Attachment> attachments = new HashSet<>();
 
     public ReportForm() {
 

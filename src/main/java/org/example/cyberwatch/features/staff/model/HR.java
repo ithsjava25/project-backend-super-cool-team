@@ -22,7 +22,7 @@ public class HR {
     Staff staff;
 
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "Staff cannot be null")
+    @NotNull(message = "Department cannot be null")
     Department department;
 
     public HR() {
