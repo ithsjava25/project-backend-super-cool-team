@@ -1,7 +1,7 @@
 package org.example.cyberwatch.config;
 
-import org.example.cyberwatch.model.entitys.staff.Staff;
-import org.example.cyberwatch.repository.StaffRepository;
+import org.example.cyberwatch.features.ticket.model.entitys.staff.Staff;
+import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
