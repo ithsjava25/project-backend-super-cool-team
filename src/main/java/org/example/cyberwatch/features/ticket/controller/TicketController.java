@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.ticket.controller;
 
 import jakarta.validation.Valid;
+import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
 import org.example.cyberwatch.features.ticket.service.TicketService;
@@ -33,6 +34,8 @@ public class TicketController {
     ) {
         try {
             return ResponseEntity.ok(ticketService.uploadFile(ticketId, file));
+        } catch (TicketNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "File upload failed"));
         }
