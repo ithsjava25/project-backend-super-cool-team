@@ -14,7 +14,7 @@ public class TicketAttachment {
     private String s3Key;
 
     @ManyToOne
-    @JoinColumn(name = "ticket_id")
+    @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
 
     public TicketAttachment() {

@@ -10,15 +10,14 @@ import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.net.URI;
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,25 +27,20 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketAttachmentRepository ticketAttachmentRepository;
+    private final S3Client s3Client;
 
     @Value("${app.s3.endpoint}")
     private String endpoint;
 
-    @Value("${app.s3.region}")
-    private String region;
-
-    @Value("${app.s3.accessKey}")
-    private String accessKey;
-
-    @Value("${app.s3.secretKey}")
-    private String secretKey;
-
     @Value("${app.s3.bucket}")
     private String bucket;
 
-    public TicketService(TicketRepository ticketRepository, TicketAttachmentRepository ticketAttachmentRepository) {
+    public TicketService(TicketRepository ticketRepository,
+                         TicketAttachmentRepository ticketAttachmentRepository,
+                         S3Client s3Client) {
         this.ticketRepository = ticketRepository;
         this.ticketAttachmentRepository = ticketAttachmentRepository;
+        this.s3Client = s3Client;
     }
 
     public Ticket createTicket(TicketDTO dto) {
@@ -59,7 +53,7 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
-    public Map<String, Object> uploadFile(Long ticketId, MultipartFile file) throws Exception {
+    public Map<String, Object> uploadFile(Long ticketId, MultipartFile file) throws IOException {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id " + ticketId));
 
@@ -67,24 +61,20 @@ public class TicketService {
             throw new RuntimeException("File is empty");
         }
 
-        S3Client s3Client = S3Client.builder()
-                .endpointOverride(URI.create(endpoint))
-                .region(Region.of(region))
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(accessKey, secretKey)
-                        )
-                )
-                .forcePathStyle(true)
-                .build();
-
         try {
             s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        } catch (Exception e) {
-            // bucket finns redan
+        } catch (BucketAlreadyExistsException | BucketAlreadyOwnedByYouException e) {
         }
 
         String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null || originalFileName.isBlank()) {
+            originalFileName = "unnamed";
+        }
+
+        originalFileName = originalFileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        originalFileName = originalFileName.substring(Math.max(0, originalFileName.lastIndexOf('/') + 1));
+        originalFileName = originalFileName.substring(Math.max(0, originalFileName.lastIndexOf('\\') + 1));
+
         String key = "tickets/" + ticketId + "/" + UUID.randomUUID() + "-" + originalFileName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()

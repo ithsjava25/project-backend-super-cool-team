@@ -1,5 +1,6 @@
 package org.example.cyberwatch.features.ticket.controller;
 
+import jakarta.validation.Valid;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
 import org.example.cyberwatch.features.ticket.service.TicketService;
@@ -21,15 +22,19 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<Ticket> createTicket(@RequestBody TicketDTO dto) {
+    public ResponseEntity<Ticket> createTicket(@Valid @RequestBody TicketDTO dto) {
         return ResponseEntity.ok(ticketService.createTicket(dto));
     }
 
     @PostMapping(value = "/{ticketId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, Object>> uploadFile(
+    public ResponseEntity<?> uploadFile(
             @PathVariable Long ticketId,
             @RequestParam("file") MultipartFile file
-    ) throws Exception {
-        return ResponseEntity.ok(ticketService.uploadFile(ticketId, file));
+    ) {
+        try {
+            return ResponseEntity.ok(ticketService.uploadFile(ticketId, file));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File upload failed"));
+        }
     }
 }

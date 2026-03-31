@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleOtherErrors(Exception e) {
         Map<String, String> error = new HashMap<>();
-        error.put("message", e.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        error.put("message", "An unexpected error occurred");
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
