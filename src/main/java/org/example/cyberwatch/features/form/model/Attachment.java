@@ -34,6 +34,7 @@ public class Attachment {
     @JoinColumn(name = "report_form_id", nullable = false)
     ReportForm reportForm;
 
+
     public Attachment() {
     }
 
