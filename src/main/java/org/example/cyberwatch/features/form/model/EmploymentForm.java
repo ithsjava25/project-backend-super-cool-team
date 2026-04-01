@@ -46,7 +46,7 @@ public class EmploymentForm {
 
     @Column(name = "phone_number")
     @NotBlank(message = "Phone number cannot be blank")
-    @Pattern(regexp = "^\\d{7,15}$", message = "Phone number must be between 7 and 15 digits")
+    @Pattern(regexp = "^\\d{7,15}$", message = "Phone number must be between 7 and 15 digits e.g 0046722334455")
     String phoneNumber;
 
     @Enumerated(EnumType.STRING)
