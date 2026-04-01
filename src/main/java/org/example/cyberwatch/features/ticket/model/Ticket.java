@@ -30,7 +30,7 @@ public class Ticket {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.SUBMITTED; // Startar som SUBMITTED
+    private Status status = Status.SUBMITTED;
 
     @Enumerated(EnumType.STRING)
     private Priority priority;
@@ -40,11 +40,11 @@ public class Ticket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id")
-    private Staff createdBy; // Den som skapade ärendet
+    private Staff createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to_id")
-    private Staff assignedTo; // Handläggaren
+    private Staff assignedTo;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -52,16 +52,16 @@ public class Ticket {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // Statusövergång enligt vårat flöde
     public void advanceStatus() {
         this.status = switch (this.status) {
+            case DRAFT            -> Status.SUBMITTED;
             case SUBMITTED        -> Status.IN_PROGRESS;
             case IN_PROGRESS      -> Status.RESOLVED;
             case WAITING_FOR_USER -> Status.IN_PROGRESS;
             case RESOLVED         -> Status.CLOSED;
             case REOPENED         -> Status.IN_PROGRESS;
-            case CLOSED           -> throw new IllegalStateException("Ärendet är redan stängt. Återöppna det först.");
-            default               -> throw new IllegalStateException("Ogiltig status: " + this.status);
+            case CLOSED           -> throw new IllegalStateException(
+                    "Ärendet är redan stängt. Återöppna det först.");
         };
     }
 
