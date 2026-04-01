@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.ticket.service;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CORSRule;
@@ -9,17 +10,18 @@ import software.amazon.awssdk.services.s3.model.CORSRule;
 public class S3Service {
 
     private final S3Client s3Client;
-    private static final String BUCKET_NAME = "ticket-files";
+    private final String bucketName;
 
-    public S3Service(S3Client s3Client) {
+    public S3Service(S3Client s3Client, @Value("${app.s3.bucket}") String bucketName) {
         this.s3Client = s3Client;
+        this.bucketName = bucketName;
     }
 
     @PostConstruct
     public void init() {
         try {
             s3Client.putBucketCors(bucketCorsRequest -> bucketCorsRequest
-                    .bucket(BUCKET_NAME)
+                    .bucket(bucketName)
                     .corsConfiguration(conf -> conf
                             .corsRules(CORSRule.builder()
                                     .allowedOrigins("*")
