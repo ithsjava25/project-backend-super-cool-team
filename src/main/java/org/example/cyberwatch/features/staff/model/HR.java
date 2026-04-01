@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.shared.model.enums.Department;
+
+import java.util.Set;
 
 // Represents an HR administrator role profile linked 1:1 to Staff.
 // Can create EmploymentForm for new hires and manage case assignments (HR-only privilege).
@@ -24,6 +27,10 @@ public class HR {
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Department cannot be null")
     Department department;
+
+    @OneToMany(mappedBy = "createdBy")
+    @Column(name = "created_forms")
+    private Set<EmploymentForm> createdForms;
 
     public HR() {
     }

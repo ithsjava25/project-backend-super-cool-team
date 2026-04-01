@@ -1,13 +1,13 @@
 package org.example.cyberwatch.features.form.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.cyberwatch.features.staff.model.Staff;
+import org.example.cyberwatch.features.staff.model.HR;
+import org.example.cyberwatch.features.staff.model.Management;
+import org.example.cyberwatch.shared.model.enums.Department;
+import org.example.cyberwatch.shared.model.enums.Role;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -24,6 +24,11 @@ public class EmploymentForm {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(name = "social_security_number", nullable = false, unique = true)
+    @NotBlank(message = "Social security number cannot be blank")
+    @Pattern(regexp = "\\d{6}-\\d{4}|\\d{8}-\\d{4}", message = "Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN")
+    String socialSecurityNumber;
+
     @Column(name = "first_name")
     @NotBlank(message = "First name cannot be blank")
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
@@ -39,6 +44,19 @@ public class EmploymentForm {
     @NotBlank(message = "Email cannot be blank")
     String email;
 
+    @Column(name = "phone_number")
+    @NotBlank(message = "Phone number cannot be blank")
+    @Pattern(regexp = "^\\d{7,15}$", message = "Phone number must be between 7 and 15 digits")
+    String phoneNumber;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Role cannot be null")
+    Role role;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Department cannot be null")
+    Department department;
+
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Status cannot be null")
     Status status;
@@ -48,11 +66,13 @@ public class EmploymentForm {
     @CreationTimestamp
     LocalDateTime createdDate;
 
-    // Relation - Ett formulär kan tillhöra en anställd (vid ändringar/uppdateringar)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "staff_id", nullable = true)
-    private Staff staff;
+    @JoinColumn(name = "hr_id", nullable = true)
+    private HR createdBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approver_staff_id", nullable = true)
+    private Management approvedBy;
     public EmploymentForm() {
     }
 

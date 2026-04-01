@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.shared.model.enums.Department;
+
+import java.util.Set;
 
 // Represents a manager/supervisor role, role profile linked 1:1 to a Staff entity.
 // Can approve and oversee cases assigned to their department.
@@ -25,6 +28,10 @@ public class Management {
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Department cannot be null")
     Department department;
+
+    @OneToMany(mappedBy = "approvedBy")
+    @Column(name = "approved_forms")
+    private Set<EmploymentForm> approvedForms;
 
     public Management() {
     }

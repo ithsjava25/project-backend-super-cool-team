@@ -48,6 +48,4 @@ public class ReportFormDTO {
 
     private Set<AttachmentDTO> attachments;
 
-    public ReportFormDTO() {
-    }
 }
