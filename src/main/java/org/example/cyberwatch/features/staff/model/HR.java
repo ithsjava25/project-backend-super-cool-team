@@ -1,10 +1,15 @@
 package org.example.cyberwatch.features.staff.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 import org.example.cyberwatch.shared.model.enums.Department;
 
 // Represents an HR administrator role profile linked 1:1 to Staff.
 // Can create EmploymentForm for new hires and manage case assignments (HR-only privilege).
+@Getter
+@Setter
 @Entity
 public class HR {
     @Id
@@ -13,35 +18,14 @@ public class HR {
 
     @OneToOne(optional = false)
     @JoinColumn(name = "staff_id", nullable = false, unique = true)
+    @NotNull(message = "Staff cannot be null")
     Staff staff;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Department cannot be null")
     Department department;
 
     public HR() {
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Staff getStaff() {
-        return staff;
-    }
-
-    public void setStaff(Staff staff) {
-        this.staff = staff;
-    }
-
-    public Department getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(Department department) {
-        this.department = department;
-    }
 }

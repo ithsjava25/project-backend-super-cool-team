@@ -1,12 +1,21 @@
 package org.example.cyberwatch.features.staff.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.example.cyberwatch.features.form.model.ReportForm;
+import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
 
+import java.util.HashSet;
+import java.util.Set;
+
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
 //Differs from Employee form wich is the process/form HR uses to create a new employee.
+@Getter
+@Setter
 @Entity
 public class Staff {
     @Id
@@ -15,94 +24,46 @@ public class Staff {
     Long id;
 
     @Column(name = "social_security_number", nullable = false, unique = true)
+    @NotBlank(message = "Social security number cannot be blank")
+    @Pattern(regexp = "\\d{6}-\\d{4}|\\d{8}-\\d{4}", message = "Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN")
     String socialSecurityNumber;
 
     @Column(name = "first_name")
+    @NotBlank(message = "First name cannot be blank")
+    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
     String firstName;
 
     @Column(name = "last_name")
+    @NotBlank(message = "Last name cannot be blank")
+    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     String lastName;
 
     @Email(message = "Email should be valid")
+    @NotBlank(message = "Email cannot be blank")
     String email;
 
     @Column(name = "phone_number")
+    @NotBlank(message = "Phone number cannot be blank")
+    @Pattern(regexp = "^\\d{7,15}$", message = "Phone number must be between 7 and 15 digits")
     String phoneNumber;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Role cannot be null")
     Role role;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Department cannot be null")
     Department department;
 
+    // An employee can have many reports
+    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ReportForm> reportForms = new HashSet<>();
+
+    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Ticket> assignedTickets = new HashSet<>();
 
     public Staff() {
 
     }
-
-    public String getSocialSecurityNumber() {
-        return socialSecurityNumber;
-    }
-
-    public void setSocialSecurityNumber(String socialSecurityNumber) {
-        this.socialSecurityNumber = socialSecurityNumber;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public Department getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(Department department) {
-        this.department = department;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
 
 }
