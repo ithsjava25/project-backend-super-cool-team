@@ -30,7 +30,6 @@ public class Management {
     Department department;
 
     @OneToMany(mappedBy = "approvedBy")
-    @Column(name = "approved_forms")
     private Set<EmploymentForm> approvedForms;
 
     public Management() {

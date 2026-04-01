@@ -33,7 +33,6 @@ public class ReportForm {
     @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
     String description;
 
-    @NotNull(message = "Report date cannot be null")
     @CreationTimestamp
     LocalDateTime reportDate;
 

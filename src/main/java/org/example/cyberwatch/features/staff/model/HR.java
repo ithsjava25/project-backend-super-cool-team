@@ -29,7 +29,6 @@ public class HR {
     Department department;
 
     @OneToMany(mappedBy = "createdBy")
-    @Column(name = "created_forms")
     private Set<EmploymentForm> createdForms;
 
     public HR() {

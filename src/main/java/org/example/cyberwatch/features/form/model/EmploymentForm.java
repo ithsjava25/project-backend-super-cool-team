@@ -71,7 +71,7 @@ public class EmploymentForm {
     private HR createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approver_staff_id", nullable = true)
+    @JoinColumn(name = "approver_management_id", nullable = true)
     private Management approvedBy;
     public EmploymentForm() {
     }

@@ -1,5 +1,6 @@
 package org.example.cyberwatch.features.form.model;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -30,7 +31,6 @@ public class ReportFormDTO {
     @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
     private String description;
 
-    @NotNull(message = "Report date cannot be null")
     private LocalDateTime reportDate;
 
     @NotNull(message = "Priority cannot be null")
@@ -48,6 +48,7 @@ public class ReportFormDTO {
     @NotNull(message = "Staff ID cannot be null")
     private Long staffId;
 
+    @Valid
     private Set<AttachmentDTO> attachments;
 
 }
