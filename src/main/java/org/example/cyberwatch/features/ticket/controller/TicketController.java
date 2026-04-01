@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.ticket.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.AssignTicketDTO;
 import org.example.cyberwatch.features.ticket.model.Ticket;
@@ -31,7 +32,7 @@ public class TicketController {
     @PutMapping("/{ticketId}/assign")
     public ResponseEntity<Ticket> assignTicketToStaff(
             @PathVariable Long ticketId,
-            @RequestBody AssignTicketDTO dto
+            @Valid @RequestBody AssignTicketDTO dto
     ) {
         return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId()));
     }
