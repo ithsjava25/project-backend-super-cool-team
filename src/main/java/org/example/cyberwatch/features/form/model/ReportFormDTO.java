@@ -1,69 +1,53 @@
 package org.example.cyberwatch.features.form.model;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.IssueType;
 import org.example.cyberwatch.shared.model.enums.Priority;
 import org.example.cyberwatch.shared.model.enums.Status;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 @Setter
-@Entity
-public class ReportForm {
+@AllArgsConstructor
+public class ReportFormDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @NotNull(message = "Title cannot be null")
     @Size(min = 5, max = 100, message = "Title must be between 5 and 100 characters")
-    String title;
+    private String title;
 
     @NotNull(message = "Description cannot be null")
     @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
-    String description;
+    private String description;
 
     @NotNull(message = "Report date cannot be null")
-    @CreationTimestamp
-    LocalDateTime reportDate;
+    private LocalDateTime reportDate;
 
     @NotNull(message = "Priority cannot be null")
-    @Enumerated(EnumType.STRING)
-    Priority priority;
+    private Priority priority;
 
     @NotNull(message = "Status cannot be null")
-    @Enumerated(EnumType.STRING)
-    Status status;
+    private Status status;
 
     @NotNull(message = "Issue type cannot be null")
-    @Enumerated(EnumType.STRING)
-    IssueType issueType;
+    private IssueType issueType;
 
     @NotNull(message = "Department cannot be null")
-    @Enumerated(EnumType.STRING)
-    Department department;
+    private Department department;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "staff_id", nullable = false)
-    @NotNull(message = "Staff cannot be null")
-    private Staff staff;
+    @NotNull(message = "Staff ID cannot be null")
+    private Long staffId;
 
-    @OneToMany(mappedBy = "reportForm", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderColumn(name = "attachment_order")
-    private Set<Attachment> attachments = new HashSet<>();
+    private Set<AttachmentDTO> attachments;
 
-    public ReportForm() {
-
+    public ReportFormDTO() {
     }
-
 }
