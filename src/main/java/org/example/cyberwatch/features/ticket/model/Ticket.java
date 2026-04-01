@@ -28,7 +28,7 @@ public class Ticket {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.SUBMITTED; // Startar som SUBMITTED per ert flöde
+    private Status status = Status.SUBMITTED; // Startar som SUBMITTED
 
     @Enumerated(EnumType.STRING)
     private Priority priority;
