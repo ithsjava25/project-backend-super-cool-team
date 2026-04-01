@@ -7,6 +7,8 @@ import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.IssueType;
 import org.example.cyberwatch.shared.model.enums.Priority;
 import org.example.cyberwatch.shared.model.enums.Status;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -44,19 +46,11 @@ public class Ticket {
     @JoinColumn(name = "assigned_to_id")
     private Staff assignedTo; // Handläggaren
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     // Statusövergång enligt vårat flöde
     public void advanceStatus() {
@@ -66,7 +60,7 @@ public class Ticket {
             case WAITING_FOR_USER -> Status.IN_PROGRESS;
             case RESOLVED         -> Status.CLOSED;
             case REOPENED         -> Status.IN_PROGRESS;
-            case CLOSED           -> throw new IllegalStateException("Ticketen är redan stängt. Återöppna det först.");
+            case CLOSED           -> throw new IllegalStateException("Ärendet är redan stängt. Återöppna det först.");
             default               -> throw new IllegalStateException("Ogiltig status: " + this.status);
         };
     }

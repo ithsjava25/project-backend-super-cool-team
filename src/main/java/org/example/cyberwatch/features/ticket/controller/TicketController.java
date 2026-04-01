@@ -1,6 +1,8 @@
 package org.example.cyberwatch.features.ticket.controller;
 
+import jakarta.validation.Valid;
 import org.example.cyberwatch.features.ticket.model.Ticket;
+import org.example.cyberwatch.features.ticket.model.TicketDTO;
 import org.example.cyberwatch.features.ticket.service.TicketService;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +22,8 @@ public class TicketController {
 
     // POST /api/tickets — Skapa nytt ärende
     @PostMapping
-    public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
-        return ResponseEntity.ok(ticketService.createTicket(ticket));
+    public ResponseEntity<Ticket> createTicket(@Valid @RequestBody TicketDTO dto) {
+        return ResponseEntity.ok(ticketService.createTicket(dto));
     }
 
     // GET /api/tickets — Hämta alla ärenden

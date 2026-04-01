@@ -4,6 +4,7 @@ import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.Ticket;
+import org.example.cyberwatch.features.ticket.model.TicketDTO;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,22 @@ public class TicketService {
     // Skapa ett nytt ärende — startar alltid som SUBMITTED
     public Ticket createTicket(Ticket ticket) {
         ticket.setStatus(Status.SUBMITTED);
+        return ticketRepository.save(ticket);
+    }
+
+    // Skapa ett nytt ärende
+    public Ticket createTicket(TicketDTO dto) {
+        Staff creator = staffRepository.findById(dto.getCreatedById())
+                .orElseThrow(() -> new RuntimeException("Staff med id " + dto.getCreatedById() + " hittades inte"));
+
+        Ticket ticket = new Ticket();
+        ticket.setTitle(dto.getTitle());
+        ticket.setDescription(dto.getDescription());
+        ticket.setPriority(dto.getPriority());
+        ticket.setIssueType(dto.getIssueType());
+        ticket.setCreatedBy(creator);
+        ticket.setStatus(Status.SUBMITTED);
+
         return ticketRepository.save(ticket);
     }
 
