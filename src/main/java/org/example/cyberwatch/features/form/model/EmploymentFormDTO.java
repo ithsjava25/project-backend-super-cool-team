@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.cyberwatch.shared.model.enums.Status;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class EmploymentFormDTO {
 
     private Long id;
@@ -36,7 +38,5 @@ public class EmploymentFormDTO {
 
     private Long approverStaffId;
 
-    public EmploymentFormDTO() {
-    }
 }
 

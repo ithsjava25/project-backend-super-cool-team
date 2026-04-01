@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.IssueType;
@@ -16,6 +17,7 @@ import java.util.Set;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ReportFormDTO {
 
     private Long id;
