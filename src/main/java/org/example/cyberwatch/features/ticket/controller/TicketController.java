@@ -29,6 +29,7 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.createTicket(dto));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{ticketId}/assign")
     public ResponseEntity<Ticket> assignTicketToStaff(
             @PathVariable Long ticketId,
