@@ -56,7 +56,7 @@ public class Staff {
     Department department;
 
     // An employee can have many reports
-    @OneToMany(mappedBy = "staff", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ReportForm> reportForms = new HashSet<>();
 
     @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.form.model;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,11 +24,11 @@ public class ReportFormDTO {
 
     private Long id;
 
-    @NotNull(message = "Title cannot be null")
+    @NotBlank(message = "Title cannot be blank")
     @Size(min = 5, max = 100, message = "Title must be between 5 and 100 characters")
     private String title;
 
-    @NotNull(message = "Description cannot be null")
+    @NotBlank(message = "Description cannot be blank")
     @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
     private String description;
 

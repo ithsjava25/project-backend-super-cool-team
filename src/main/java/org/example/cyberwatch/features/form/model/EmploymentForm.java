@@ -62,7 +62,6 @@ public class EmploymentForm {
     Status status;
 
     @Column(name = "created_date")
-    @NotNull(message = "Created date cannot be null")
     @CreationTimestamp
     LocalDateTime createdDate;
 
