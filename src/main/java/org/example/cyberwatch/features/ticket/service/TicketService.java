@@ -10,6 +10,9 @@ import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
+import org.example.cyberwatch.features.staff.model.Staff;
+import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
@@ -27,6 +30,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketAttachmentRepository ticketAttachmentRepository;
+    private final StaffRepository staffRepository;
     private final S3Client s3Client;
 
     @Value("${app.s3.endpoint}")
@@ -36,10 +40,12 @@ public class TicketService {
     private String bucket;
 
     public TicketService(TicketRepository ticketRepository,
+                         StaffRepository staffRepository,
                          TicketAttachmentRepository ticketAttachmentRepository,
                          S3Client s3Client) {
         this.ticketRepository = ticketRepository;
         this.ticketAttachmentRepository = ticketAttachmentRepository;
+        this.staffRepository = staffRepository;
         this.s3Client = s3Client;
     }
 
@@ -49,6 +55,20 @@ public class TicketService {
         ticket.setDescription(dto.getDescription());
         ticket.setPriority(dto.getPriority());
         ticket.setStatus(Status.SUBMITTED);
+
+        return ticketRepository.save(ticket);
+    }
+
+    public Ticket assignTicketToStaff(Long ticketId, Long staffId) {
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id " + ticketId));
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id " + staffId));
+
+        ticket.setAssignee(staff);
+        ticket.setStatus(Status.IN_PROGRESS);
 
         return ticketRepository.save(ticket);
     }
