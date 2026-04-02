@@ -67,11 +67,11 @@ public class EmploymentForm {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hr_id", nullable = true)
-    private HR createdBy;
+    HR createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approver_management_id", nullable = true)
-    private Management approvedBy;
+    Management approvedBy;
     public EmploymentForm() {
     }
 

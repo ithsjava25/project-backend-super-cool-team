@@ -56,11 +56,11 @@ public class ReportForm {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false)
     @NotNull(message = "Staff cannot be null")
-    private Staff createdBy;
+    Staff createdBy;
 
     @OneToMany(mappedBy = "reportForm", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "attachment_order")
-    private Set<Attachment> attachments = new HashSet<>();
+    Set<Attachment> attachments = new HashSet<>();
 
     public ReportForm() {
 

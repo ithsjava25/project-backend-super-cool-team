@@ -30,7 +30,7 @@ public class Management {
     Department department;
 
     @OneToMany(mappedBy = "approvedBy")
-    private Set<EmploymentForm> approvedForms;
+    Set<EmploymentForm> approvedForms;
 
     public Management() {
     }

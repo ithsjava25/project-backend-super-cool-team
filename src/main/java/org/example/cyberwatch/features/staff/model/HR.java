@@ -29,7 +29,7 @@ public class HR {
     Department department;
 
     @OneToMany(mappedBy = "createdBy")
-    private Set<EmploymentForm> createdForms;
+    Set<EmploymentForm> createdForms;
 
     public HR() {
     }
