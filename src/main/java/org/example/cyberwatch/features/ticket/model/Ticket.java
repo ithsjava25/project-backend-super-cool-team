@@ -42,9 +42,15 @@ public class Ticket {
     @JoinColumn(name = "created_by_id")
     private Staff createdBy;
 
+    // Younes fält — den som tilldelats via assignTicket()
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to_id")
     private Staff assignedTo;
+
+    // Eric's fält — den som tilldelats via assignTicketToStaff()
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+    private Staff assignee;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

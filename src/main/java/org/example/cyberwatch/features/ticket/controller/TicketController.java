@@ -1,15 +1,21 @@
 package org.example.cyberwatch.features.ticket.controller;
 
 import jakarta.validation.Valid;
+import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
+import org.example.cyberwatch.features.ticket.model.AssignTicketDTO;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
 import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
 import org.example.cyberwatch.features.ticket.service.TicketService;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -53,9 +59,24 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.reopenTicket(id));
     }
 
-    @PatchMapping("/{id}/assign")
-    public ResponseEntity<TicketResponseDTO> assign(@PathVariable Long id,
-                                                    @RequestParam Long staffId) {
-        return ResponseEntity.ok(ticketService.assignTicket(id, staffId));
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{ticketId}/assign")
+    public ResponseEntity<TicketResponseDTO> assignTicketToStaff(
+            @PathVariable Long ticketId,
+            @Valid @RequestBody AssignTicketDTO dto) {
+        return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId()));
+    }
+
+    @PostMapping(value = "/{ticketId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadFile(
+            @PathVariable Long ticketId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(ticketService.uploadFile(ticketId, file));
+        } catch (TicketNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File upload failed"));
+        }
     }
 }

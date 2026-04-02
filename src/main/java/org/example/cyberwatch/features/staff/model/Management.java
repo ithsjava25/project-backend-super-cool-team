@@ -1,48 +1,38 @@
 package org.example.cyberwatch.features.staff.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.shared.model.enums.Department;
+
+import java.util.Set;
 
 // Represents a manager/supervisor role, role profile linked 1:1 to a Staff entity.
 // Can approve and oversee cases assigned to their department.
+@Getter
+@Setter
 @Entity
 public class Management {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @OneToOne(optional = false)
     @JoinColumn(name = "staff_id", nullable = false, unique = true)
-    Staff staff;
+    @NotNull(message = "Staff cannot be null")
+    private Staff staff;
 
     @Enumerated(EnumType.STRING)
-    Department department;
+    @NotNull(message = "Department cannot be null")
+    private Department department;
+
+    @OneToMany(mappedBy = "approvedBy")
+    private Set<EmploymentForm> approvedForms;
 
     public Management() {
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Staff getStaff() {
-        return staff;
-    }
-
-    public void setStaff(Staff staff) {
-        this.staff = staff;
-    }
-
-    public Department getDepartment() {
-        return department;
-    }
-
-    public void setDepartment(Department department) {
-        this.department = department;
-    }
 }

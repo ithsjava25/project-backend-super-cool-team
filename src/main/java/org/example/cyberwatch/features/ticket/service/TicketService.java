@@ -113,6 +113,16 @@ public class TicketService {
         return TicketResponseDTO.from(ticketRepository.save(ticket));
     }
 
+    public Ticket assignTicketToStaff(Long ticketId, Long staffId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new StaffNotFoundException(staffId));
+        ticket.setAssignee(staff);
+        ticket.setStatus(Status.IN_PROGRESS);
+        return ticketRepository.save(ticket);
+    }
+
     public Map<String, Object> uploadFile(Long ticketId, MultipartFile file) throws IOException {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));

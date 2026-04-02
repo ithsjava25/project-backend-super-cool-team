@@ -59,4 +59,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }
+
+    // Från klasskamraten — generell fallback
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleOtherErrors(Exception e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", "An unexpected error occurred");
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
