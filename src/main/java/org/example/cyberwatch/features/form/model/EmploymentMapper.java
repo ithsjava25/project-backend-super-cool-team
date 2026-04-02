@@ -24,17 +24,9 @@ public class EmploymentMapper {
         );
     }
 
-    public EmploymentForm toEntity(EmploymentFormDTO dto) {
+    public EmploymentForm toEntity(CreateEmploymentDTO dto) {
+        if (dto == null) return null;
         EmploymentForm entity = new EmploymentForm();
-        return mapDtoToEntity(dto, entity);
-    }
-
-    //Update an already created entity, without new
-    public EmploymentForm updateEntity(EmploymentFormDTO dto, EmploymentForm entity) {
-        return mapDtoToEntity(dto, entity);
-    }
-
-    private EmploymentForm mapDtoToEntity(EmploymentFormDTO dto, EmploymentForm entity) {
         entity.setSocialSecurityNumber(dto.getSocialSecurityNumber());
         entity.setFirstName(dto.getFirstName());
         entity.setLastName(dto.getLastName());
@@ -46,6 +38,14 @@ public class EmploymentMapper {
         // NOTE: Service layer is responsible for setting HR and ApproverManagement relationships
         return entity;
     }
+    //Update an already created entity, without new
+    public void updateEntity(UpdateEmploymentDTO dto, EmploymentForm entity) {
+        if (dto == null || entity == null) return;
+
+        if (dto.getStatus() != null)
+            entity.setStatus(dto.getStatus());
+    }
+
 
     public List<EmploymentFormDTO> toDTOList(List<EmploymentForm> entities) {
         return entities.stream()
