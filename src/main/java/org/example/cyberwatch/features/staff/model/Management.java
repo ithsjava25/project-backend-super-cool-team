@@ -18,19 +18,19 @@ public class Management {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @OneToOne(optional = false)
     @JoinColumn(name = "staff_id", nullable = false, unique = true)
     @NotNull(message = "Staff cannot be null")
-    Staff staff;
+    private Staff staff;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Department cannot be null")
-    Department department;
+    private Department department;
 
     @OneToMany(mappedBy = "approvedBy")
-    Set<EmploymentForm> approvedForms;
+    private Set<EmploymentForm> approvedForms;
 
     public Management() {
     }

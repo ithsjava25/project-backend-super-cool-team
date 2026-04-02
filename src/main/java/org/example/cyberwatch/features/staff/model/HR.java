@@ -17,19 +17,19 @@ import java.util.Set;
 public class HR {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @OneToOne(optional = false)
     @JoinColumn(name = "staff_id", nullable = false, unique = true)
     @NotNull(message = "Staff cannot be null")
-    Staff staff;
+    private Staff staff;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Department cannot be null")
-    Department department;
+    private Department department;
 
     @OneToMany(mappedBy = "createdBy")
-    Set<EmploymentForm> createdForms;
+    private Set<EmploymentForm> createdForms;
 
     public HR() {
     }

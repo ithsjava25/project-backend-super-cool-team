@@ -24,43 +24,43 @@ public class ReportForm {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @NotBlank(message = "Title cannot be blank")
     @Size(min = 5, max = 100, message = "Title must be between 5 and 100 characters")
-    String title;
+    private String title;
 
     @NotBlank(message = "Description cannot be blank")
     @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
-    String description;
+    private String description;
 
     @CreationTimestamp
-    LocalDateTime reportDate;
+    private LocalDateTime reportDate;
 
     @NotNull(message = "Priority cannot be null")
     @Enumerated(EnumType.STRING)
-    Priority priority;
+    private Priority priority;
 
     @NotNull(message = "Status cannot be null")
     @Enumerated(EnumType.STRING)
-    Status status;
+    private Status status;
 
     @NotNull(message = "Issue type cannot be null")
     @Enumerated(EnumType.STRING)
-    IssueType issueType;
+    private IssueType issueType;
 
     @NotNull(message = "Department cannot be null")
     @Enumerated(EnumType.STRING)
-    Department department;
+    private Department department;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id", nullable = false)
     @NotNull(message = "Staff cannot be null")
-    Staff createdBy;
+    private Staff createdBy;
 
     @OneToMany(mappedBy = "reportForm", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "attachment_order")
-    Set<Attachment> attachments = new HashSet<>();
+    private Set<Attachment> attachments = new HashSet<>();
 
     public ReportForm() {
 
