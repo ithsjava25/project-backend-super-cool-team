@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.ticket.model;
 
 import jakarta.persistence.*;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.Priority;
 import org.example.cyberwatch.shared.model.enums.Status;
 
@@ -20,6 +21,10 @@ public class Ticket {
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @ManyToOne
+    @JoinColumn(name = "assignee_id")
+    private Staff assignee;
 
     public Ticket() {
     }
@@ -44,6 +49,10 @@ public class Ticket {
         return status;
     }
 
+    public Staff getAssignee() {
+        return assignee;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -62,5 +71,9 @@ public class Ticket {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public void setAssignee(Staff assignee) {
+        this.assignee = assignee;
     }
 }
