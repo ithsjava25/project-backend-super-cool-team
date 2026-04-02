@@ -70,6 +70,12 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId()));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
+        ticketService.deleteTicket(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/{ticketId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(
             @PathVariable Long ticketId,

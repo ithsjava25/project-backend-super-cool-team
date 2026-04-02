@@ -201,6 +201,12 @@ public class TicketService {
         return response;
     }
 
+    public void deleteTicket(Long id) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+        ticketRepository.delete(ticket);
+    }
+
     private void validateStatusTransition(Status current, Status next) {
         boolean valid = switch (current) {
             case DRAFT            -> next == Status.SUBMITTED;
