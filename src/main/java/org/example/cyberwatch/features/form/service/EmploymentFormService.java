@@ -6,8 +6,10 @@ import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class EmploymentFormService {
 
     private final EmploymentFormRepository employmentFormRepository;
@@ -21,6 +23,7 @@ public class EmploymentFormService {
     }
 
     //Create employment & insert in staff.java
+    @Transactional
     public void createEmployee(CreateEmploymentDTO dto) {
         if (dto == null) {
             throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
@@ -40,7 +43,12 @@ public class EmploymentFormService {
         //3. If status is approved, create Staff entity and save to database
 
         if (dto.getStatus() == Status.APPROVED) {
-            staffRepository.save(employmentMapper.toEntity(dto));
+            try {
+                staffRepository.save(employmentMapper.formToStaff(employmentMapper.toEntity(dto)));
+            } catch (Exception e) {
+                // Handle exceptions that may occur during the save operation
+                throw new RuntimeException("Failed to save Staff: " + e.getMessage(), e);
+            }
         }
 
     }

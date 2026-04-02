@@ -1,5 +1,6 @@
 package org.example.cyberwatch.features.form.model;
 
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -38,6 +39,20 @@ public class EmploymentMapper {
         // NOTE: Service layer is responsible for setting HR and ApproverManagement relationships
         return entity;
     }
+
+    public Staff formToStaff(EmploymentForm form) {
+        if (form == null) return null;
+        Staff staff = new Staff();
+        staff.setSocialSecurityNumber(form.getSocialSecurityNumber());
+        staff.setFirstName(form.getFirstName());
+        staff.setLastName(form.getLastName());
+        staff.setEmail(form.getEmail());
+        staff.setPhoneNumber(form.getPhoneNumber());
+        staff.setRole(form.getRole());
+        staff.setDepartment(form.getDepartment());
+        return staff;
+    }
+
     //Update an already created entity, without new
     public void updateEntity(UpdateEmploymentDTO dto, EmploymentForm entity) {
         if (dto == null || entity == null) return;
