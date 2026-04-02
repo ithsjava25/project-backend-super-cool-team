@@ -7,7 +7,7 @@ import org.example.cyberwatch.features.form.model.EmploymentMapper;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
-import org.example.cyberwatch.shared.model.enums.Status;
+import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,13 +34,14 @@ public class EmploymentFormService {
 
 //IMPORTANTE: Implement safetynet for duplicated ssn
 
-        if (dto.getStatus() == null) dto.setStatus(Status.PENDING); // Set default status to PENDING if not provided
+        if (dto.getStatus() == null)
+            dto.setStatus(ApprovalStatus.PENDING); // Set default status to PENDING if not provided
 
 //NOTE: setHrId() will be based om the logged in HR-staff
         EmploymentForm formEntity = employmentMapper.toEntity(dto);
         EmploymentForm savedForm = employmentFormRepository.save(formEntity);
 
-        if (dto.getStatus() == Status.APPROVED) {
+        if (dto.getStatus() == ApprovalStatus.APPROVED) {
             Staff newStaff = employmentMapper.formToStaff(savedForm);
             staffRepository.save(newStaff);
         }
@@ -48,7 +49,7 @@ public class EmploymentFormService {
     }
 
     public List<EmploymentFormDTO> getPendingForms() {
-        return employmentMapper.toDTOList(employmentFormRepository.findByStatus(Status.PENDING));
+        return employmentMapper.toDTOList(employmentFormRepository.findByStatus(ApprovalStatus.PENDING));
     }
 
     //view

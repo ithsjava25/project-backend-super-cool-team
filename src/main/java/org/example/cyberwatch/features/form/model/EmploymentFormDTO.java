@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
-import org.example.cyberwatch.shared.model.enums.Status;
 
 import java.time.LocalDateTime;
 
@@ -32,7 +32,7 @@ public class EmploymentFormDTO {
 
     private Department department;
 
-    private Status status;
+    private ApprovalStatus status;
 
     private LocalDateTime createdDate;
 

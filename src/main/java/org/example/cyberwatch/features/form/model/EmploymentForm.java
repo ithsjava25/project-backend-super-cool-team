@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.cyberwatch.features.staff.model.HR;
 import org.example.cyberwatch.features.staff.model.Management;
+import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
-import org.example.cyberwatch.shared.model.enums.Status;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -59,7 +59,7 @@ public class EmploymentForm {
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Status cannot be null")
-    private Status status;
+    private ApprovalStatus status;
 
     @Column(name = "created_date", nullable = false)
     @CreationTimestamp
