@@ -1,12 +1,17 @@
 package org.example.cyberwatch.features.form.service;
 
 import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
+import org.example.cyberwatch.features.form.model.EmploymentForm;
+import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.model.EmploymentMapper;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -24,34 +29,28 @@ public class EmploymentFormService {
 
     //Create employment & insert in staff.java
     @Transactional
-    public void createEmployee(CreateEmploymentDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
+    public EmploymentFormDTO createEmployee(CreateEmploymentDTO dto) {
+        if (dto == null) throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
 
-        }
-        if (dto.getStatus() == null) {
-            dto.setStatus(Status.PENDING); // Set default status to PENDING if not provided
-        }
+//IMPORTANTE: Implement safetynet for duplicated ssn
 
-        try {
-            //Saved successfully
-            employmentFormRepository.save(employmentMapper.toEntity(dto));
-        } catch (Exception e) {
-            // Handle exceptions that may occur during the save operation
-            throw new RuntimeException("Failed to save EmploymentForm: " + e.getMessage(), e);
-        }
-        //3. If status is approved, create Staff entity and save to database
+        if (dto.getStatus() == null) dto.setStatus(Status.PENDING); // Set default status to PENDING if not provided
+
+//NOTE: setHrId() will be based om the logged in HR-staff
+        EmploymentForm formEntity = employmentMapper.toEntity(dto);
+        EmploymentForm savedForm = employmentFormRepository.save(formEntity);
 
         if (dto.getStatus() == Status.APPROVED) {
-            try {
-                staffRepository.save(employmentMapper.formToStaff(employmentMapper.toEntity(dto)));
-            } catch (Exception e) {
-                // Handle exceptions that may occur during the save operation
-                throw new RuntimeException("Failed to save Staff: " + e.getMessage(), e);
-            }
+            Staff newStaff = employmentMapper.formToStaff(savedForm);
+            staffRepository.save(newStaff);
         }
-
+        return employmentMapper.toDTO(savedForm);
     }
+
+    public List<EmploymentFormDTO> getPendingForms() {
+        return employmentMapper.toDTOList(employmentFormRepository.findByStatus(Status.PENDING));
+    }
+
     //view
     //show all employmentforms with status waiting for approval
 
