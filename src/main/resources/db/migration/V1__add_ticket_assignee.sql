@@ -3,4 +3,4 @@ ALTER TABLE ticket
 
 ALTER TABLE ticket
     ADD CONSTRAINT fk_ticket_assignee
-        FOREIGN KEY (assignee_id) REFERENCES staff(id);
+        FOREIGN KEY (assignee_id) REFERENCES staff(employee_id);
