@@ -72,6 +72,7 @@ public class EmploymentForm {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approver_management_id", nullable = true)
     private Management approvedBy;
+
     public EmploymentForm() {
     }
 
