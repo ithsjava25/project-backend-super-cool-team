@@ -56,6 +56,7 @@ public class EmploymentFormService {
 
 
     //When approved by management delete the form from the database, and add the employee to staff
+    @Transactional
     public void approveAndFinalizeEmployment(Long formId) {
         if (formId == null) throw new IllegalArgumentException("EmploymentFormDTO cannot be null");
 

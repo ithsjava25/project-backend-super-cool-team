@@ -26,6 +26,12 @@ public class EmploymentFormController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<Void> approveForm(@PathVariable Long id) {
+        employmentFormService.approveAndFinalizeEmployment(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/pending")
     public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
         List<EmploymentFormDTO> pendingForms = employmentFormService.getPendingForms();
