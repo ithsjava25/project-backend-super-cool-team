@@ -22,7 +22,7 @@ public class EmploymentFormController {
 
     @PostMapping("/employment")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto) {
-        EmploymentFormDTO createdForm = employmentFormService.createEmployee(dto);
+        EmploymentFormDTO createdForm = employmentFormService.createForm(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 

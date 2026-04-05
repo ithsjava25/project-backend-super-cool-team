@@ -1,5 +1,6 @@
 package org.example.cyberwatch.features.form.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
@@ -29,32 +30,46 @@ public class EmploymentFormService {
 
     //Create employment & insert in staff.java
     @Transactional
-    public EmploymentFormDTO createEmployee(CreateEmploymentDTO dto) {
-        if (dto == null) throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
+    public EmploymentFormDTO createForm(CreateEmploymentDTO form) {
+        if (form == null) throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
 
-//IMPORTANTE: Implement safetynet for duplicated ssn
-
-        if (dto.getStatus() == null)
-            dto.setStatus(ApprovalStatus.PENDING); // Set default status to PENDING if not provided
-
-//NOTE: setHrId() will be based om the logged in HR-staff
-        EmploymentForm formEntity = employmentMapper.toEntity(dto);
-        EmploymentForm savedForm = employmentFormRepository.save(formEntity);
-
-        if (dto.getStatus() == ApprovalStatus.APPROVED) {
-            Staff newStaff = employmentMapper.formToStaff(savedForm);
-            staffRepository.save(newStaff);
+        //Implement safetynet for duplicated ssn
+        if (employmentFormRepository.existsBySocialSecurityNumber(form.getSocialSecurityNumber())) {
+            throw new IllegalStateException("An application with this SSN already exists.");
         }
-        return employmentMapper.toDTO(savedForm);
+
+        //NOTE: setHrId() will be based om the logged in HR-staff
+        EmploymentForm formEntity = employmentMapper.toEntity(form);
+        // Set default status to PENDING if not provided
+        if (form.getStatus() == null)
+            form.setStatus(ApprovalStatus.PENDING);
+
+        return employmentMapper.toDTO(employmentFormRepository.save(formEntity));
     }
 
+
+    //view: show all employmentforms with status waiting for approval
     public List<EmploymentFormDTO> getPendingForms() {
+        //if list is empty show empty list in UI
         return employmentMapper.toDTOList(employmentFormRepository.findByStatus(ApprovalStatus.PENDING));
     }
 
-    //view
-    //show all employmentforms with status waiting for approval
 
-    //delete
-    //When approved by management delete
+    //When approved by management delete the form from the database, and add the employee to staff
+    public void approveAndFinalizeEmployment(Long formId) {
+        if (formId == null) throw new IllegalArgumentException("EmploymentFormDTO cannot be null");
+
+        EmploymentForm form = employmentFormRepository.findById(formId)
+                .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+
+        if (form.getStatus() != ApprovalStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING forms can be approved.");
+        }
+
+        Staff newStaff = employmentMapper.formToStaff(form);
+        staffRepository.save(newStaff);
+
+        employmentFormRepository.delete(form);
+
+    }
 }
