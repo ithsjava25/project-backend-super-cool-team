@@ -66,8 +66,9 @@ public class TicketController {
     @PutMapping("/{ticketId}/assign")
     public ResponseEntity<TicketResponseDTO> assignTicketToStaff(
             @PathVariable Long ticketId,
+            @RequestParam Long assignedById,
             @Valid @RequestBody AssignTicketDTO dto) {
-        return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId()));
+        return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId(), assignedById));
     }
 
     @DeleteMapping("/{id}")

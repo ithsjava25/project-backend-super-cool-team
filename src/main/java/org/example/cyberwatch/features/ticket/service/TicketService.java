@@ -132,16 +132,18 @@ public class TicketService {
         return TicketResponseDTO.from(ticketRepository.save(ticket));
     }
 
-    public Ticket assignTicketToStaff(Long ticketId, Long staffId) {
+    public Ticket assignTicketToStaff(Long ticketId, Long staffId, Long assignedById) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new StaffNotFoundException(staffId));
+        Staff assigner = staffRepository.findById(assignedById)
+                .orElseThrow(() -> new StaffNotFoundException(assignedById));
         Status oldStatus = ticket.getStatus();
         ticket.setAssignee(staff);
         ticket.setStatus(Status.IN_PROGRESS);
         Ticket saved = ticketRepository.save(ticket);
-        activityLogService.logStatusChange(saved, staff, oldStatus, Status.IN_PROGRESS);
+        activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
         return saved;
     }
 
