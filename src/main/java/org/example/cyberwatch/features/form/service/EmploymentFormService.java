@@ -38,13 +38,17 @@ public class EmploymentFormService {
             throw new IllegalStateException("An application with this SSN already exists.");
         }
 
+        if (staffRepository.existsBySocialSecurityNumber(form.getSocialSecurityNumber())) {
+            throw new IllegalStateException("An employee with this SSN already exists.");
+        }
+
         //NOTE: setHrId() will be based om the logged in HR-staff
         Staff hrStaff = staffRepository.findByEmail(loggedInHr) // <-- Antar att du har en sådan metod i repo
                 .orElseThrow(() -> new EntityNotFoundException("HR staff not found with username: " + loggedInHr));
         EmploymentForm formEntity = employmentMapper.toEntity(form);
         // Set default status to PENDING if not provided
-        if (form.getStatus() == null)
-            form.setStatus(ApprovalStatus.PENDING);
+        if (formEntity.getStatus() == null)
+            formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
 
         return employmentMapper.toDTO(employmentFormRepository.save(formEntity));

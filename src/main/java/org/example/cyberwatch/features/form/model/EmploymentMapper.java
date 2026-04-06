@@ -9,6 +9,7 @@ import java.util.List;
 public class EmploymentMapper {
 
     public EmploymentFormDTO toDTO(EmploymentForm entity) {
+        if (entity == null) return null;
         return new EmploymentFormDTO(
                 entity.getId(),
                 entity.getSocialSecurityNumber(),
@@ -51,14 +52,6 @@ public class EmploymentMapper {
         staff.setRole(form.getRole());
         staff.setDepartment(form.getDepartment());
         return staff;
-    }
-
-    //Update an already created entity, without new
-    public void updateEntity(UpdateEmploymentDTO dto, EmploymentForm entity) {
-        if (dto == null || entity == null) return;
-
-        if (dto.getStatus() != null)
-            entity.setStatus(dto.getStatus());
     }
 
 

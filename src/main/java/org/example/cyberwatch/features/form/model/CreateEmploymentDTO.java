@@ -43,7 +43,6 @@ public class CreateEmploymentDTO {
     @NotNull(message = "Department cannot be null")
     private Department department;
 
-    @NotNull(message = "Status cannot be null")
     private ApprovalStatus status;
 
     private LocalDateTime createdDate;

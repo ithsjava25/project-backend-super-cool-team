@@ -32,14 +32,14 @@ public class EmploymentFormController {
 
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasRole('CEO' || 'CTO')")
     public ResponseEntity<Void> approveForm(@PathVariable Long id) {
         employmentFormService.approveAndFinalizeEmployment(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasRole('MANAGER') or hasRole('HR')")
+    @PreAuthorize("hasRole('HR'||'CEO' || 'CTO')")
     public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
         List<EmploymentFormDTO> pendingForms = employmentFormService.getPendingForms();
         return ResponseEntity.ok(pendingForms);

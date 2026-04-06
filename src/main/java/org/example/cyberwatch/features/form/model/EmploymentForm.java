@@ -38,7 +38,7 @@ public class EmploymentForm {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Email should be valid")
     @NotBlank(message = "Email cannot be blank")
     private String email;
