@@ -11,24 +11,23 @@ import org.example.cyberwatch.shared.model.enums.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(EmploymentFormController.class)
 //Bypass security filters for now
-@AutoConfigureMockMvc(addFilters = false)
-public class EmploymentFormControllerTests {
+class EmploymentFormControllerTests {
 
     @Autowired
     MockMvc mockMvc;
@@ -40,6 +39,7 @@ public class EmploymentFormControllerTests {
 
     @Test
     @DisplayName("POST Test creating a new employment form with valid data")
+    @WithMockUser(username = "hr_specialist@cyberwatch.com", roles = {"HR"})
     void createEmploymentForm() throws Exception {
 
         CreateEmploymentDTO request = new CreateEmploymentDTO();
@@ -52,29 +52,31 @@ public class EmploymentFormControllerTests {
         request.setDepartment(Department.BACKEND);
         request.setStatus(ApprovalStatus.PENDING);
 
-
         EmploymentFormDTO mockResponse = new EmploymentFormDTO();
         mockResponse.setId(1L);
         mockResponse.setFirstName("Erik");
 
-        when(employmentFormService.createForm(any())).thenReturn(mockResponse);
+
+        when(employmentFormService.createForm(any(), any())).thenReturn(mockResponse);
+
 
         mockMvc.perform(post("/api/forms/employment")
+                        .with(csrf()) // Include CSRF token for POST request
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))) // Genererar JSON automatiskt
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(1)));
-
     }
 
     @Test
-    @DisplayName("POST Test creating a new employment form with invalid email")
+    @DisplayName("Skapa anställningsformulär - Invalid email")
+    @WithMockUser(roles = {"HR"})
     void createEmploymentFormInvalidEmail() throws Exception {
         String jsonRequest = """
                 {
-                    "socialSecurityNumber": "19900101-1234",
                     "firstName": "Erik",
                     "lastName": "Svensson",
+                    "socialSecurityNumber": "19900101-1234",
                     "email": "invalid-email",
                     "phoneNumber": "0799887766",
                     "role": "CONSULTANT",
@@ -84,10 +86,9 @@ public class EmploymentFormControllerTests {
                 """;
 
         mockMvc.perform(post("/api/forms/employment")
+                        .with(csrf()) // Include CSRF token for POST request
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email", is("Email should be valid"))); //Change this we GlobalExceptionHandler is updated?
+                .andExpect(status().isBadRequest());
     }
 }

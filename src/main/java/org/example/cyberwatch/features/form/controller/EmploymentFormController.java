@@ -7,6 +7,7 @@ import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,8 +24,9 @@ public class EmploymentFormController {
 
     @PostMapping("/employment")
     @PreAuthorize("hasRole('HR')")
-    public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto) {
-        EmploymentFormDTO createdForm = employmentFormService.createForm(dto);
+    public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto, Authentication authentication) {
+        String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
+        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, loggedInHr);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 

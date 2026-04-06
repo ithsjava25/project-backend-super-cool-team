@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.features.form.model.ReportForm;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.shared.model.enums.Department;
@@ -58,6 +59,9 @@ public class Staff {
     // An employee can have many reports
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ReportForm> reportForms = new HashSet<>();
+
+    @OneToMany(mappedBy = "createdBy")
+    private Set<EmploymentForm> createdForms;
 
     @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Ticket> assignedTickets = new HashSet<>();

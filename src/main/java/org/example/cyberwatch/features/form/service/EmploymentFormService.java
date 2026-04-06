@@ -30,7 +30,7 @@ public class EmploymentFormService {
 
     //Create employment & insert in staff.java
     @Transactional
-    public EmploymentFormDTO createForm(CreateEmploymentDTO form) {
+    public EmploymentFormDTO createForm(CreateEmploymentDTO form, String loggedInHr) {
         if (form == null) throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
 
         //Implement safetynet for duplicated ssn
@@ -39,10 +39,13 @@ public class EmploymentFormService {
         }
 
         //NOTE: setHrId() will be based om the logged in HR-staff
+        Staff hrStaff = staffRepository.findByEmail(loggedInHr) // <-- Antar att du har en sådan metod i repo
+                .orElseThrow(() -> new EntityNotFoundException("HR staff not found with username: " + loggedInHr));
         EmploymentForm formEntity = employmentMapper.toEntity(form);
         // Set default status to PENDING if not provided
         if (form.getStatus() == null)
             form.setStatus(ApprovalStatus.PENDING);
+        formEntity.setCreatedBy(hrStaff);
 
         return employmentMapper.toDTO(employmentFormRepository.save(formEntity));
     }

@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.cyberwatch.features.staff.model.HR;
-import org.example.cyberwatch.features.staff.model.Management;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
@@ -67,11 +66,11 @@ public class EmploymentForm {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hr_id", nullable = true)
-    private HR createdBy;
+    private Staff createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approver_management_id", nullable = true)
-    private Management approvedBy;
+    private Staff approvedBy;
 
     public EmploymentForm() {
     }
