@@ -44,35 +44,47 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/advance")
-    public ResponseEntity<TicketResponseDTO> advanceStatus(@PathVariable Long id) {
-        return ResponseEntity.ok(ticketService.advanceTicketStatus(id));
+    public ResponseEntity<TicketResponseDTO> advanceStatus(@PathVariable Long id,
+                                                           @RequestParam Long performedById) {
+        return ResponseEntity.ok(ticketService.advanceTicketStatus(id, performedById));
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<TicketResponseDTO> setStatus(@PathVariable Long id,
-                                                       @RequestParam Status status) {
-        return ResponseEntity.ok(ticketService.setTicketStatus(id, status));
+                                                       @RequestParam Status status,
+                                                       @RequestParam Long performedById) {
+        return ResponseEntity.ok(ticketService.setTicketStatus(id, status, performedById));
     }
 
     @PatchMapping("/{id}/reopen")
-    public ResponseEntity<TicketResponseDTO> reopen(@PathVariable Long id) {
-        return ResponseEntity.ok(ticketService.reopenTicket(id));
+    public ResponseEntity<TicketResponseDTO> reopen(@PathVariable Long id,
+                                                    @RequestParam Long performedById) {
+        return ResponseEntity.ok(ticketService.reopenTicket(id, performedById));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{ticketId}/assign")
     public ResponseEntity<TicketResponseDTO> assignTicketToStaff(
             @PathVariable Long ticketId,
+            @RequestParam Long assignedById,
             @Valid @RequestBody AssignTicketDTO dto) {
-        return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId()));
+        return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId(), assignedById));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
+        ticketService.deleteTicket(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/{ticketId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(
             @PathVariable Long ticketId,
+            @RequestParam Long uploadedById,
             @RequestParam("file") MultipartFile file) {
         try {
-            return ResponseEntity.ok(ticketService.uploadFile(ticketId, file));
+            return ResponseEntity.ok(ticketService.uploadFile(ticketId, uploadedById, file));
         } catch (TicketNotFoundException e) {
             throw e;
         } catch (Exception e) {
