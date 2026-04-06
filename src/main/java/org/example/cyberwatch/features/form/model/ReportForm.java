@@ -59,7 +59,6 @@ public class ReportForm {
     private Staff createdBy;
 
     @OneToMany(mappedBy = "reportForm", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderColumn(name = "attachment_order")
     private Set<Attachment> attachments = new HashSet<>();
 
     public ReportForm() {
