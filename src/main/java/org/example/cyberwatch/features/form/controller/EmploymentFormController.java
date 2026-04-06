@@ -6,6 +6,7 @@ import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,18 +22,22 @@ public class EmploymentFormController {
     }
 
     @PostMapping("/employment")
+    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto) {
         EmploymentFormDTO createdForm = employmentFormService.createForm(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 
+
     @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Void> approveForm(@PathVariable Long id) {
         employmentFormService.approveAndFinalizeEmployment(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/pending")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('HR')")
     public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
         List<EmploymentFormDTO> pendingForms = employmentFormService.getPendingForms();
         return ResponseEntity.ok(pendingForms);
