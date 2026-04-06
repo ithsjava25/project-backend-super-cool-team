@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.form.model;
 
 import org.example.cyberwatch.features.staff.model.Staff;
+import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class EmploymentMapper {
         entity.setPhoneNumber(dto.getPhoneNumber());
         entity.setRole(dto.getRole());
         entity.setDepartment(dto.getDepartment());
-        entity.setStatus(dto.getStatus());
+        entity.setStatus(ApprovalStatus.PENDING); // Default status for new forms
         // NOTE: Service layer is responsible for setting HR and ApproverManagement relationships
         return entity;
     }
