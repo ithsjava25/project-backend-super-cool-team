@@ -71,6 +71,7 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId(), assignedById));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);
