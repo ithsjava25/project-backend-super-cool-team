@@ -61,7 +61,7 @@ public class TicketController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{ticketId}/assign")
-    public ResponseEntity<TicketResponseDTO> assignTicketToStaff(
+    public ResponseEntity<?> assignTicketToStaff(
             @PathVariable Long ticketId,
             @Valid @RequestBody AssignTicketDTO dto) {
         return ResponseEntity.ok(ticketService.assignTicketToStaff(ticketId, dto.getStaffId()));
