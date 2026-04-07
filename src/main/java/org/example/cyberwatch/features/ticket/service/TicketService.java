@@ -1,5 +1,6 @@
 package org.example.cyberwatch.features.ticket.service;
 
+import org.example.cyberwatch.features.activitylog.service.ActivityLogService;
 import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
@@ -36,6 +37,7 @@ public class TicketService {
     private final StaffRepository staffRepository;
     private final TicketAttachmentRepository ticketAttachmentRepository;
     private final S3Client s3Client;
+    private final ActivityLogService activityLogService;
 
     @Value("${app.s3.endpoint}")
     private String endpoint;
@@ -46,11 +48,13 @@ public class TicketService {
     public TicketService(TicketRepository ticketRepository,
                          StaffRepository staffRepository,
                          TicketAttachmentRepository ticketAttachmentRepository,
-                         S3Client s3Client) {
+                         S3Client s3Client,
+                         ActivityLogService activityLogService) {
         this.ticketRepository = ticketRepository;
         this.staffRepository = staffRepository;
         this.ticketAttachmentRepository = ticketAttachmentRepository;
         this.s3Client = s3Client;
+        this.activityLogService = activityLogService;
     }
 
     public TicketResponseDTO createTicket(TicketDTO dto) {
@@ -82,26 +86,41 @@ public class TicketService {
                 .toList();
     }
 
-    public TicketResponseDTO advanceTicketStatus(Long id) {
+    public TicketResponseDTO advanceTicketStatus(Long id, Long performedById) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
+        Staff performer = staffRepository.findById(performedById)
+                .orElseThrow(() -> new StaffNotFoundException(performedById));
+        Status oldStatus = ticket.getStatus();
         ticket.advanceStatus();
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        activityLogService.logStatusChange(saved, performer, oldStatus, saved.getStatus());
+        return TicketResponseDTO.from(saved);
     }
 
-    public TicketResponseDTO setTicketStatus(Long id, Status newStatus) {
+    public TicketResponseDTO setTicketStatus(Long id, Status newStatus, Long performedById) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        validateStatusTransition(ticket.getStatus(), newStatus);
+        Staff performer = staffRepository.findById(performedById)
+                .orElseThrow(() -> new StaffNotFoundException(performedById));
+        Status oldStatus = ticket.getStatus();
+        validateStatusTransition(oldStatus, newStatus);
         ticket.setStatus(newStatus);
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        activityLogService.logStatusChange(saved, performer, oldStatus, newStatus);
+        return TicketResponseDTO.from(saved);
     }
 
-    public TicketResponseDTO reopenTicket(Long id) {
+    public TicketResponseDTO reopenTicket(Long id, Long performedById) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
+        Staff performer = staffRepository.findById(performedById)
+                .orElseThrow(() -> new StaffNotFoundException(performedById));
+        Status oldStatus = ticket.getStatus();
         ticket.reopen();
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        activityLogService.logStatusChange(saved, performer, oldStatus, Status.REOPENED);
+        return TicketResponseDTO.from(saved);
     }
 
     public TicketResponseDTO assignTicket(Long ticketId, Long staffId) {
@@ -113,19 +132,26 @@ public class TicketService {
         return TicketResponseDTO.from(ticketRepository.save(ticket));
     }
 
-    public Ticket assignTicketToStaff(Long ticketId, Long staffId) {
+    public Ticket assignTicketToStaff(Long ticketId, Long staffId, Long assignedById) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new StaffNotFoundException(staffId));
+        Staff assigner = staffRepository.findById(assignedById)
+                .orElseThrow(() -> new StaffNotFoundException(assignedById));
+        Status oldStatus = ticket.getStatus();
         ticket.setAssignee(staff);
         ticket.setStatus(Status.IN_PROGRESS);
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+        activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
+        return saved;
     }
 
-    public Map<String, Object> uploadFile(Long ticketId, MultipartFile file) throws IOException {
+    public Map<String, Object> uploadFile(Long ticketId, Long uploadedById, MultipartFile file) throws IOException {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        Staff uploader = staffRepository.findById(uploadedById)
+                .orElseThrow(() -> new StaffNotFoundException(uploadedById));
 
         if (file.isEmpty()) {
             throw new RuntimeException("File is empty");
@@ -166,6 +192,8 @@ public class TicketService {
 
         ticketAttachmentRepository.save(attachment);
 
+        activityLogService.logFileUpload(ticket, uploader, originalFileName);
+
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("message", "File uploaded successfully");
         response.put("fileName", attachment.getFileName());
@@ -173,6 +201,12 @@ public class TicketService {
         response.put("ticketId", ticket.getId());
 
         return response;
+    }
+
+    public void deleteTicket(Long id) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException(id));
+        ticketRepository.delete(ticket);
     }
 
     private void validateStatusTransition(Status current, Status next) {
