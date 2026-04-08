@@ -123,16 +123,7 @@ public class TicketService {
         return TicketResponseDTO.from(saved);
     }
 
-    public TicketResponseDTO assignTicket(Long ticketId, Long staffId) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new StaffNotFoundException(staffId));
-        ticket.setAssignedTo(staff);
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
-    }
-
-    public Ticket assignTicketToStaff(Long ticketId, Long staffId, Long assignedById) {
+    public TicketResponseDTO assignTicket(Long ticketId, Long staffId, Long assignedById) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         Staff staff = staffRepository.findById(staffId)
@@ -140,11 +131,10 @@ public class TicketService {
         Staff assigner = staffRepository.findById(assignedById)
                 .orElseThrow(() -> new StaffNotFoundException(assignedById));
         Status oldStatus = ticket.getStatus();
-        ticket.setAssignee(staff);
-        ticket.setStatus(Status.IN_PROGRESS);
+        ticket.setAssignedTo(staff);
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
-        return saved;
+        return TicketResponseDTO.from(saved);
     }
 
     public Map<String, Object> uploadFile(Long ticketId, Long uploadedById, MultipartFile file) throws IOException {
