@@ -66,20 +66,26 @@ public class EmploymentFormService {
 
     //When approved by management delete the form from the database, and add the employee to staff
     @Transactional
-    public void approveAndFinalizeEmployment(Long formId) {
+    public void approveAndFinalizeEmployment(Long formId, String loggedInManagement) {
         if (formId == null) throw new IllegalArgumentException("EmploymentFormDTO cannot be null");
 
         EmploymentForm form = employmentFormRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
 
+        Staff approver = staffRepository.findByEmail(loggedInManagement)
+                .orElseThrow(() -> new EntityNotFoundException("Approver not found"));
+
         if (form.getStatus() != ApprovalStatus.PENDING) {
             throw new IllegalStateException("Only PENDING forms can be approved.");
         }
 
+        form.setApprovedBy(approver);
+        form.setStatus(ApprovalStatus.APPROVED);
+        employmentFormRepository.save(form);
+
         Staff newStaff = employmentMapper.formToStaff(form);
         staffRepository.save(newStaff);
 
-        employmentFormRepository.delete(form);
 
     }
 

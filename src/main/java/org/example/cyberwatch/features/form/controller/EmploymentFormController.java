@@ -35,8 +35,8 @@ public class EmploymentFormController {
 
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
-    public ResponseEntity<Void> approveForm(@PathVariable Long id) {
-        employmentFormService.approveAndFinalizeEmployment(id);
+    public ResponseEntity<Void> approveForm(@PathVariable Long id, Authentication authentication) {
+        employmentFormService.approveAndFinalizeEmployment(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
 
