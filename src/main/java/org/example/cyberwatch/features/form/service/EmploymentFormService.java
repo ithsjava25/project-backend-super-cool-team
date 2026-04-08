@@ -54,6 +54,8 @@ public class EmploymentFormService {
         return employmentMapper.toDTO(employmentFormRepository.save(formEntity));
     }
 
+    //get form för att visa
+
 
     //view: show all employmentforms with status waiting for approval
     public List<EmploymentFormDTO> getPendingForms() {
@@ -80,4 +82,7 @@ public class EmploymentFormService {
         employmentFormRepository.delete(form);
 
     }
+
+
+    //logik för att ladda upp filerna för formulären till s3
 }

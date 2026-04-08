@@ -22,6 +22,8 @@ public class EmploymentFormController {
         this.employmentFormService = employmentFormService;
     }
 
+    //get form att fylla i, används även när man updaterar?
+
     @PostMapping("/employment")
     @PreAuthorize("hasRole('HR')")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto, Authentication authentication) {
@@ -32,14 +34,14 @@ public class EmploymentFormController {
 
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasRole('CEO' || 'CTO')")
+    @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
     public ResponseEntity<Void> approveForm(@PathVariable Long id) {
         employmentFormService.approveAndFinalizeEmployment(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasRole('HR'||'CEO' || 'CTO')")
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
     public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
         List<EmploymentFormDTO> pendingForms = employmentFormService.getPendingForms();
         return ResponseEntity.ok(pendingForms);
