@@ -132,7 +132,6 @@ public class TicketService {
                 .orElseThrow(() -> new StaffNotFoundException(assignedById));
         Status oldStatus = ticket.getStatus();
         ticket.setAssignedTo(staff);
-        ticket.setStatus(Status.IN_PROGRESS);
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
         return TicketResponseDTO.from(saved);
