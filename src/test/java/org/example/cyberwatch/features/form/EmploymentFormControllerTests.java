@@ -1,4 +1,4 @@
-package org.example.cyberwatch.form;
+package org.example.cyberwatch.features.form;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.cyberwatch.features.form.controller.EmploymentFormController;

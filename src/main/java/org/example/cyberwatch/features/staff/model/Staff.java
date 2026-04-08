@@ -60,7 +60,7 @@ public class Staff {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "cv_s3_key")
+    @Column(name = "employed_s3_key")
     private String employedS3Key;
 
     // An employee can have many reports

@@ -3,6 +3,7 @@ package org.example.cyberwatch.features.form.controller;
 import jakarta.validation.Valid;
 import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
+import org.example.cyberwatch.features.form.model.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,17 @@ public class EmploymentFormController {
     public ResponseEntity<Void> approveForm(@PathVariable Long id, Authentication authentication) {
         employmentFormService.approveAndFinalizeEmployment(id, authentication.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<EmploymentFormDTO> updateForm(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateEmploymentDTO dto,
+            Authentication auth) {
+
+        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, auth.getName());
+        return ResponseEntity.ok(updatedForm);
     }
 
     @GetMapping("/pending")
