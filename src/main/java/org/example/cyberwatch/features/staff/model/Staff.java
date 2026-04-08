@@ -63,7 +63,7 @@ public class Staff {
     @OneToMany(mappedBy = "createdBy")
     private Set<EmploymentForm> createdForms;
 
-    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "assignedTo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Ticket> assignedTickets = new HashSet<>();
 
     public Staff() {
