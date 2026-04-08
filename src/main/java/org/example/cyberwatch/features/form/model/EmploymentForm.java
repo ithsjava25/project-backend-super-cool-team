@@ -64,7 +64,7 @@ public class EmploymentForm {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    @Column(name = "cv_s3_key")
+    @Column(name = "employed_s3_key")
     private String employedS3Key;
 
     @ManyToOne(fetch = FetchType.LAZY)

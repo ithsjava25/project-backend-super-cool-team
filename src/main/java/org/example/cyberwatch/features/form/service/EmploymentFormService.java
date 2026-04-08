@@ -11,6 +11,7 @@ import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Department;
+import org.example.cyberwatch.shared.model.enums.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -110,7 +111,7 @@ public class EmploymentFormService {
         }
 
         // Only the HR who created the form can update it
-        if (!existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail)) {
+        if (existingForm.getCreatedBy() == null || !existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail)) {
             throw new IllegalStateException("Only the HR staff who created this form can update it");
         }
 
@@ -160,7 +161,9 @@ public class EmploymentFormService {
         Staff requester = staffRepository.findByEmail(loggedInEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        if (!form.getCreatedBy().getEmail().equals(loggedInEmail) && !requester.getRole().name().equals("MANAGEMENT")) {
+        if (!form.getCreatedBy().getEmail().equals(loggedInEmail)
+                && requester.getRole() != Role.CEO
+                && requester.getRole() != Role.CTO) {
             throw new IllegalStateException("Only the HR staff who created this form or management can delete it");
         }
 
@@ -198,13 +201,13 @@ public class EmploymentFormService {
         staffRepository.save(newStaff);
 
         logger.info("Form {} approved by {}", formId, loggedInManagement);
+        //No need to worry, this will be replaced with an email service
         return "Employment has been approved, generated password for new employee: " + rawPassword;
 
     }
 
     private String generateSecurePassword() {
-        return RandomStringUtils.random(12,
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*");
+        return RandomStringUtils.secure().nextAlphanumeric(12);
     }
 
     private EmploymentForm findFormById(Long formId) {
@@ -229,7 +232,7 @@ public class EmploymentFormService {
             // Rewrite form-data to json
             EmploymentFormDTO archiveDto = employmentMapper.toDTO(form);
             String jsonContent = objectMapper.writeValueAsString(archiveDto);
-            String s3Key = "archive/employments/" + form.getSocialSecurityNumber() + ".json";
+            String s3Key = "archive/employments/" + form.getId() + ".json";
             s3Service.uploadJsonData(s3Key, jsonContent);
             form.setEmployedS3Key(s3Key);
             logger.info("Form {} archived to S3", form.getId());
