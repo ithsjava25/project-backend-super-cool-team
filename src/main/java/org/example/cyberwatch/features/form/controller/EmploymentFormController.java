@@ -24,9 +24,10 @@ public class EmploymentFormController {
 
     //get form att fylla i, används även när man updaterar?
 
-    @PostMapping("/employment")
+    @PostMapping(value = "/employment")
     @PreAuthorize("hasRole('HR')")
-    public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto, Authentication authentication) {
+    public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
+                                                                  Authentication authentication) {
         String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
         EmploymentFormDTO createdForm = employmentFormService.createForm(dto, loggedInHr);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
@@ -45,5 +46,12 @@ public class EmploymentFormController {
     public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
         List<EmploymentFormDTO> pendingForms = employmentFormService.getPendingForms();
         return ResponseEntity.ok(pendingForms);
+    }
+
+    @GetMapping("/approved")
+    @PreAuthorize("hasRole('HR')")
+    public ResponseEntity<List<EmploymentFormDTO>> getApprovedForms() {
+        List<EmploymentFormDTO> approved = employmentFormService.getApprovedForms();
+        return ResponseEntity.ok(approved);
     }
 }
