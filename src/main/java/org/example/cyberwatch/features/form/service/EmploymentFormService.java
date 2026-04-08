@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
-import org.example.cyberwatch.features.form.model.EmploymentForm;
-import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
-import org.example.cyberwatch.features.form.model.EmploymentMapper;
+import org.example.cyberwatch.features.form.model.*;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
@@ -125,7 +122,7 @@ public class EmploymentFormService {
 
     // Update form before approval (only PENDING forms can be updated)
     @Transactional
-    public EmploymentFormDTO updateFormBeforeApproval(Long formId, CreateEmploymentDTO updatedForm, String loggedInHrEmail) {
+    public EmploymentFormDTO updateFormBeforeApproval(Long formId, UpdateEmploymentDTO updatedForm, String loggedInHrEmail) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
         }
@@ -160,14 +157,7 @@ public class EmploymentFormService {
             }
         }
 
-        // Update fields - flytta till mapper
-        existingForm.setFirstName(updatedForm.getFirstName());
-        existingForm.setLastName(updatedForm.getLastName());
-        existingForm.setEmail(updatedForm.getEmail());
-        existingForm.setPhoneNumber(updatedForm.getPhoneNumber());
-        existingForm.setRole(updatedForm.getRole());
-        existingForm.setDepartment(updatedForm.getDepartment());
-        existingForm.setSocialSecurityNumber(updatedForm.getSocialSecurityNumber());
+        employmentMapper.updateEntity(updatedForm, existingForm);
 
         logger.info("Form {} updated by HR {}", formId, loggedInHrEmail);
         return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
