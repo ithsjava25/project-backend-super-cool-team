@@ -21,4 +21,4 @@ jobs:
           java-version: '25'
 
       - name: Build and test with Maven
-        run: mvn clean verify
+        run: ./mvnw clean verify
