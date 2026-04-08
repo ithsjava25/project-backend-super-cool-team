@@ -86,7 +86,7 @@ public class EmploymentFormService {
         Staff newStaff = employmentMapper.formToStaff(form);
         staffRepository.save(newStaff);
 
-
+//Lösenord för den nya staffen?
     }
 
 

@@ -39,6 +39,7 @@ public class Staff {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
+    @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Email should be valid")
     @NotBlank(message = "Email cannot be blank")
     private String email;
@@ -55,6 +56,12 @@ public class Staff {
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Department cannot be null")
     private Department department;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "cv_s3_key")
+    private String employedS3Key;
 
     // An employee can have many reports
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
