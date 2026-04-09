@@ -25,8 +25,6 @@ public class EmploymentFormController {
         this.employmentFormService = employmentFormService;
     }
 
-    //get form att fylla i, används även när man updaterar?
-
     @PostMapping(value = "/employment")
     @PreAuthorize("hasRole('HR')")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
@@ -42,7 +40,8 @@ public class EmploymentFormController {
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
         employmentFormService.approveAndFinalizeEmployment(id, authentication.getName());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                employmentFormService.approveAndFinalizeEmployment(id, authentication.getName()));
     }
 
     @PutMapping("/{id}")
