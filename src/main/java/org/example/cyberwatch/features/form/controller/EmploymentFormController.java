@@ -66,4 +66,8 @@ public class EmploymentFormController {
         List<EmploymentFormDTO> approved = employmentFormService.getApprovedForms();
         return ResponseEntity.ok(approved);
     }
+
+    //reject
+
+    //delete
 }

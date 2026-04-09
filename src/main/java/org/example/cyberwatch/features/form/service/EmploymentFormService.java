@@ -145,6 +145,12 @@ public class EmploymentFormService {
         form.setStatus(ApprovalStatus.REJECTED);
         form.setApprovedBy(rejector);
         employmentFormRepository.save(form);
+        try {
+            archiveToS3(form);
+        } catch (RuntimeException e) {
+            logger.error("Failed to archive form {} to S3", formId, e);
+            throw e;
+        }
         logger.info("Form {} rejected by {}", formId, loggedInManagementEmail);
         return "Employment form has been rejected. Reason: " + rejectionReason;
     }
