@@ -5,6 +5,8 @@ import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.model.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
+import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
+import org.example.cyberwatch.shared.model.enums.Department;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,7 +39,8 @@ public class EmploymentFormController {
 
     @PostMapping("/{id}/approve")
     @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
-    public ResponseEntity<Void> approveForm(@PathVariable Long id, Authentication authentication) {
+    //Change returntype when emailservice is implemented
+    public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
         employmentFormService.approveAndFinalizeEmployment(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
@@ -53,6 +56,7 @@ public class EmploymentFormController {
         return ResponseEntity.ok(updatedForm);
     }
 
+    //Show list of pending forms
     @GetMapping("/pending")
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
     public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
@@ -60,6 +64,7 @@ public class EmploymentFormController {
         return ResponseEntity.ok(pendingForms);
     }
 
+    //Show list of approved forms
     @GetMapping("/approved")
     @PreAuthorize("hasRole('HR')")
     public ResponseEntity<List<EmploymentFormDTO>> getApprovedForms() {
@@ -67,7 +72,45 @@ public class EmploymentFormController {
         return ResponseEntity.ok(approved);
     }
 
-    //reject
+    //Get a form by id
+    @GetMapping("{id}")
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
+    public ResponseEntity<EmploymentFormDTO> getFormById(@PathVariable Long id) {
+        return ResponseEntity.ok(employmentFormService.getFormById(id));
+    }
 
-    //delete
+    //Search by ssn/department/status
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
+    public ResponseEntity<List<EmploymentFormDTO>> searchForms(
+            @RequestParam(required = false) String socialSecurityNumber,
+            @RequestParam(required = false) Department department,
+            @RequestParam(required = false) ApprovalStatus status) {
+        return ResponseEntity.ok(
+                employmentFormService.searchAndFilterForms(socialSecurityNumber, department, status));
+    }
+
+    // Reject a form with a reason
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
+    public ResponseEntity<String> rejectForm(
+            @PathVariable Long id,
+            @RequestParam String reason,
+            Authentication authentication) {
+
+        String message = employmentFormService.rejectForm(id, reason, authentication.getName());
+        return ResponseEntity.ok(message);
+    }
+
+    // Delete a form
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
+    public ResponseEntity<Void> deleteForm(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        employmentFormService.deleteForm(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+
 }
