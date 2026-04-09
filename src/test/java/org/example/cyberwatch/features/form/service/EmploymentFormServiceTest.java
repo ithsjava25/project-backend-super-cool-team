@@ -1,6 +1,5 @@
 package org.example.cyberwatch.features.form.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.cyberwatch.features.form.model.*;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
 import org.example.cyberwatch.features.staff.model.Staff;
@@ -16,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Optional;
 
@@ -82,7 +82,7 @@ class EmploymentFormServiceTest {
 
         EmploymentForm existingForm = new EmploymentForm();
         existingForm.setCreatedBy(creator);
-        existingForm.setStatus(ApprovalStatus.PENDING); // Rättat här: existingForm istället för existingDto
+        existingForm.setStatus(ApprovalStatus.PENDING);
 
         when(formRepository.findById(formId)).thenReturn(Optional.of(existingForm));
 
@@ -105,7 +105,7 @@ class EmploymentFormServiceTest {
         when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(manager));
 
         // Act
-        service.rejectForm(id, "Not a good fit", "manager@cyberwatch.local");
+        service.rejectForm(id, "manager@cyberwatch.local");
 
         // Assert
         assertEquals(ApprovalStatus.REJECTED, form.getStatus());

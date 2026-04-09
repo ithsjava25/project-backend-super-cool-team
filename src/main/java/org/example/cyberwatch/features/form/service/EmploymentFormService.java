@@ -50,10 +50,8 @@ public class EmploymentFormService {
                 });
 
         EmploymentForm formEntity = employmentMapper.toEntity(form);
-        // Set default status to PENDING if not provided
-        if (formEntity.getStatus() == null) {
-            formEntity.setStatus(ApprovalStatus.PENDING);
-        }
+        // Set default status to PENDING
+        formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
 
         EmploymentFormDTO savedForm = employmentMapper.toDTO(employmentFormRepository.save(formEntity));
@@ -115,10 +113,7 @@ public class EmploymentFormService {
 
     // Reject a form with a reason
     @Transactional
-    public String rejectForm(Long formId, String rejectionReason, String loggedInManagementEmail) {
-        if (rejectionReason == null || rejectionReason.isBlank()) {
-            throw new IllegalArgumentException("Rejection reason cannot be blank");
-        }
+    public String rejectForm(Long formId, String loggedInManagementEmail) {
 
         EmploymentForm form = findFormById(formId);
 
@@ -140,7 +135,7 @@ public class EmploymentFormService {
         employmentFormRepository.save(form);
 
         logger.info("Form {} rejected by {}", formId, loggedInManagementEmail);
-        return "Employment form has been rejected. Reason: " + rejectionReason;
+        return "Employment form has been rejected";
     }
 
     // Delete a form (only PENDING forms can be deleted, and only by HR who created it or management)
@@ -155,9 +150,9 @@ public class EmploymentFormService {
         Staff requester = staffRepository.findByEmail(loggedInEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        if (form.getCreatedBy() != null && (!form.getCreatedBy().getEmail().equals(loggedInEmail)
-                && requester.getRole() != Role.CEO
-                && requester.getRole() != Role.CTO)) {
+        boolean isManagement = requester.getRole() == Role.CEO || requester.getRole() == Role.CTO;
+        boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getEmail().equals(loggedInEmail);
+        if (!isManagement && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or management can delete it");
         }
 

@@ -80,10 +80,9 @@ public class EmploymentFormController {
     @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
     public ResponseEntity<String> rejectForm(
             @PathVariable Long id,
-            @RequestParam String reason,
             Authentication authentication) {
 
-        String message = employmentFormService.rejectForm(id, reason, authentication.getName());
+        String message = employmentFormService.rejectForm(id, authentication.getName());
         return ResponseEntity.ok(message);
     }
 
