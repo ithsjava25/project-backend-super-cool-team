@@ -5,8 +5,6 @@ import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.model.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
-import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
-import org.example.cyberwatch.shared.model.enums.Department;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -75,17 +73,6 @@ public class EmploymentFormController {
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
     public ResponseEntity<EmploymentFormDTO> getFormById(@PathVariable Long id) {
         return ResponseEntity.ok(employmentFormService.getFormById(id));
-    }
-
-    //Search by ssn/department/status
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
-    public ResponseEntity<List<EmploymentFormDTO>> searchForms(
-            @RequestParam(required = false) String socialSecurityNumber,
-            @RequestParam(required = false) Department department,
-            @RequestParam(required = false) ApprovalStatus status) {
-        return ResponseEntity.ok(
-                employmentFormService.searchAndFilterForms(socialSecurityNumber, department, status));
     }
 
     // Reject a form with a reason

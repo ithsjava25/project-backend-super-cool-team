@@ -9,7 +9,6 @@ import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
-import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,18 +78,6 @@ public class EmploymentFormService {
     // Get a single form by ID
     public EmploymentFormDTO getFormById(Long formId) {
         return employmentMapper.toDTO(findFormById(formId));
-    }
-
-    // Search and filter forms by SSN, department, and status
-    public List<EmploymentFormDTO> searchAndFilterForms(String socialSecurityNumber, Department department, ApprovalStatus status) {
-        List<EmploymentForm> forms = employmentFormRepository.findAll();
-
-        return forms.stream()
-                .filter(form -> socialSecurityNumber == null || form.getSocialSecurityNumber().contains(socialSecurityNumber))
-                .filter(form -> department == null || form.getDepartment().equals(department))
-                .filter(form -> status == null || form.getStatus().equals(status))
-                .map(employmentMapper::toDTO)
-                .toList();
     }
 
     // Update form before approval (only PENDING forms can be updated)
