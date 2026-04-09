@@ -183,22 +183,26 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be approved. Current status: " + form.getStatus());
         }
 
+        // Create and save new staff first (all DB operations before S3 write)
+        Staff newStaff = employmentMapper.formToStaff(form);
+        newStaff.setEmployedS3Key(form.getEmployedS3Key());
+        String rawPassword = generateSecurePassword();
+        newStaff.setPassword(passwordEncoder.encode(rawPassword));
+        staffRepository.save(newStaff);
+
+        // Update form status and save to DB
         form.setApprovedBy(approver);
         form.setStatus(ApprovalStatus.APPROVED);
+        employmentFormRepository.save(form);
 
+        // Archive to S3 LAST, after all DB operations are committed
+        // This ensures S3 only gets written if the transaction succeeds
         try {
             archiveToS3(form);
         } catch (RuntimeException e) {
             logger.error("Failed to archive form {} to S3", formId, e);
             throw e;
         }
-
-        employmentFormRepository.save(form);
-
-        Staff newStaff = employmentMapper.formToStaff(form);
-        String rawPassword = generateSecurePassword();
-        newStaff.setPassword(passwordEncoder.encode(rawPassword));
-        staffRepository.save(newStaff);
 
         logger.info("Form {} approved by {}", formId, loggedInManagement);
         //No need to worry, this will be replaced with an email service
