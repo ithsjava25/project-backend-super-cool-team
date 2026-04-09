@@ -9,19 +9,17 @@ import org.example.cyberwatch.features.form.model.ReportForm;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.HashSet;
 import java.util.Set;
 
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
-//Differs from Employee form wich is the process/form HR uses to create a new employee.
+// Differs from Employee form which is the process/form HR uses to create a new employee.
 @Getter
 @Setter
 @Entity
 public class Staff {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "employee_id")
