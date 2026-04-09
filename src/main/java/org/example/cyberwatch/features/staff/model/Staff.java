@@ -9,6 +9,9 @@ import org.example.cyberwatch.features.form.model.ReportForm;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -69,5 +72,4 @@ public class Staff {
     public Staff() {
 
     }
-
 }
