@@ -39,7 +39,6 @@ public class EmploymentFormController {
     @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
-        employmentFormService.approveAndFinalizeEmployment(id, authentication.getName());
         return ResponseEntity.ok(
                 employmentFormService.approveAndFinalizeEmployment(id, authentication.getName()));
     }

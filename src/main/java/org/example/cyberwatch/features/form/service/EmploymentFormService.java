@@ -144,13 +144,14 @@ public class EmploymentFormService {
 
         form.setStatus(ApprovalStatus.REJECTED);
         form.setApprovedBy(rejector);
-        employmentFormRepository.save(form);
         try {
             archiveToS3(form);
         } catch (RuntimeException e) {
             logger.error("Failed to archive form {} to S3", formId, e);
             throw e;
         }
+        employmentFormRepository.save(form);
+
         logger.info("Form {} rejected by {}", formId, loggedInManagementEmail);
         return "Employment form has been rejected. Reason: " + rejectionReason;
     }
@@ -167,9 +168,9 @@ public class EmploymentFormService {
         Staff requester = staffRepository.findByEmail(loggedInEmail)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        if (!form.getCreatedBy().getEmail().equals(loggedInEmail)
+        if (form.getCreatedBy() != null && (!form.getCreatedBy().getEmail().equals(loggedInEmail)
                 && requester.getRole() != Role.CEO
-                && requester.getRole() != Role.CTO) {
+                && requester.getRole() != Role.CTO)) {
             throw new IllegalStateException("Only the HR staff who created this form or management can delete it");
         }
 
@@ -191,24 +192,21 @@ public class EmploymentFormService {
 
         // Create and save new staff first (all DB operations before S3 write)
         Staff newStaff = employmentMapper.formToStaff(form);
-        newStaff.setEmployedS3Key(form.getEmployedS3Key());
         String rawPassword = generateSecurePassword();
         newStaff.setPassword(passwordEncoder.encode(rawPassword));
-        staffRepository.save(newStaff);
 
-        // Update form status and save to DB
+        // Update form status and save to DB and archive
         form.setApprovedBy(approver);
         form.setStatus(ApprovalStatus.APPROVED);
-        employmentFormRepository.save(form);
-
-        // Archive to S3 LAST, after all DB operations are committed
-        // This ensures S3 only gets written if the transaction succeeds
         try {
             archiveToS3(form);
         } catch (RuntimeException e) {
             logger.error("Failed to archive form {} to S3", formId, e);
             throw e;
         }
+        newStaff.setEmployedS3Key(form.getEmployedS3Key());
+        staffRepository.save(newStaff);
+        employmentFormRepository.save(form);
 
         logger.info("Form {} approved by {}", formId, loggedInManagement);
         //No need to worry, this will be replaced with an email service
