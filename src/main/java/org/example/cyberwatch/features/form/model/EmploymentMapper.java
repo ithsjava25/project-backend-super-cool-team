@@ -42,6 +42,18 @@ public class EmploymentMapper {
         return entity;
     }
 
+    public void updateEntity(UpdateEmploymentDTO dto, EmploymentForm entity) {
+        if (dto == null || entity == null) return;
+
+        entity.setSocialSecurityNumber(dto.getSocialSecurityNumber());
+        entity.setFirstName(dto.getFirstName());
+        entity.setLastName(dto.getLastName());
+        entity.setEmail(dto.getEmail());
+        entity.setPhoneNumber(dto.getPhoneNumber());
+        entity.setRole(dto.getRole());
+        entity.setDepartment(dto.getDepartment());
+    }
+
     public Staff formToStaff(EmploymentForm form) {
         if (form == null) return null;
         Staff staff = new Staff();
