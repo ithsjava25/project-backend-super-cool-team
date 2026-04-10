@@ -121,11 +121,14 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be rejected. Current status: " + form.getStatus());
         }
 
-        Staff rejector = staffRepository.findByEmail(loggedInManagementEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Rejector not found"));
+        Staff rejecter = staffRepository.findByEmail(loggedInManagementEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Rejecter not found"));
+        if (rejecter.getRole() != Role.CEO && rejecter.getRole() != Role.CTO) {
+            throw new IllegalStateException("Only CEO or CTO can reject employment forms");
+        }
 
         form.setStatus(ApprovalStatus.REJECTED);
-        form.setApprovedBy(rejector);
+        form.setApprovedBy(rejecter);
         try {
             archiveToS3(form);
         } catch (RuntimeException e) {
@@ -167,6 +170,9 @@ public class EmploymentFormService {
 
         Staff approver = staffRepository.findByEmail(loggedInManagement)
                 .orElseThrow(() -> new EntityNotFoundException("Approver not found"));
+        if (approver.getRole() != Role.CEO && approver.getRole() != Role.CTO) {
+            throw new IllegalStateException("Only CEO or CTO can approve employment forms");
+        }
 
         if (form.getStatus() != ApprovalStatus.PENDING) {
             throw new IllegalStateException("Only PENDING forms can be approved. Current status: " + form.getStatus());
