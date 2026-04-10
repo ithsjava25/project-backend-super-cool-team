@@ -14,11 +14,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
-//Differs from Employee form wich is the process/form HR uses to create a new employee.
+// Differs from Employee form which is the process/form HR uses to create a new employee.
 @Getter
 @Setter
 @Entity
 public class Staff {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "employee_id")
@@ -76,5 +77,4 @@ public class Staff {
     public Staff() {
 
     }
-
 }
