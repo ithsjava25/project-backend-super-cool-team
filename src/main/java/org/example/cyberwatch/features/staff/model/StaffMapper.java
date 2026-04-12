@@ -20,7 +20,7 @@ public class StaffMapper {
         );
     }
 
-    public void updateEntity(StaffDTO dto, Staff entity) {
+    public void updateEntity(UpdateStaffDTO dto, Staff entity) {
         if (dto == null || entity == null) return;
         entity.setFirstName(dto.getFirstName());
         entity.setLastName(dto.getLastName());
