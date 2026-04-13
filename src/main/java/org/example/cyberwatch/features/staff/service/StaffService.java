@@ -6,6 +6,8 @@ import org.example.cyberwatch.features.staff.model.StaffDTO;
 import org.example.cyberwatch.features.staff.model.StaffMapper;
 import org.example.cyberwatch.features.staff.model.UpdateStaffDTO;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
+import org.example.cyberwatch.shared.model.enums.Department;
+import org.example.cyberwatch.shared.model.enums.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -46,11 +48,33 @@ public class StaffService {
             throw new IllegalArgumentException("Updated form cannot be null");
         }
 
-        Staff existingForm = staffRepository.findById(staffId)
+        Staff existingStaff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
-        staffMapper.updateEntity(dto, existingForm);
+        staffMapper.updateEntity(dto, existingStaff);
 
         logger.info("Form {} updated", staffId);
-        return staffMapper.toDto(staffRepository.save(existingForm));
+        return staffMapper.toDto(staffRepository.save(existingStaff));
+    }
+
+    public void deleteStaff(Long staffId) {
+        if (staffId == null) {
+            throw new IllegalArgumentException("Form ID cannot be null");
+        }
+        Staff existingStaff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
+        staffRepository.delete(existingStaff);
+        logger.info("Form {} deleted", staffId);
+
+    }
+
+    public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department) {
+        if (role != null) {
+            return staffRepository.findByRole(role)
+                    .stream().map(staffMapper::toDto).toList();
+        } else if (department != null) {
+            return staffRepository.findByDepartment(department)
+                    .stream().map(staffMapper::toDto).toList();
+        }
+        return getAllStaff();
     }
 }
