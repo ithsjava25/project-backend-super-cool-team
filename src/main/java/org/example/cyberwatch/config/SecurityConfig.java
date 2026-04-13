@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        //.requestMatchers("/api/tickets/**").permitAll() // Tillfället för att tillåta testning med insomniac etc..
                         // Endast ADMIN får hantera staff
                         .requestMatchers("/api/staff/**").hasRole("ADMIN")
                         // Alla andra endpoints kräver inloggning
