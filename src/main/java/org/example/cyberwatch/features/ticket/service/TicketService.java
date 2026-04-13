@@ -89,21 +89,23 @@ public class TicketService {
 
     /**
      * Returnerar tickets filtrerade på valfria parametrar.
-     * Om inga filter är satta returneras alla tickets (samma som getAllTickets).
-     * Sortering: nyast först.
+     * Alla parametrar är valfria — null-värden ignoreras i queryn.
+     * Alltid sorterat nyast först oavsett om filter är satta eller inte.
      */
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> getFilteredTickets(TicketFilterParams filters) {
-        if (filters.isEmpty()) {
-            return getAllTickets();
+        if (filters == null) {
+            filters = new TicketFilterParams();
         }
         return ticketRepository.findByFilters(
-                filters.getStatus(),
-                filters.getPriority(),
-                filters.getIssueType(),
-                filters.getAssignedToId(),
-                filters.getCreatedById()
-        ).stream().map(TicketResponseDTO::from).toList();
+                        filters.getStatus(),
+                        filters.getPriority(),
+                        filters.getIssueType(),
+                        filters.getAssignedToId(),
+                        filters.getCreatedById()
+                ).stream()
+                .map(TicketResponseDTO::from)
+                .toList();
     }
 
     public TicketResponseDTO advanceTicketStatus(Long id, Long performedById) {
