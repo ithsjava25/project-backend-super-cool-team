@@ -8,6 +8,7 @@ import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.features.ticket.model.TicketAttachment;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
+import org.example.cyberwatch.features.ticket.model.TicketFilterParams;
 import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
@@ -84,6 +85,25 @@ public class TicketService {
         return ticketRepository.findAll().stream()
                 .map(TicketResponseDTO::from)
                 .toList();
+    }
+
+    /**
+     * Returnerar tickets filtrerade på valfria parametrar.
+     * Om inga filter är satta returneras alla tickets (samma som getAllTickets).
+     * Sortering: nyast först.
+     */
+    @Transactional(readOnly = true)
+    public List<TicketResponseDTO> getFilteredTickets(TicketFilterParams filters) {
+        if (filters.isEmpty()) {
+            return getAllTickets();
+        }
+        return ticketRepository.findByFilters(
+                filters.getStatus(),
+                filters.getPriority(),
+                filters.getIssueType(),
+                filters.getAssignedToId(),
+                filters.getCreatedById()
+        ).stream().map(TicketResponseDTO::from).toList();
     }
 
     public TicketResponseDTO advanceTicketStatus(Long id, Long performedById) {
