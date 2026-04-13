@@ -83,7 +83,7 @@ class StaffServiceTest {
     @DisplayName("Should update and return DTO when valid input")
     void updateStaffWhenValid() {
         UpdateStaffDTO dto = new UpdateStaffDTO("Anna", "Nilsson",
-                "anna@cyberwatch.se", null, Role.HR, Department.BACKEND);
+                "anna@cyberwatch.se", "0701234567", Role.HR, Department.BACKEND);
 
         when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
         when(staffRepository.save(staff)).thenReturn(staff);

@@ -50,9 +50,16 @@ public class StaffService {
 
         Staff existingStaff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
+
+        if (!existingStaff.getEmail().equals(dto.getEmail())) {
+            staffRepository.findByEmail(dto.getEmail()).ifPresent(other -> {
+                throw new IllegalStateException("Email is already in use: " + dto.getEmail());
+            });
+        }
+
         staffMapper.updateEntity(dto, existingStaff);
 
-        logger.info("Form {} updated", staffId);
+        logger.info("Staff {} updated", staffId);
         return staffMapper.toDto(staffRepository.save(existingStaff));
     }
 
