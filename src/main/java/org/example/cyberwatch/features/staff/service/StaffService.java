@@ -42,10 +42,10 @@ public class StaffService {
 
     public StaffDTO updateStaff(Long staffId, UpdateStaffDTO dto) {
         if (staffId == null) {
-            throw new IllegalArgumentException("Form ID cannot be null");
+            throw new IllegalArgumentException("Staff ID cannot be null");
         }
         if (dto == null) {
-            throw new IllegalArgumentException("Updated form cannot be null");
+            throw new IllegalArgumentException("Staff to be updated cannot be null");
         }
 
         Staff existingStaff = staffRepository.findById(staffId)
@@ -58,12 +58,12 @@ public class StaffService {
 
     public void deleteStaff(Long staffId) {
         if (staffId == null) {
-            throw new IllegalArgumentException("Form ID cannot be null");
+            throw new IllegalArgumentException("Staff ID cannot be null");
         }
         Staff existingStaff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
         staffRepository.delete(existingStaff);
-        logger.info("Form {} deleted", staffId);
+        logger.info("Staff {} deleted", staffId);
 
     }
 
