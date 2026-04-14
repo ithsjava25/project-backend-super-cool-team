@@ -62,17 +62,21 @@ public class EmploymentFormService {
         return savedForm;
     }
 
-    //view: show all employmentforms with status
-    public List<EmploymentFormDTO> getFormsByStatus(ApprovalStatus status) {
-        return employmentMapper.toDTOList(employmentFormRepository.findByStatus(status));
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
+    public List<EmploymentFormDTO> getFormsByFilterApproval(ApprovalStatus status) {
+        // Om status är angiven (t.ex. PENDING eller APPROVED), filtrera på den
+        if (status != null) {
+            return employmentFormRepository.findByStatus(status)
+                    .stream()
+                    .map(employmentMapper::toDTO)
+                    .toList();
+        }
+
+        return getAllForms();
     }
 
-    public List<EmploymentFormDTO> getPendingForms() {
-        return getFormsByStatus(ApprovalStatus.PENDING);
-    }
-
-    public List<EmploymentFormDTO> getApprovedForms() {
-        return getFormsByStatus(ApprovalStatus.APPROVED);
+    private List<EmploymentFormDTO> getAllForms() {
+        return employmentMapper.toDTOList(employmentFormRepository.findAll());
     }
 
     // Get a single form by ID

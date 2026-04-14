@@ -5,6 +5,7 @@ import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.model.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
+import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,19 +53,9 @@ public class EmploymentFormController {
     }
 
     //Show list of pending forms
-    @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
-    public ResponseEntity<List<EmploymentFormDTO>> getPendingForms() {
-        List<EmploymentFormDTO> pendingForms = employmentFormService.getPendingForms();
-        return ResponseEntity.ok(pendingForms);
-    }
-
-    //Show list of approved forms
-    @GetMapping("/approved")
-    @PreAuthorize("hasRole('HR')")
-    public ResponseEntity<List<EmploymentFormDTO>> getApprovedForms() {
-        List<EmploymentFormDTO> approved = employmentFormService.getApprovedForms();
-        return ResponseEntity.ok(approved);
+    @GetMapping
+    public ResponseEntity<List<EmploymentFormDTO>> getForms(@RequestParam(required = false) ApprovalStatus status) {
+        return ResponseEntity.ok(employmentFormService.getFormsByFilterApproval(status));
     }
 
     //Get a form by id
