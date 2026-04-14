@@ -1,6 +1,5 @@
 package org.example.cyberwatch.features.form.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.example.cyberwatch.features.form.exception.EmploymentFormNotFound;
@@ -50,7 +49,7 @@ public class EmploymentFormService {
         Staff hrStaff = staffRepository.findByEmail(loggedInHr)
                 .orElseThrow(() -> {
                     logger.error("HR staff not found with email: {}", loggedInHr);
-                    return new EntityNotFoundException("HR staff not found with username: " + loggedInHr);
+                    return new StaffNotFoundException("HR staff not found with username: " + loggedInHr);
                 });
 
         EmploymentForm formEntity = employmentMapper.toEntity(form);

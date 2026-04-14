@@ -99,13 +99,14 @@ class EmploymentFormServiceTest {
         Long id = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.PENDING);
-        Staff manager = new Staff();
+        Staff cto = new Staff();
+        cto.setRole(Role.CTO);
 
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
-        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(manager));
+        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(cto));
 
         // Act
-        service.rejectForm(id, "manager@cyberwatch.local");
+        service.rejectForm(id, "cto@cyberwatch.local");
 
         // Assert
         assertEquals(ApprovalStatus.REJECTED, form.getStatus());
@@ -121,11 +122,12 @@ class EmploymentFormServiceTest {
         form.setSocialSecurityNumber("1990-1234");
         form.setStatus(ApprovalStatus.PENDING);
 
-        Staff manager = new Staff();
+        Staff cto = new Staff();
+        cto.setRole(Role.CTO);
         Staff newEmployee = new Staff();
 
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
-        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(manager));
+        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(cto));
         when(mapper.formToStaff(form)).thenReturn(newEmployee);
         when(passwordEncoder.encode(anyString())).thenReturn("hashed_pass");
 
