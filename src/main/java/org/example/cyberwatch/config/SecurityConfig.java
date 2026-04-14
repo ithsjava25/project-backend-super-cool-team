@@ -1,16 +1,15 @@
 package org.example.cyberwatch.config;
 
-import org.springframework.context.annotation.Bean;
 import org.example.cyberwatch.config.security.JwtAuthFilter;
 import org.example.cyberwatch.config.security.OAuth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -25,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity  // Aktiverar @PreAuthorize på controller-metoder
+@EnableMethodSecurity  // Aktiverar @PreAuthorize på service-metoder
 public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -53,10 +52,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
-                        //.requestMatchers("/api/tickets/**").permitAll() // Tillfället för att tillåta testning med insomniac etc..
-                        // Endast ADMIN får hantera staff
-                        .requestMatchers("/api/staff/**").hasRole("ADMIN")
-                        // Alla andra endpoints kräver inloggning
+                        // Endast ADMIN, HR, CEO & CTO får hantera staff
+                        .requestMatchers("/api/staff/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
+                        // Endast ADMIN, HR, CEO & CTO får hantera forms
+                        .requestMatchers("/api/forms/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
+                        // Alla kan komma åt tickets
+                        .requestMatchers("/api/tickets/**").authenticated()
+                        // Alla andra endpoints kräver inloggning, djupare hantering av vem som får göra vad sköts i Service-lagret
                         .anyRequest().authenticated()
                 )
 
