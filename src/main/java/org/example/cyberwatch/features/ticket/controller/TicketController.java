@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.AssignTicketDTO;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
+import org.example.cyberwatch.features.ticket.model.TicketFilterParams;
 import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
 import org.example.cyberwatch.features.ticket.service.TicketService;
 import org.example.cyberwatch.shared.model.enums.Status;
@@ -33,9 +34,18 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    /**
+     * Hämtar tickets med valfri filtrering via query params.
+     * Exempel:
+     * GET /api/tickets → alla tickets
+     * GET /api/tickets?status=IN_PROGRESS → bara pågående
+     * GET /api/tickets?priority=HIGH → bara hög prioritet
+     * GET /api/tickets?assignedToId=3 → tilldelade till staff med id 3
+     * GET /api/tickets?status=SUBMITTED&priority=CRITICAL → kombination
+     */
     @GetMapping
-    public ResponseEntity<List<TicketResponseDTO>> getAllTickets() {
-        return ResponseEntity.ok(ticketService.getAllTickets());
+    public ResponseEntity<List<TicketResponseDTO>> getAllTickets(@ModelAttribute TicketFilterParams filters) {
+        return ResponseEntity.ok(ticketService.getFilteredTickets(filters));
     }
 
     @GetMapping("/{id}")
