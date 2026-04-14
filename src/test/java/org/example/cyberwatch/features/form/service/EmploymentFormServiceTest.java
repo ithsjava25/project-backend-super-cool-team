@@ -103,13 +103,14 @@ class EmploymentFormServiceTest {
         cto.setRole(Role.CTO);
 
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
-        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(cto));
+        when(staffRepository.findByEmail("cto@cyberwatch.local")).thenReturn(Optional.of(cto));
 
         // Act
         service.rejectForm(id, "cto@cyberwatch.local");
 
         // Assert
         assertEquals(ApprovalStatus.REJECTED, form.getStatus());
+        verify(staffRepository).findByEmail("cto@cyberwatch.local");
         verify(formRepository).save(form);
     }
 
