@@ -5,9 +5,7 @@ import org.example.cyberwatch.features.comment.model.Comment;
 import org.example.cyberwatch.features.comment.model.CommentDTO;
 import org.example.cyberwatch.features.comment.model.CommentResponseDTO;
 import org.example.cyberwatch.features.comment.repository.CommentRepository;
-import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
-import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
@@ -22,24 +20,24 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final TicketRepository ticketRepository;
-    private final StaffRepository staffRepository;
     private final ActivityLogService activityLogService;
 
     public CommentService(CommentRepository commentRepository,
                           TicketRepository ticketRepository,
-                          StaffRepository staffRepository,
                           ActivityLogService activityLogService) {
         this.commentRepository = commentRepository;
         this.ticketRepository = ticketRepository;
-        this.staffRepository = staffRepository;
         this.activityLogService = activityLogService;
     }
 
-    public CommentResponseDTO addComment(Long ticketId, CommentDTO dto) {
+    /**
+     * Lägger till en kommentar på ett ärende.
+     * Författaren hämtas från den inloggade användaren (SecurityContext via controllern)
+     * istället för från request body — förhindrar att någon kan låtsas vara en annan användare.
+     */
+    public CommentResponseDTO addComment(Long ticketId, CommentDTO dto, Staff author) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        Staff author = staffRepository.findById(dto.getAuthorId())
-                .orElseThrow(() -> new StaffNotFoundException(dto.getAuthorId()));
 
         Comment comment = new Comment();
         comment.setTicket(ticket);
@@ -47,7 +45,6 @@ public class CommentService {
         comment.setText(dto.getText());
         commentRepository.save(comment);
 
-        // Log the comment in activity_logs
         activityLogService.logComment(ticket, author, dto.getText());
 
         return new CommentResponseDTO(comment);

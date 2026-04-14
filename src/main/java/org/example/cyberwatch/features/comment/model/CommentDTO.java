@@ -1,7 +1,6 @@
 package org.example.cyberwatch.features.comment.model;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,8 +8,7 @@ import lombok.Setter;
 @Setter
 public class CommentDTO {
 
-    @NotNull(message = "authorId cannot be null")
-    private Long authorId;
+    // authorId är borttaget — författaren hämtas från den inloggade användaren via SecurityContext i CommentService för att förhindra imitation.
 
     @NotBlank(message = "Comment text cannot be blank")
     private String text;
