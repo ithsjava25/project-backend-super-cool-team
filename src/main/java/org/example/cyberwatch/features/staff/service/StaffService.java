@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class StaffService {
@@ -53,7 +54,7 @@ public class StaffService {
         Staff existingStaff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
 
-        if (!existingStaff.getEmail().equals(dto.getEmail())) {
+        if (!Objects.equals(existingStaff.getEmail(), dto.getEmail())) {
             staffRepository.findByEmail(dto.getEmail()).ifPresent(other -> {
                 throw new IllegalStateException("Email is already in use: " + dto.getEmail());
             });
