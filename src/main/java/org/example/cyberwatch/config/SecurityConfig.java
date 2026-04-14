@@ -24,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity  // Aktiverar @PreAuthorize på controller-metoder
+@EnableMethodSecurity  // Aktiverar @PreAuthorize på service-metoder
 public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -52,9 +52,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
-                        // Endast ADMIN får hantera staff
-                        .requestMatchers("/api/staff/**").hasRole("ADMIN")
-                        // Alla andra endpoints kräver inloggning
+                        // Endast ADMIN, HR, CEO & CTO får hantera staff
+                        .requestMatchers("/api/staff/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
+                        // Endast ADMIN, HR, CEO & CTO får hantera forms
+                        .requestMatchers("/api/forms/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
+                        // Alla kan komma åt tickets
+                        .requestMatchers("/api/tickets/**").authenticated()
+                        // Alla andra endpoints kräver inloggning, djupare hantering av vem som får göra vad sköts i Service-lagret
                         .anyRequest().authenticated()
                 )
 

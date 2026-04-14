@@ -2,7 +2,6 @@ package org.example.cyberwatch.exception;
 
 import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
-import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -28,16 +27,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
+    // This method now returns valid enum values dynamically based on the actual enum type that failed binding
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, String>> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex) {
-        String validValues = Arrays.stream(Status.values())
-                .map(Enum::name)
-                .collect(Collectors.joining(", "));
+        Class<?> type = ex.getRequiredType();
+        if (type != null && type.isEnum()) {
+            String validValues = Arrays.stream(type.getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    Map.of("error", "Ogiltigt värde '" + ex.getValue()
+                            + "'. Giltiga värden: " + validValues)
+            );
+        }
+        //Fallback
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                Map.of("error", "Ogiltigt värde '" + ex.getValue()
-                        + "'. Giltiga statusar: " + validValues)
-        );
+                Map.of("error", "Ogiltigt värde '" + ex.getValue()));
     }
 
     @ExceptionHandler(IllegalStateException.class)

@@ -10,6 +10,7 @@ import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class StaffService {
         this.staffMapper = staffMapper;
     }
 
-
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public StaffDTO getStaffById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
@@ -36,10 +37,11 @@ public class StaffService {
         return staffMapper.toDto(staffRepository.findById(id).orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id)));
     }
 
-    public List<StaffDTO> getAllStaff() {
+    private List<StaffDTO> getAllStaff() {
         return staffMapper.toDTOList(staffRepository.findAll());
     }
 
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public StaffDTO updateStaff(Long staffId, UpdateStaffDTO dto) {
         if (staffId == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
@@ -63,6 +65,7 @@ public class StaffService {
         return staffMapper.toDto(staffRepository.save(existingStaff));
     }
 
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public void deleteStaff(Long staffId) {
         if (staffId == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
@@ -74,6 +77,7 @@ public class StaffService {
 
     }
 
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department) {
         if (role != null) {
             return staffRepository.findByRole(role)
