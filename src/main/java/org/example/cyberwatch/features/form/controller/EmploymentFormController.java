@@ -24,7 +24,6 @@ public class EmploymentFormController {
     }
 
     @PostMapping(value = "/employment")
-    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
                                                                   Authentication authentication) {
         String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
