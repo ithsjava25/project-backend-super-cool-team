@@ -1,5 +1,6 @@
 package org.example.cyberwatch.exception;
 
+import org.example.cyberwatch.features.form.exception.EmploymentFormNotFound;
 import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -63,6 +64,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleStaffNotFound(
             StaffNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmploymentFormNotFound.class)
+    public ResponseEntity<Map<String, String>> handleFormNotFound(
+            EmploymentFormNotFound ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
 

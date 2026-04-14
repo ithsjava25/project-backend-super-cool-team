@@ -3,8 +3,10 @@ package org.example.cyberwatch.features.form.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.example.cyberwatch.features.form.exception.EmploymentFormNotFound;
 import org.example.cyberwatch.features.form.model.*;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
+import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
@@ -80,6 +82,7 @@ public class EmploymentFormService {
     }
 
     // Get a single form by ID
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public EmploymentFormDTO getFormById(Long formId) {
         return employmentMapper.toDTO(findFormById(formId));
     }
@@ -130,7 +133,7 @@ public class EmploymentFormService {
         }
 
         Staff rejecter = staffRepository.findByEmail(loggedInManagementEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Rejecter not found"));
+                .orElseThrow(() -> new StaffNotFoundException("Rejecter not found"));
         if (rejecter.getRole() != Role.CEO && rejecter.getRole() != Role.CTO) {
             throw new IllegalStateException("Only CEO or CTO can reject employment forms");
         }
@@ -160,7 +163,7 @@ public class EmploymentFormService {
         }
 
         Staff requester = staffRepository.findByEmail(loggedInEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new StaffNotFoundException("User not found"));
 
         boolean isManagement = requester.getRole() == Role.CEO || requester.getRole() == Role.CTO;
         boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getEmail().equals(loggedInEmail);
@@ -179,7 +182,7 @@ public class EmploymentFormService {
         EmploymentForm form = findFormById(formId);
 
         Staff approver = staffRepository.findByEmail(loggedInManagement)
-                .orElseThrow(() -> new EntityNotFoundException("Approver not found"));
+                .orElseThrow(() -> new StaffNotFoundException("Approver not found"));
         if (approver.getRole() != Role.CEO && approver.getRole() != Role.CTO) {
             throw new IllegalStateException("Only CEO or CTO can approve employment forms");
         }
@@ -212,13 +215,12 @@ public class EmploymentFormService {
 
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
-    public EmploymentForm findFormById(Long formId) {
+    private EmploymentForm findFormById(Long formId) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
         }
         return employmentFormRepository.findById(formId)
-                .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+                .orElseThrow(() -> new EmploymentFormNotFound("Form not found with id: " + formId));
     }
 
     private String generateSecurePassword() {
