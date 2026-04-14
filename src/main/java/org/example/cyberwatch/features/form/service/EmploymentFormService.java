@@ -86,6 +86,7 @@ public class EmploymentFormService {
 
     // Update form before approval (only PENDING forms can be updated)
     @Transactional
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')") // Only HR or Admin can update forms before approval
     public EmploymentFormDTO updateFormBeforeApproval(Long formId, UpdateEmploymentDTO updatedForm, String loggedInHrEmail) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
@@ -117,8 +118,9 @@ public class EmploymentFormService {
         return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
     }
 
-    // Reject a form with a reason
+    // Reject a form (only PENDING forms can be rejected, and only by management)
     @Transactional
+    @PreAuthorize("hasAnyRole('CEO', 'CTO')")
     public String rejectForm(Long formId, String loggedInManagementEmail) {
 
         EmploymentForm form = findFormById(formId);
@@ -149,6 +151,7 @@ public class EmploymentFormService {
 
     // Delete a form (only PENDING forms can be deleted, and only by HR who created it or management)
     @Transactional
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public void deleteForm(Long formId, String loggedInEmail) {
         EmploymentForm form = findFormById(formId);
 
@@ -171,6 +174,7 @@ public class EmploymentFormService {
 
     // When approved by management, archive to S3 and add the employee to staff
     @Transactional
+    @PreAuthorize("hasAnyRole('CEO', 'CTO')")
     public String approveAndFinalizeEmployment(Long formId, String loggedInManagement) {
         EmploymentForm form = findFormById(formId);
 
@@ -208,16 +212,17 @@ public class EmploymentFormService {
 
     }
 
-    private String generateSecurePassword() {
-        return RandomStringUtils.secure().nextAlphanumeric(12);
-    }
-
-    private EmploymentForm findFormById(Long formId) {
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
+    public EmploymentForm findFormById(Long formId) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
         }
         return employmentFormRepository.findById(formId)
                 .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+    }
+
+    private String generateSecurePassword() {
+        return RandomStringUtils.secure().nextAlphanumeric(12);
     }
 
     private void validateSsnNotExists(String ssn) {

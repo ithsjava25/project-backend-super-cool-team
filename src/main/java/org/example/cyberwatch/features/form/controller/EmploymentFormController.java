@@ -8,7 +8,6 @@ import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +23,7 @@ public class EmploymentFormController {
         this.employmentFormService = employmentFormService;
     }
 
-    @PostMapping(value = "/employment")
+    @PostMapping("/employment")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
                                                                   Authentication authentication) {
         String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
@@ -34,7 +33,6 @@ public class EmploymentFormController {
 
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(
@@ -42,7 +40,6 @@ public class EmploymentFormController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('HR')")
     public ResponseEntity<EmploymentFormDTO> updateForm(
             @PathVariable Long id,
             @Valid @RequestBody UpdateEmploymentDTO dto,
@@ -60,14 +57,12 @@ public class EmploymentFormController {
 
     //Get a form by id
     @GetMapping("{id}")
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
     public ResponseEntity<EmploymentFormDTO> getFormById(@PathVariable Long id) {
         return ResponseEntity.ok(employmentFormService.getFormById(id));
     }
 
     // Reject a form with a reason
     @PostMapping("/{id}/reject")
-    @PreAuthorize("hasRole('CEO') or hasRole('CTO')")
     public ResponseEntity<String> rejectForm(
             @PathVariable Long id,
             Authentication authentication) {
@@ -78,7 +73,6 @@ public class EmploymentFormController {
 
     // Delete a form
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO')")
     public ResponseEntity<Void> deleteForm(
             @PathVariable Long id,
             Authentication authentication) {
