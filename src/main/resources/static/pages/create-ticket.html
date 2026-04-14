@@ -1,10 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Ticket</title>
+    <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
+<div id="navbar"></div>
 
+<main class="page-container">
+    <section class="page-header">
+        <div>
+            <h1>Skapa ny ticket</h1>
+            <p class="muted">Fyll i informationen nedan</p>
+        </div>
+    </section>
+
+    <section class="card form-card">
+        <form id="createTicketForm">
+            <div class="form-group">
+                <label for="title">Titel</label>
+                <input type="text" id="title" required />
+            </div>
+
+            <div class="form-group">
+                <label for="description">Beskrivning</label>
+                <textarea id="description" rows="6" required></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="priority">Prioritet</label>
+                    <select id="priority" required>
+                        <option value="">Välj prioritet</option>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="CRITICAL">Critical</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="issueType">Ärendetyp</label>
+                    <select id="issueType" required>
+                        <option value="">Välj typ</option>
+                        <option value="SOFTWARE">Software</option>
+                        <option value="HARDWARE">Hardware</option>
+                        <option value="NETWORK">Network</option>
+                        <option value="ACCESS">Access</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="createdById">Created By ID</label>
+                <input type="number" id="createdById" required />
+            </div>
+
+            <div class="button-row">
+                <button type="submit" class="btn btn-primary">Skapa ticket</button>
+                <a href="/pages/dashboard.html" class="btn btn-secondary">Avbryt</a>
+            </div>
+        </form>
+
+        <p id="createMessage" class="message"></p>
+    </section>
+</main>
+
+<script src="/js/app.js"></script>
+<script>
+    renderNavbar();
+    setupCreateTicketForm();
+</script>
 </body>
 </html>
