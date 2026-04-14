@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class TicketResponseDTO {
 
     private Long id;
+    private String ticketCode;
     private String title;
     private String description;
     private Status status;
@@ -40,6 +41,7 @@ public class TicketResponseDTO {
     public static TicketResponseDTO from(Ticket ticket) {
         TicketResponseDTO dto = new TicketResponseDTO();
         dto.id = ticket.getId();
+        dto.ticketCode = ticket.getTicketCode();
         dto.title = ticket.getTitle();
         dto.description = ticket.getDescription();
         dto.status = ticket.getStatus();

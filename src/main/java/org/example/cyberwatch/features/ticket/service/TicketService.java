@@ -70,13 +70,27 @@ public class TicketService {
         ticket.setCreatedBy(creator);
         ticket.setStatus(Status.SUBMITTED);
 
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        savedTicket.setTicketCode("TICKET-" + (1000 + savedTicket.getId()));
+
+        Ticket updatedTicket = ticketRepository.save(savedTicket);
+
+        return TicketResponseDTO.from(updatedTicket);
     }
 
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
+        return TicketResponseDTO.from(ticket);
+    }
+
+    @Transactional(readOnly = true)
+    public TicketResponseDTO getTicketByCode(String ticketCode) {
+        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
+                .orElseThrow(() -> new RuntimeException("Ticket not found: " + ticketCode));
+
         return TicketResponseDTO.from(ticket);
     }
 

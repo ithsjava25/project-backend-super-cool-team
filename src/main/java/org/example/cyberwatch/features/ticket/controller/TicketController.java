@@ -53,6 +53,11 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
+    @GetMapping("/code/{ticketCode}")
+    public ResponseEntity<TicketResponseDTO> getTicketByCode(@PathVariable String ticketCode) {
+        return ResponseEntity.ok(ticketService.getTicketByCode(ticketCode));
+    }
+
     @PatchMapping("/{id}/advance")
     public ResponseEntity<TicketResponseDTO> advanceStatus(@PathVariable Long id,
                                                            @RequestParam Long performedById) {
