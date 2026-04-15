@@ -279,9 +279,10 @@ function setupCommentForm() {
         e.preventDefault();
         const res = await apiFetch(`/tickets/${id}/comments`, {
             method: "POST",
-            body: JSON.stringify({ content: document.getElementById("commentText").value })
+            body: JSON.stringify({ text: document.getElementById("commentText").value })
         });
         if (res.ok) { form.reset(); loadComments(id); }
+        else { alert("Kunde inte skicka meddelande."); }
     });
 }
 
