@@ -20,6 +20,19 @@
 
     <div id="ticketDetail"></div>
 
+    <section id="assignmentSection" class="card" style="display:none;">
+        <h2>Tilldela personal</h2>
+        <div class="form-group">
+            <select id="reassignStaff" class="dashboard-assignment-select" style="width: 100%; margin-bottom: 1rem;">
+                <option value="">Lägg till personal...</option>
+                <!-- Populeras via JS -->
+            </select>
+            <div id="reassignStaffBadges" style="margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 5px;"></div>
+            <button id="reassignBtn" class="btn btn-secondary">Uppdatera tilldelning</button>
+        </div>
+        <p id="assignMessage" class="message"></p>
+    </section>
+
     <section class="card">
         <h2>Filer och Kommentarer</h2>
         <div id="commentsList" class="comments-list"></div>
@@ -49,8 +62,41 @@
 <script>
     renderNavbar();
     loadTicketDetail();
+    setupAssignmentUI();
     setupUploadForm();
     setupCommentForm();
+
+    // Hantera val av personal via dropdown i detaljvyn
+    const reassignSelect = document.getElementById('reassignStaff');
+    const badgeContainer = document.getElementById('reassignStaffBadges');
+    window.currentAssignedIds = new Set();
+
+    reassignSelect.addEventListener('change', (e) => {
+        const staffId = parseInt(e.target.value);
+        if (!staffId || window.currentAssignedIds.has(staffId)) return;
+
+        const staffName = e.target.options[e.target.selectedIndex].text;
+        addStaffBadge(staffId, staffName);
+        reassignSelect.value = "";
+    });
+
+    window.addStaffBadge = (id, name) => {
+        if (window.currentAssignedIds.has(id)) return;
+        window.currentAssignedIds.add(id);
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-assigned';
+        badge.innerHTML = `${name} <span style="cursor:pointer; margin-left:5px;">&times;</span>`;
+        badge.onclick = () => {
+            window.currentAssignedIds.delete(id);
+            badge.remove();
+        };
+        badgeContainer.appendChild(badge);
+    };
+
+    window.clearStaffBadges = () => {
+        window.currentAssignedIds.clear();
+        badgeContainer.innerHTML = '';
+    };
 </script>
 </body>
 </html>

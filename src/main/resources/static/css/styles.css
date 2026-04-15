@@ -41,9 +41,11 @@ h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
 
 /* Badges */
 .badge { padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.badge-secondary { background: #64748b; color: white; }
 .badge-SUBMITTED { background: #dcfce7; color: #166534; }
 .badge-IN_PROGRESS { background: #fef3c7; color: #92400e; }
 .badge-CLOSED { background: #f1f5f9; color: #475569; }
+.badge-assigned { background: #dcfce7 !important; color: #166534 !important; font-weight: bold; }
 
 /* Buttons */
 .btn { padding: 0.5rem 1rem; border-radius: 0.4rem; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 0.85rem; border: 1px solid transparent; transition: 0.2s; }
@@ -53,6 +55,12 @@ h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
 
 /* Forms */
 .form-group { margin-bottom: 1rem; }
+.dashboard-assignment-select {
+    width: auto;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
 label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; }
 input, select, textarea { width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 0.4rem; font-size: 0.9rem; }
 

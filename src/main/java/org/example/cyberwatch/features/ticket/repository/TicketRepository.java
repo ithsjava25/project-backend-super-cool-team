@@ -19,11 +19,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
 
     @Override
-    @EntityGraph(attributePaths = {"createdBy", "assignedTo"})
+    @EntityGraph(attributePaths = {"createdBy", "assignedStaff"})
     List<Ticket> findAll();
 
     List<Ticket> findByStatus(Status status);
-    List<Ticket> findByAssignedToId(Long staffId);
+    @Query("SELECT t FROM Ticket t JOIN t.assignedStaff s WHERE s.id = :staffId")
+    List<Ticket> findByAssignedStaffId(@Param("staffId") Long staffId);
     List<Ticket> findByCreatedById(Long staffId);
 
     /**
@@ -32,14 +33,16 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
      * Använder JPQL med LEFT JOIN FETCH för att undvika N+1-queries.
      */
     @Query("""
-            SELECT t FROM Ticket t
+            SELECT DISTINCT t FROM Ticket t
             LEFT JOIN FETCH t.createdBy
-            LEFT JOIN FETCH t.assignedTo
+            LEFT JOIN FETCH t.assignedStaff
+            LEFT JOIN t.assignedStaff s
             WHERE (:status IS NULL OR t.status = :status)
             AND (:priority IS NULL OR t.priority = :priority)
             AND (:issueType IS NULL OR t.issueType = :issueType)
-            AND (:assignedToId IS NULL OR t.assignedTo.id = :assignedToId)
+            AND (:assignedToId IS NULL OR s.id = :assignedToId)
             AND (:createdById IS NULL OR t.createdBy.id = :createdById)
+            AND (:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%')))
             ORDER BY t.createdAt DESC
             """)
     List<Ticket> findByFilters(
@@ -47,6 +50,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             @Param("priority") Priority priority,
             @Param("issueType") IssueType issueType,
             @Param("assignedToId") Long assignedToId,
-            @Param("createdById") Long createdById
+            @Param("createdById") Long createdById,
+            @Param("search") String search
     );
 }

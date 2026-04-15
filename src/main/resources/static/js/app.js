@@ -53,6 +53,29 @@ function renderNavbar() {
 }
 
 // --------------------
+// Staff
+// --------------------
+async function loadStaffList(selectId, selectedIds = []) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    try {
+        const res = await apiFetch("/staff");
+        if (!res.ok) return;
+        const staff = await res.json();
+        
+        const existingOptions = select.innerHTML.startsWith('<option value="">') 
+            ? '<option value="">' + select.options[0].text + '</option>' 
+            : '';
+
+        select.innerHTML = existingOptions + staff.map(s => {
+            const isAssigned = selectedIds.includes(s.id);
+            const className = isAssigned ? 'class="badge-assigned"' : '';
+            return `<option value="${s.id}" ${className}>${s.fullName} (${s.email})</option>`;
+        }).join('');
+    } catch (e) { console.error("Error loading staff", e); }
+}
+
+// --------------------
 // Dashboard
 // --------------------
 async function loadDashboardTickets() {
@@ -62,11 +85,15 @@ async function loadDashboardTickets() {
         const s = document.getElementById("statusFilter")?.value || "";
         const p = document.getElementById("priorityFilter")?.value || "";
         const q = document.getElementById("searchInput")?.value || "";
+        const staffId = document.getElementById("staffFilter")?.value || "";
         
-        const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}`);
+        const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}&assignedStaffId=${staffId}`);
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
         
+        const staffRes = await apiFetch("/staff");
+        const allStaff = staffRes.ok ? await staffRes.json() : [];
+
         const stats = { total: tickets.length, open: 0, inProgress: 0, closed: 0 };
         list.innerHTML = "";
         
@@ -77,21 +104,60 @@ async function loadDashboardTickets() {
 
             const item = document.createElement("div");
             item.className = "ticket-item";
-            item.onclick = () => window.location.href = `/pages/ticket-detail.html?id=${t.id}`;
+            
+            const assignedStaffNames = t.assignedStaff?.map(s => s.fullName).join(', ') || 'Ingen';
+            const assignedIds = t.assignedStaff?.map(s => s.id) || [];
+
             item.innerHTML = `
-                <div class="ticket-info">
+                <div class="ticket-info" onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'">
                     <h3>${t.title}</h3>
-                    <div class="muted">#${t.id} • ${t.priority} • ${t.createdBy?.fullName || 'Okänd'}</div>
+                    <div class="muted">#${t.id} • ${t.priority} • Tilldelad: ${assignedStaffNames}</div>
                 </div>
-                <span class="badge badge-${t.status}">${t.status}</span>`;
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <select class="dashboard-assignment-select" data-id="${t.id}">
+                        <option value="">Ändra tilldelning...</option>
+                        ${allStaff.map(staff => {
+                            const isAssigned = assignedIds.includes(staff.id);
+                            return `<option value="${staff.id}" ${isAssigned ? 'class="badge-assigned"' : ''}>
+                                ${isAssigned ? '✓ ' : ''}${staff.fullName}
+                            </option>`;
+                        }).join('')}
+                    </select>
+                    <span class="badge badge-${t.status}">${t.status}</span>
+                </div>`;
             list.appendChild(item);
+        });
+
+        // Setup listeners for dashboard assignment changes
+        document.querySelectorAll('.dashboard-assignment-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const ticketId = e.target.dataset.id;
+                const staffId = parseInt(e.target.value);
+                if (!staffId) return;
+
+                // Vi lägger till personen till den befintliga listan eller ersätter?
+                // Uppgiften säger "man ska kunna ändra detta på dashboard sidan".
+                // Vi gör så att man väljer EN person och det BLIR den nya tilldelningen (för enkelhet i dropdown),
+                // eller så lägger vi till den. Men dropdown i dashboard brukar vara "välj ny".
+                
+                const res = await apiFetch(`/tickets/${ticketId}/assign?assignedById=1`, {
+                    method: "PUT",
+                    body: JSON.stringify({ staffIds: [staffId] })
+                });
+
+                if (res.ok) {
+                    loadDashboardTickets();
+                } else {
+                    alert("Kunde inte uppdatera tilldelning.");
+                }
+            });
         });
 
         ['total', 'open', 'inProgress', 'closed'].forEach(k => {
             const el = document.getElementById(k + 'Tickets');
             if (el) el.textContent = stats[k];
         });
-    } catch (e) { list.innerHTML = "<p>Något gick fel.</p>"; }
+    } catch (e) { console.error(e); list.innerHTML = "<p>Något gick fel.</p>"; }
 }
 
 // --------------------
@@ -113,12 +179,26 @@ async function loadTicketDetail() {
                     <span class="muted">#${t.id}</span>
                 </div>
                 <h2>${t.title}</h2>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Tilldelad till:</strong> 
+                    ${t.assignedStaff && t.assignedStaff.length > 0 
+                        ? t.assignedStaff.map(s => `<span class="badge badge-secondary" style="margin-right: 5px;">${s.fullName}</span>`).join('') 
+                        : '<span class="muted">Ingen tilldelad</span>'}
+                </div>
                 <p style="margin: 1.5rem 0; font-size: 1.1rem; white-space: pre-wrap;">${t.description}</p>
                 <div class="muted" style="border-top:1px solid var(--border); padding-top:1rem;">
                     Skapad av: ${t.createdBy?.fullName || 'Okänd'} • Typ: ${t.issueType} • Prioritet: ${t.priority}
                 </div>
             </div>`;
         loadComments(id);
+        
+        // Uppdatera assignment UI med nuvarande tilldelade
+        const assignedIds = t.assignedStaff?.map(s => s.id) || [];
+        if (typeof window.clearStaffBadges === 'function') {
+            window.clearStaffBadges();
+            t.assignedStaff?.forEach(s => window.addStaffBadge(s.id, s.fullName));
+        }
+        loadStaffList("reassignStaff", assignedIds);
     } catch (e) { container.innerHTML = "<p>Något gick fel.</p>"; }
 }
 
@@ -147,7 +227,8 @@ function setupCreateTicketForm() {
             title: document.getElementById("title").value,
             description: document.getElementById("description").value,
             priority: document.getElementById("priority").value,
-            issueType: document.getElementById("issueType").value
+            issueType: document.getElementById("issueType").value,
+            assignedStaffIds: typeof window.getSelectedStaffIds === 'function' ? window.getSelectedStaffIds() : Array.from(document.getElementById("assignedStaff").selectedOptions).map(o => parseInt(o.value))
         };
         const res = await apiFetch("/tickets", { method: "POST", body: JSON.stringify(data) });
         if (res.ok) {
@@ -202,6 +283,34 @@ async function loadEditTicketData() {
     ['Title', 'Description', 'Priority', 'Status'].forEach(f => {
         const el = document.getElementById(`edit${f}`);
         if (el) el.value = t[f.toLowerCase()];
+    });
+}
+
+function setupAssignmentUI() {
+    const id = new URLSearchParams(window.location.search).get("id");
+    const section = document.getElementById("assignmentSection");
+    if (!id || !section) return;
+
+    section.style.display = "block";
+
+    document.getElementById("reassignBtn").addEventListener("click", async () => {
+        const selectedIds = window.currentAssignedIds ? Array.from(window.currentAssignedIds) : Array.from(document.getElementById("reassignStaff").selectedOptions).map(o => parseInt(o.value));
+        if (selectedIds.length === 0) return alert("Välj minst en person.");
+
+        const assignedById = 1; 
+
+        const res = await apiFetch(`/tickets/${id}/assign?assignedById=${assignedById}`, {
+            method: "PUT",
+            body: JSON.stringify({ staffIds: selectedIds })
+        });
+
+        if (res.ok) {
+            alert("Tilldelning uppdaterad!");
+            loadTicketDetail();
+        } else {
+            const err = await res.json().catch(() => ({}));
+            alert("Kunde inte uppdatera tilldelning: " + (err.message || res.statusText));
+        }
     });
 }
 

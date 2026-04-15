@@ -92,7 +92,7 @@ public class TicketController {
             @PathVariable Long ticketId,
             @RequestParam Long assignedById,
             @Valid @RequestBody AssignTicketDTO dto) {
-        return ResponseEntity.ok(ticketService.assignTicket(ticketId, dto.getStaffId(), assignedById));
+        return ResponseEntity.ok(ticketService.assignTicket(ticketId, dto.getStaffIds(), assignedById));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

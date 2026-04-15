@@ -47,9 +47,13 @@ public class Ticket {
     @JoinColumn(name = "created_by_id")
     private Staff createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_to_id")
-    private Staff assignedTo;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "ticket_assignments",
+            joinColumns = @JoinColumn(name = "ticket_id"),
+            inverseJoinColumns = @JoinColumn(name = "staff_id")
+    )
+    private List<Staff> assignedStaff = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -79,8 +83,8 @@ public class Ticket {
     public void setIssueType(IssueType issueType) { this.issueType = issueType; }
     public Staff getCreatedBy() { return createdBy; }
     public void setCreatedBy(Staff createdBy) { this.createdBy = createdBy; }
-    public Staff getAssignedTo() { return assignedTo; }
-    public void setAssignedTo(Staff assignedTo) { this.assignedTo = assignedTo; }
+    public List<Staff> getAssignedStaff() { return assignedStaff; }
+    public void setAssignedStaff(List<Staff> assignedStaff) { this.assignedStaff = assignedStaff; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

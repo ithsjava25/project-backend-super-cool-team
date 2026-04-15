@@ -12,8 +12,8 @@
 <main class="main-content">
     <section class="page-header">
         <div>
-            <h1>Alla Tickets</h1>
-            <p class="muted">Freshdesk Style Dashboard</p>
+            <h1>Tickets</h1>
+            <p class="muted">Cyber Watch - Dashboard</p>
         </div>
         <a href="/pages/create-ticket.html" class="btn btn-primary">+ Skapa ticket</a>
     </section>
@@ -42,7 +42,11 @@
                 <option value="HIGH">High</option>
                 <option value="CRITICAL">Critical</option>
             </select>
-            <button id="filterBtn" class="btn btn-secondary">Uppdatera</button>
+            <select id="staffFilter">
+                <option value="">Alla handläggare</option>
+            </select>
+            <button id="clearFiltersBtn" class="btn btn-secondary">Rensa filter</button>
+            <button id="filterBtn" class="btn btn-primary">Uppdatera</button>
         </div>
     </section>
 
@@ -53,11 +57,17 @@
     <script>
         renderNavbar();
         loadDashboardTickets();
+        loadStaffList("staffFilter");
         
-        ['filterBtn', 'statusFilter', 'priorityFilter'].forEach(id => {
+        ['filterBtn', 'statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => {
             document.getElementById(id).addEventListener('change', loadDashboardTickets);
-            if(id === 'filterBtn') document.getElementById(id).onclick = loadDashboardTickets;
         });
+        document.getElementById('filterBtn').onclick = loadDashboardTickets;
+        document.getElementById('clearFiltersBtn').onclick = () => {
+            ['statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => document.getElementById(id).value = "");
+            document.getElementById('searchInput').value = "";
+            loadDashboardTickets();
+        };
         document.getElementById('searchInput').oninput = loadDashboardTickets;
     </script>
 </body>

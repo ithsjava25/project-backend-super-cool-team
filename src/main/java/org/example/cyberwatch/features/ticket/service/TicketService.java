@@ -25,10 +25,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -63,8 +60,12 @@ public class TicketService {
         Staff creator = staffRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new RuntimeException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
 
+        if (dto.getAssignedStaffIds() == null || dto.getAssignedStaffIds().isEmpty()) {
+            throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
+        }
+
         Ticket ticket = new Ticket();
-        ticket.setTicketCode("TEMP-" + System.currentTimeMillis()); // Temporär kod som är unik
+        ticket.setTicketCode("TEMP-" + System.currentTimeMillis());
         ticket.setTitle(dto.getTitle());
         ticket.setDescription(dto.getDescription());
         ticket.setPriority(dto.getPriority());
@@ -72,10 +73,19 @@ public class TicketService {
         ticket.setCreatedBy(creator);
         ticket.setStatus(Status.SUBMITTED);
 
-        Ticket savedTicket = ticketRepository.save(ticket);
+        List<Staff> assignedStaff = staffRepository.findAllById(dto.getAssignedStaffIds());
+        if (assignedStaff.isEmpty()) {
+            throw new RuntimeException("Ingen av de valda personerna hittades.");
+        }
+        ticket.setAssignedStaff(assignedStaff);
 
+        Ticket savedTicket = ticketRepository.save(ticket);
         savedTicket.setTicketCode("TICKET-" + (1000 + savedTicket.getId()));
-        return TicketResponseDTO.from(ticketRepository.save(savedTicket));
+        savedTicket = ticketRepository.save(savedTicket);
+
+        activityLogService.logAssignmentChange(savedTicket, creator, assignedStaff);
+
+        return TicketResponseDTO.from(savedTicket);
     }
 
     @Transactional(readOnly = true)
@@ -114,8 +124,9 @@ public class TicketService {
                         filters.getStatus(),
                         filters.getPriority(),
                         filters.getIssueType(),
-                        filters.getAssignedToId(),
-                        filters.getCreatedById()
+                        filters.getAssignedStaffId(),
+                        filters.getCreatedById(),
+                        filters.getSearch()
                 ).stream()
                 .map(TicketResponseDTO::from)
                 .toList();
@@ -158,17 +169,35 @@ public class TicketService {
         return TicketResponseDTO.from(saved);
     }
 
-    public TicketResponseDTO assignTicket(Long ticketId, Long staffId, Long assignedById) {
+    public TicketResponseDTO assignTicket(Long ticketId, List<Long> staffIds, Long assignedById) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new StaffNotFoundException(staffId));
+
+        if (staffIds == null || staffIds.isEmpty()) {
+            throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
+        }
+
         Staff assigner = staffRepository.findById(assignedById)
                 .orElseThrow(() -> new StaffNotFoundException(assignedById));
+
+        List<Staff> staffList = staffRepository.findAllById(staffIds);
+        if (staffList.isEmpty()) {
+            throw new RuntimeException("Ingen av de valda personerna hittades.");
+        }
+
         Status oldStatus = ticket.getStatus();
-        ticket.setAssignedTo(staff);
+        ticket.setAssignedStaff(staffList);
         Ticket saved = ticketRepository.save(ticket);
-        activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
+
+        if (oldStatus == Status.SUBMITTED) {
+            ticket.setStatus(Status.IN_PROGRESS);
+            saved = ticketRepository.save(ticket);
+            activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
+            activityLogService.logAssignmentChange(saved, assigner, staffList);
+        } else {
+            activityLogService.logAssignmentChange(saved, assigner, staffList);
+        }
+
         return TicketResponseDTO.from(saved);
     }
 

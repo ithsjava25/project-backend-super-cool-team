@@ -9,6 +9,8 @@ import lombok.Setter;
 import org.example.cyberwatch.shared.model.enums.IssueType;
 import org.example.cyberwatch.shared.model.enums.Priority;
 
+import java.util.List;
+
 public class TicketDTO {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -35,4 +37,8 @@ public class TicketDTO {
     @NotNull(message = "Ärendetyp måste anges")
     private IssueType issueType;
     private Long createdById;
+    private List<Long> assignedStaffIds;
+
+    public List<Long> getAssignedStaffIds() { return assignedStaffIds; }
+    public void setAssignedStaffIds(List<Long> assignedStaffIds) { this.assignedStaffIds = assignedStaffIds; }
 }
