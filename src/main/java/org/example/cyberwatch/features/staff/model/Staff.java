@@ -14,11 +14,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
-//Differs from Employee form wich is the process/form HR uses to create a new employee.
+// Differs from Employee form which is the process/form HR uses to create a new employee.
 @Getter
 @Setter
 @Entity
 public class Staff {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "employee_id")
@@ -39,6 +40,7 @@ public class Staff {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
+    @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Email should be valid")
     @NotBlank(message = "Email cannot be blank")
     private String email;
@@ -56,6 +58,12 @@ public class Staff {
     @NotNull(message = "Department cannot be null")
     private Department department;
 
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "employed_s3_key")
+    private String employedS3Key;
+
     // An employee can have many reports
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ReportForm> reportForms = new HashSet<>();
@@ -69,5 +77,4 @@ public class Staff {
     public Staff() {
 
     }
-
 }

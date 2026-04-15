@@ -8,6 +8,7 @@ import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.features.ticket.model.TicketAttachment;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
+import org.example.cyberwatch.features.ticket.model.TicketFilterParams;
 import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
@@ -82,6 +83,27 @@ public class TicketService {
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> getAllTickets() {
         return ticketRepository.findAll().stream()
+                .map(TicketResponseDTO::from)
+                .toList();
+    }
+
+    /**
+     * Returnerar tickets filtrerade på valfria parametrar.
+     * Alla parametrar är valfria — null-värden ignoreras i queryn.
+     * Alltid sorterat nyast först oavsett om filter är satta eller inte.
+     */
+    @Transactional(readOnly = true)
+    public List<TicketResponseDTO> getFilteredTickets(TicketFilterParams filters) {
+        if (filters == null) {
+            filters = new TicketFilterParams();
+        }
+        return ticketRepository.findByFilters(
+                        filters.getStatus(),
+                        filters.getPriority(),
+                        filters.getIssueType(),
+                        filters.getAssignedToId(),
+                        filters.getCreatedById()
+                ).stream()
                 .map(TicketResponseDTO::from)
                 .toList();
     }

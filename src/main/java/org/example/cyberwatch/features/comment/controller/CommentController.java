@@ -4,8 +4,10 @@ import jakarta.validation.Valid;
 import org.example.cyberwatch.features.comment.model.CommentDTO;
 import org.example.cyberwatch.features.comment.model.CommentResponseDTO;
 import org.example.cyberwatch.features.comment.service.CommentService;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,8 +25,12 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommentResponseDTO> addComment(
             @PathVariable Long ticketId,
-            @Valid @RequestBody CommentDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.addComment(ticketId, dto));
+            @Valid @RequestBody CommentDTO dto,
+            // Hämtar den inloggade Staff-instansen direkt från SecurityContext
+            // — sätts upp av JwtAuthFilter på varje autentiserad request
+            @AuthenticationPrincipal Staff author) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.addComment(ticketId, dto, author));
     }
 
     @GetMapping
