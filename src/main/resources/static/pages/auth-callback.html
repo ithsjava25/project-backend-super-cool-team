@@ -16,12 +16,13 @@
   if (token) {
     localStorage.setItem("jwt_token", token);
     localStorage.setItem("token", token);
-    window.location.href = "/pages/dashboard.html";
+    // Använd replace() så att callback-URL:en med token inte sparas i webbläsarhistoriken
+    window.location.replace("/pages/dashboard.html");
   } else if (error) {
     alert("Inloggningen misslyckades: " + error);
-    window.location.href = "/pages/login.html";
+    window.location.replace("/pages/login.html");
   } else {
-    window.location.href = "/pages/login.html";
+    window.location.replace("/pages/login.html");
   }
 </script>
 </body>

@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "/api"; // Relativ URL — fungerar oavsett host och port
 
 // --------------------
 // Auth & Headers
@@ -62,7 +62,7 @@ async function loadStaffList(selectId, selectedIds = []) {
         const res = await apiFetch("/staff");
         if (!res.ok) return;
         const staff = await res.json();
-        
+
         // Hitta den första option-taggen om den finns (t.ex. "Alla handläggare" eller "Välj handläggare")
         const firstOption = select.querySelector('option[value=""]');
         const existingDefault = firstOption ? firstOption.outerHTML : '<option value="">Välj...</option>';
@@ -88,7 +88,7 @@ async function loadDashboardTickets() {
         const p = document.getElementById("priorityFilter")?.value || "";
         const q = document.getElementById("searchInput")?.value || "";
         const staffId = document.getElementById("staffFilter")?.value || "";
-        
+
         // Update stats on top of dashboard
         try {
             const statsRes = await apiFetch(`/tickets?status=&priority=&search=&assignedStaffId=`);
@@ -109,17 +109,17 @@ async function loadDashboardTickets() {
         const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}&assignedStaffId=${staffId}`);
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
-        
+
         const staffRes = await apiFetch("/staff");
         const allStaff = staffRes.ok ? await staffRes.json() : [];
 
         list.innerHTML = "";
-        
+
         tickets.forEach(t => {
 
             const item = document.createElement("div");
             item.className = "ticket-item";
-            
+
             const assignedStaffNames = t.assignedStaff?.map(s => s.fullName).join(', ') || 'Ingen';
             const assignedIds = t.assignedStaff?.map(s => s.id) || [];
 
@@ -132,11 +132,11 @@ async function loadDashboardTickets() {
                     <select class="dashboard-assignment-select" data-id="${t.id}">
                         <option value="">Ändra tilldelning...</option>
                         ${allStaff.map(staff => {
-                            const isAssigned = assignedIds.includes(staff.id);
-                            return `<option value="${staff.id}" ${isAssigned ? 'class="badge-assigned"' : ''}>
+                const isAssigned = assignedIds.includes(staff.id);
+                return `<option value="${staff.id}" ${isAssigned ? 'class="badge-assigned"' : ''}>
                                 ${isAssigned ? '✓ ' : ''}${staff.fullName}
                             </option>`;
-                        }).join('')}
+            }).join('')}
                     </select>
                     <select class="dashboard-status-select" data-id="${t.id}" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">
                         <option value="SUBMITTED" ${t.status === 'SUBMITTED' ? 'selected' : ''}>Submitted</option>
@@ -154,7 +154,7 @@ async function loadDashboardTickets() {
                 const ticketId = e.target.dataset.id;
                 const staffId = parseInt(e.target.value);
                 if (!staffId) return;
-                
+
                 const res = await apiFetch(`/tickets/${ticketId}/assign?assignedById=1`, {
                     method: "PUT",
                     body: JSON.stringify({ staffIds: [staffId] })
@@ -173,7 +173,7 @@ async function loadDashboardTickets() {
             select.addEventListener('change', async (e) => {
                 const ticketId = e.target.dataset.id;
                 const newStatus = e.target.value;
-                
+
                 const res = await apiFetch(`/tickets/${ticketId}/status?status=${newStatus}&performedById=1`, {
                     method: "PATCH"
                 });
@@ -211,9 +211,9 @@ async function loadTicketDetail() {
                 <h2>${t.title}</h2>
                 <div style="margin-bottom: 1rem;">
                     <strong>Tilldelad till:</strong> 
-                    ${t.assignedStaff && t.assignedStaff.length > 0 
-                        ? t.assignedStaff.map(s => `<span class="badge badge-secondary" style="margin-right: 5px;">${s.fullName}</span>`).join('') 
-                        : '<span class="muted">Ingen tilldelad</span>'}
+                    ${t.assignedStaff && t.assignedStaff.length > 0
+            ? t.assignedStaff.map(s => `<span class="badge badge-secondary" style="margin-right: 5px;">${s.fullName}</span>`).join('')
+            : '<span class="muted">Ingen tilldelad</span>'}
                 </div>
                 <p style="margin: 1.5rem 0; font-size: 1.1rem; white-space: pre-wrap;">${t.description}</p>
                 <div class="muted" style="border-top:1px solid var(--border); padding-top:1rem;">
@@ -221,7 +221,7 @@ async function loadTicketDetail() {
                 </div>
             </div>`;
         loadComments(id);
-        
+
         // Uppdatera assignment UI med nuvarande tilldelade
         const assignedIds = t.assignedStaff?.map(s => s.id) || [];
         if (typeof window.clearStaffBadges === 'function') {
@@ -328,7 +328,7 @@ function setupAssignmentUI() {
         const selectedIds = window.currentAssignedIds ? Array.from(window.currentAssignedIds) : Array.from(document.getElementById("reassignStaff").selectedOptions).map(o => parseInt(o.value));
         if (selectedIds.length === 0) return alert("Välj minst en person.");
 
-        const assignedById = 1; 
+        const assignedById = 1;
 
         const res = await apiFetch(`/tickets/${id}/assign?assignedById=${assignedById}`, {
             method: "PUT",
