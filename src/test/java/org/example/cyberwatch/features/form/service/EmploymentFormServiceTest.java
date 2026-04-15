@@ -2,6 +2,7 @@ package org.example.cyberwatch.features.form.service;
 
 import org.example.cyberwatch.features.form.model.*;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
+import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
@@ -87,7 +88,7 @@ class EmploymentFormServiceTest {
         when(formRepository.findById(formId)).thenReturn(Optional.of(existingForm));
 
         // Act & Assert
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(StaffNotFoundException.class, () -> {
             service.updateFormBeforeApproval(formId, updateDto, "hacker@cyberwatch.local");
         });
     }
@@ -99,16 +100,18 @@ class EmploymentFormServiceTest {
         Long id = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.PENDING);
-        Staff manager = new Staff();
+        Staff cto = new Staff();
+        cto.setRole(Role.CTO);
 
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
-        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(manager));
+        when(staffRepository.findByEmail("cto@cyberwatch.local")).thenReturn(Optional.of(cto));
 
         // Act
-        service.rejectForm(id, "manager@cyberwatch.local");
+        service.rejectForm(id, "cto@cyberwatch.local");
 
         // Assert
         assertEquals(ApprovalStatus.REJECTED, form.getStatus());
+        verify(staffRepository).findByEmail("cto@cyberwatch.local");
         verify(formRepository).save(form);
     }
 
@@ -121,11 +124,12 @@ class EmploymentFormServiceTest {
         form.setSocialSecurityNumber("1990-1234");
         form.setStatus(ApprovalStatus.PENDING);
 
-        Staff manager = new Staff();
+        Staff cto = new Staff();
+        cto.setRole(Role.CTO);
         Staff newEmployee = new Staff();
 
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
-        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(manager));
+        when(staffRepository.findByEmail(anyString())).thenReturn(Optional.of(cto));
         when(mapper.formToStaff(form)).thenReturn(newEmployee);
         when(passwordEncoder.encode(anyString())).thenReturn("hashed_pass");
 

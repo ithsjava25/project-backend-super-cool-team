@@ -1,10 +1,11 @@
 package org.example.cyberwatch.features.form.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.example.cyberwatch.features.form.exception.EmploymentFormNotFound;
 import org.example.cyberwatch.features.form.model.*;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
+import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
@@ -12,6 +13,7 @@ import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ public class EmploymentFormService {
 
     //Create employment form
     @Transactional
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public EmploymentFormDTO createForm(CreateEmploymentDTO form, String loggedInHr) {
         if (form == null) {
             throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
@@ -46,7 +49,7 @@ public class EmploymentFormService {
         Staff hrStaff = staffRepository.findByEmail(loggedInHr)
                 .orElseThrow(() -> {
                     logger.error("HR staff not found with email: {}", loggedInHr);
-                    return new EntityNotFoundException("HR staff not found with username: " + loggedInHr);
+                    return new StaffNotFoundException("HR staff not found with username: " + loggedInHr);
                 });
 
         EmploymentForm formEntity = employmentMapper.toEntity(form);
@@ -60,26 +63,32 @@ public class EmploymentFormService {
         return savedForm;
     }
 
-    //view: show all employmentforms with status
-    public List<EmploymentFormDTO> getFormsByStatus(ApprovalStatus status) {
-        return employmentMapper.toDTOList(employmentFormRepository.findByStatus(status));
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
+    public List<EmploymentFormDTO> getFormsByFilterApproval(ApprovalStatus status) {
+        // Om status är angiven (t.ex. PENDING eller APPROVED), filtrera på den
+        if (status != null) {
+            return employmentFormRepository.findByStatus(status)
+                    .stream()
+                    .map(employmentMapper::toDTO)
+                    .toList();
+        }
+
+        return getAllForms();
     }
 
-    public List<EmploymentFormDTO> getPendingForms() {
-        return getFormsByStatus(ApprovalStatus.PENDING);
-    }
-
-    public List<EmploymentFormDTO> getApprovedForms() {
-        return getFormsByStatus(ApprovalStatus.APPROVED);
+    private List<EmploymentFormDTO> getAllForms() {
+        return employmentMapper.toDTOList(employmentFormRepository.findAll());
     }
 
     // Get a single form by ID
+    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public EmploymentFormDTO getFormById(Long formId) {
         return employmentMapper.toDTO(findFormById(formId));
     }
 
     // Update form before approval (only PENDING forms can be updated)
     @Transactional
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')") // Only HR or Admin can update forms before approval
     public EmploymentFormDTO updateFormBeforeApproval(Long formId, UpdateEmploymentDTO updatedForm, String loggedInHrEmail) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
@@ -95,9 +104,16 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be updated. Current status: " + existingForm.getStatus());
         }
 
-        // Only the HR who created the form can update it
-        if (existingForm.getCreatedBy() == null || !existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail)) {
-            throw new IllegalStateException("Only the HR staff who created this form can update it");
+        // Only the HR who created the form or an ADMIN can update it
+        Staff requester = staffRepository.findByEmail(loggedInHrEmail)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found: " + loggedInHrEmail));
+
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        boolean isCreator = existingForm.getCreatedBy() != null
+                && existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail);
+
+        if (!isAdmin && !isCreator) {
+            throw new IllegalStateException("Only the HR staff who created this form or an admin can update it");
         }
 
         // Check for duplicate SSN if it's changed
@@ -111,8 +127,9 @@ public class EmploymentFormService {
         return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
     }
 
-    // Reject a form with a reason
+    // Reject a form (only PENDING forms can be rejected, and only by management)
     @Transactional
+    @PreAuthorize("hasAnyRole('CEO', 'CTO')")
     public String rejectForm(Long formId, String loggedInManagementEmail) {
 
         EmploymentForm form = findFormById(formId);
@@ -122,7 +139,7 @@ public class EmploymentFormService {
         }
 
         Staff rejecter = staffRepository.findByEmail(loggedInManagementEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Rejecter not found"));
+                .orElseThrow(() -> new StaffNotFoundException("Rejecter not found"));
         if (rejecter.getRole() != Role.CEO && rejecter.getRole() != Role.CTO) {
             throw new IllegalStateException("Only CEO or CTO can reject employment forms");
         }
@@ -141,8 +158,9 @@ public class EmploymentFormService {
         return "Employment form has been rejected";
     }
 
-    // Delete a form (only PENDING forms can be deleted, and only by HR who created it or management)
+    // Delete a form (only PENDING forms can be deleted, and only by the HR who created it or an ADMIN)
     @Transactional
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public void deleteForm(Long formId, String loggedInEmail) {
         EmploymentForm form = findFormById(formId);
 
@@ -151,11 +169,11 @@ public class EmploymentFormService {
         }
 
         Staff requester = staffRepository.findByEmail(loggedInEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new StaffNotFoundException("User not found"));
 
-        boolean isManagement = requester.getRole() == Role.CEO || requester.getRole() == Role.CTO;
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
         boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getEmail().equals(loggedInEmail);
-        if (!isManagement && !isCreator) {
+        if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or management can delete it");
         }
 
@@ -165,11 +183,12 @@ public class EmploymentFormService {
 
     // When approved by management, archive to S3 and add the employee to staff
     @Transactional
+    @PreAuthorize("hasAnyRole('CEO', 'CTO')")
     public String approveAndFinalizeEmployment(Long formId, String loggedInManagement) {
         EmploymentForm form = findFormById(formId);
 
         Staff approver = staffRepository.findByEmail(loggedInManagement)
-                .orElseThrow(() -> new EntityNotFoundException("Approver not found"));
+                .orElseThrow(() -> new StaffNotFoundException("Approver not found"));
         if (approver.getRole() != Role.CEO && approver.getRole() != Role.CTO) {
             throw new IllegalStateException("Only CEO or CTO can approve employment forms");
         }
@@ -202,16 +221,16 @@ public class EmploymentFormService {
 
     }
 
-    private String generateSecurePassword() {
-        return RandomStringUtils.secure().nextAlphanumeric(12);
-    }
-
     private EmploymentForm findFormById(Long formId) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
         }
         return employmentFormRepository.findById(formId)
-                .orElseThrow(() -> new EntityNotFoundException("Form not found with id: " + formId));
+                .orElseThrow(() -> new EmploymentFormNotFound("Form not found with id: " + formId));
+    }
+
+    private String generateSecurePassword() {
+        return RandomStringUtils.secure().nextAlphanumeric(12);
     }
 
     private void validateSsnNotExists(String ssn) {

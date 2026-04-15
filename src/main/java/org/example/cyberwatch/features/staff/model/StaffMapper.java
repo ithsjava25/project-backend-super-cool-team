@@ -20,18 +20,6 @@ public class StaffMapper {
         );
     }
 
-    //Not usable now but could be used in future if staff wants to update their info
-    public Staff toEntity(StaffDTO dto) {
-        Staff staff = new Staff();
-        staff.setId(dto.getId());
-        staff.setSocialSecurityNumber(dto.getSocialSecurityNumber());
-        staff.setFirstName(dto.getFirstName());
-        staff.setLastName(dto.getLastName());
-        staff.setEmail(dto.getEmail());
-        staff.setPhoneNumber(dto.getPhoneNumber());
-        staff.setRole(dto.getRole());
-        staff.setDepartment(dto.getDepartment());
-        return staff;
     public void updateEntity(UpdateStaffDTO dto, Staff entity) {
         if (dto == null || entity == null) return;
         entity.setFirstName(dto.getFirstName());
