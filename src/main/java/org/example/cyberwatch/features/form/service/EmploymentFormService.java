@@ -104,9 +104,16 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be updated. Current status: " + existingForm.getStatus());
         }
 
-        // Only the HR who created the form can update it
-        if (existingForm.getCreatedBy() == null || !existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail)) {
-            throw new IllegalStateException("Only the HR staff who created this form can update it");
+        // Only the HR who created the form or an ADMIN can update it
+        Staff requester = staffRepository.findByEmail(loggedInHrEmail)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found: " + loggedInHrEmail));
+
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        boolean isCreator = existingForm.getCreatedBy() != null
+                && existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail);
+
+        if (!isAdmin && !isCreator) {
+            throw new IllegalStateException("Only the HR staff who created this form or an admin can update it");
         }
 
         // Check for duplicate SSN if it's changed
@@ -151,9 +158,9 @@ public class EmploymentFormService {
         return "Employment form has been rejected";
     }
 
-    // Delete a form (only PENDING forms can be deleted, and only by HR who created it or management)
+    // Delete a form (only PENDING forms can be deleted, and only by the HR who created it or an ADMIN)
     @Transactional
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
     public void deleteForm(Long formId, String loggedInEmail) {
         EmploymentForm form = findFormById(formId);
 
@@ -164,9 +171,9 @@ public class EmploymentFormService {
         Staff requester = staffRepository.findByEmail(loggedInEmail)
                 .orElseThrow(() -> new StaffNotFoundException("User not found"));
 
-        boolean isManagement = requester.getRole() == Role.CEO || requester.getRole() == Role.CTO;
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
         boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getEmail().equals(loggedInEmail);
-        if (!isManagement && !isCreator) {
+        if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or management can delete it");
         }
 

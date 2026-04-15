@@ -2,6 +2,7 @@ package org.example.cyberwatch.features.form.service;
 
 import org.example.cyberwatch.features.form.model.*;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
+import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
@@ -87,7 +88,7 @@ class EmploymentFormServiceTest {
         when(formRepository.findById(formId)).thenReturn(Optional.of(existingForm));
 
         // Act & Assert
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(StaffNotFoundException.class, () -> {
             service.updateFormBeforeApproval(formId, updateDto, "hacker@cyberwatch.local");
         });
     }

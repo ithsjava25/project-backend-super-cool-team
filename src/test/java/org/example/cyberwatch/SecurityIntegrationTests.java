@@ -1,10 +1,11 @@
-package org.example.cyberwatch.features.security;
+package org.example.cyberwatch;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestcontainersConfiguration.class)
 @AutoConfigureMockMvc
 class SecurityIntegrationTests {
 
@@ -62,7 +64,7 @@ class SecurityIntegrationTests {
 
     @Test
     @WithMockUser(roles = "HR")
-    @DisplayName("HR should access form endpoints and gett 400 for bad request in body")
+    @DisplayName("HR should access form endpoints and get 400 for bad request in body")
     void hrCanCreateForm() throws Exception {
         mockMvc.perform(post("/api/forms/employment")
                         .contentType(MediaType.APPLICATION_JSON)
