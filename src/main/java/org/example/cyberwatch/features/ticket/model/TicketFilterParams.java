@@ -13,9 +13,17 @@ import org.example.cyberwatch.shared.model.enums.Status;
  * mappar query params till objektets fält:
  * GET /api/tickets?status=IN_PROGRESS&priority=HIGH
  */
-@Getter
-@Setter
 public class TicketFilterParams {
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
+    public Priority getPriority() { return priority; }
+    public void setPriority(Priority priority) { this.priority = priority; }
+    public IssueType getIssueType() { return issueType; }
+    public void setIssueType(IssueType issueType) { this.issueType = issueType; }
+    public Long getAssignedToId() { return assignedToId; }
+    public void setAssignedToId(Long assignedToId) { this.assignedToId = assignedToId; }
+    public Long getCreatedById() { return createdById; }
+    public void setCreatedById(Long createdById) { this.createdById = createdById; }
 
     private Status status;
     private Priority priority;
