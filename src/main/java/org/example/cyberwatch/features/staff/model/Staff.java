@@ -15,8 +15,6 @@ import java.util.Set;
 
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
 // Differs from Employee form which is the process/form HR uses to create a new employee.
-@Getter
-@Setter
 @Entity
 public class Staff {
 
@@ -64,17 +62,25 @@ public class Staff {
     @Column(name = "employed_s3_key")
     private String employedS3Key;
 
-    // An employee can have many reports
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ReportForm> reportForms = new HashSet<>();
+    public String getEmployedS3Key() { return employedS3Key; }
+    public void setEmployedS3Key(String employedS3Key) { this.employedS3Key = employedS3Key; }
 
-    @OneToMany(mappedBy = "createdBy")
-    private Set<EmploymentForm> createdForms;
-
-    @OneToMany(mappedBy = "assignedTo")
-    private Set<Ticket> assignedTickets = new HashSet<>();
-
-    public Staff() {
-
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+    public String getSocialSecurityNumber() { return socialSecurityNumber; }
+    public void setSocialSecurityNumber(String socialSecurityNumber) { this.socialSecurityNumber = socialSecurityNumber; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }
