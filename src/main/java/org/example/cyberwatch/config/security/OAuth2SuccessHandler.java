@@ -28,8 +28,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtService jwtService;
     private final StaffRepository staffRepository;
 
-    // Byt ut mot riktiga frontend-URL när vi driftsätter
-    private static final String FRONTEND_URL = "http://localhost:8080/pages/auth-callback.html";
+    // Relativ path — fungerar oavsett host och port vid driftsättning
+    private static final String FRONTEND_PATH = "/pages/auth-callback.html";
 
     public OAuth2SuccessHandler(JwtService jwtService, StaffRepository staffRepository) {
         this.jwtService = jwtService;
@@ -41,24 +41,25 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
-        // Hämta Google-användaren och plocka ut emailen
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
         Optional<Staff> staffOptional = staffRepository.findByEmail(email);
 
         if (staffOptional.isEmpty()) {
-            // Emailen finns inte i systemet — användaren är inte anställd här
-            response.sendRedirect(FRONTEND_URL + "?error=unauthorized");
+            response.sendRedirect(request.getContextPath() + FRONTEND_PATH + "?error=unauthorized");
             return;
         }
 
-        // Emailen finns — generera en JWT-token med email och roll
         Staff staff = staffOptional.get();
-        String token = jwtService.generateToken(staff.getEmail(), staff.getRole().name());
+        final String token;
+        try {
+            token = jwtService.generateToken(staff.getEmail(), staff.getRole().name());
+        } catch (RuntimeException ex) {
+            response.sendRedirect(request.getContextPath() + FRONTEND_PATH + "?error=login_failed");
+            return;
+        }
 
-        // Skicka token till frontend via query-parameter i redirect-URL:en
-        // Frontend sparar token och skickar den som "Authorization: Bearer <token>" på varje request
-        response.sendRedirect(FRONTEND_URL + "?token=" + token);
+        response.sendRedirect(request.getContextPath() + FRONTEND_PATH + "?token=" + token);
     }
 }

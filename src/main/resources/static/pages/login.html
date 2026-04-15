@@ -24,7 +24,8 @@
 
 <script>
     document.getElementById("googleLoginBtn").addEventListener("click", function () {
-        window.location.href = "http://localhost:8080/oauth2/authorization/google";
+        // Använd relativ URL — fungerar oavsett host och port
+        window.location.href = "/oauth2/authorization/google";
     });
 </script>
 </body>

@@ -56,7 +56,6 @@ public class TicketService {
     }
 
     public TicketResponseDTO createTicket(TicketDTO dto, String creatorEmail) {
-        System.out.println("[DEBUG_LOG] Creating ticket for: " + creatorEmail);
         Staff creator = staffRepository.findByEmail(creatorEmail)
                 .orElseThrow(() -> new RuntimeException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
 
@@ -73,9 +72,10 @@ public class TicketService {
         ticket.setCreatedBy(creator);
         ticket.setStatus(Status.SUBMITTED);
 
-        List<Staff> assignedStaff = staffRepository.findAllById(dto.getAssignedStaffIds());
-        if (assignedStaff.isEmpty()) {
-            throw new RuntimeException("Ingen av de valda personerna hittades.");
+        Set<Long> requestedIds = new HashSet<>(dto.getAssignedStaffIds());
+        List<Staff> assignedStaff = staffRepository.findAllById(requestedIds);
+        if (assignedStaff.size() != requestedIds.size()) {
+            throw new RuntimeException("En eller flera valda personer hittades inte.");
         }
         ticket.setAssignedStaff(assignedStaff);
 
