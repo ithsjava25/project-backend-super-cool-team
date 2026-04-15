@@ -9,31 +9,31 @@
 <body>
 <div id="navbar"></div>
 
-<main class="page-container">
+<main class="main-content">
     <section class="page-header">
         <div>
             <h1>Skapa ny ticket</h1>
-            <p class="muted">Fyll i informationen nedan</p>
+            <p class="muted">Freshdesk Style</p>
         </div>
     </section>
 
-    <section class="card form-card">
+    <section class="card">
         <form id="createTicketForm">
             <div class="form-group">
                 <label for="title">Titel</label>
-                <input type="text" id="title" required />
+                <input type="text" id="title" placeholder="Vad handlar ärendet om?" required />
             </div>
 
             <div class="form-group">
                 <label for="description">Beskrivning</label>
-                <textarea id="description" rows="6" required></textarea>
+                <textarea id="description" rows="8" placeholder="Beskriv ärendet i detalj..." required></textarea>
             </div>
 
-            <div class="form-row">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label for="priority">Prioritet</label>
                     <select id="priority" required>
-                        <option value="">Välj prioritet</option>
+                        <option value="">Välj...</option>
                         <option value="LOW">Low</option>
                         <option value="MEDIUM">Medium</option>
                         <option value="HIGH">High</option>
@@ -44,7 +44,7 @@
                 <div class="form-group">
                     <label for="issueType">Ärendetyp</label>
                     <select id="issueType" required>
-                        <option value="">Välj typ</option>
+                        <option value="">Välj...</option>
                         <option value="SOFTWARE">Software</option>
                         <option value="HARDWARE">Hardware</option>
                         <option value="NETWORK">Network</option>
@@ -54,17 +54,11 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="createdById">Created By ID</label>
-                <input type="number" id="createdById" required />
-            </div>
-
-            <div class="button-row">
-                <button type="submit" class="btn btn-primary">Skapa ticket</button>
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary">Skapa ärende</button>
                 <a href="/pages/dashboard.html" class="btn btn-secondary">Avbryt</a>
             </div>
         </form>
-
         <p id="createMessage" class="message"></p>
     </section>
 </main>

@@ -9,40 +9,25 @@
 <body>
 <div id="navbar"></div>
 
-<main class="page-container">
+<main class="main-content">
     <section class="page-header">
         <div>
-            <h1>Ticket Dashboard</h1>
-            <p class="muted">Översikt över alla ärenden</p>
+            <h1>Alla Tickets</h1>
+            <p class="muted">Freshdesk Style Dashboard</p>
         </div>
         <a href="/pages/create-ticket.html" class="btn btn-primary">+ Skapa ticket</a>
     </section>
 
     <section class="stats-grid">
-        <div class="card stat-card">
-            <h3>Totalt</h3>
-            <p id="totalTickets">0</p>
-        </div>
-        <div class="card stat-card">
-            <h3>Öppna</h3>
-            <p id="openTickets">0</p>
-        </div>
-        <div class="card stat-card">
-            <h3>Pågående</h3>
-            <p id="inProgressTickets">0</p>
-        </div>
-        <div class="card stat-card">
-            <h3>Stängda</h3>
-            <p id="closedTickets">0</p>
-        </div>
+        <div class="card stat-card"><h3>Totalt</h3><p id="totalTickets">0</p></div>
+        <div class="card stat-card"><h3>Öppna</h3><p id="openTickets">0</p></div>
+        <div class="card stat-card"><h3>Pågående</h3><p id="inProgressTickets">0</p></div>
+        <div class="card stat-card"><h3>Stängda</h3><p id="closedTickets">0</p></div>
     </section>
 
     <section class="card">
-        <h2>Sök och filter</h2>
-
         <div class="filter-row">
-            <input type="text" id="searchInput" placeholder="Sök på titel..." />
-
+            <input type="text" id="searchInput" placeholder="Sök tickets..." />
             <select id="statusFilter">
                 <option value="">Alla statusar</option>
                 <option value="SUBMITTED">Submitted</option>
@@ -50,7 +35,6 @@
                 <option value="RESOLVED">Resolved</option>
                 <option value="CLOSED">Closed</option>
             </select>
-
             <select id="priorityFilter">
                 <option value="">Alla prioriteter</option>
                 <option value="LOW">Low</option>
@@ -58,23 +42,23 @@
                 <option value="HIGH">High</option>
                 <option value="CRITICAL">Critical</option>
             </select>
-
-            <button id="filterBtn" class="btn btn-secondary">Filtrera</button>
+            <button id="filterBtn" class="btn btn-secondary">Uppdatera</button>
         </div>
     </section>
 
-    <section class="card">
-        <h2>Tickets</h2>
-        <div id="ticketList" class="ticket-list"></div>
-    </section>
+    <div id="ticketList" class="ticket-list"></div>
 </main>
 
 <script src="/js/app.js"></script>
-<script>
-    renderNavbar();
-    loadDashboardTickets();
-
-    document.getElementById("filterBtn").addEventListener("click", loadDashboardTickets);
-</script>
+    <script>
+        renderNavbar();
+        loadDashboardTickets();
+        
+        ['filterBtn', 'statusFilter', 'priorityFilter'].forEach(id => {
+            document.getElementById(id).addEventListener('change', loadDashboardTickets);
+            if(id === 'filterBtn') document.getElementById(id).onclick = loadDashboardTickets;
+        });
+        document.getElementById('searchInput').oninput = loadDashboardTickets;
+    </script>
 </body>
 </html>

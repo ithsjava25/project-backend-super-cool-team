@@ -9,53 +9,39 @@
 <body>
 <div id="navbar"></div>
 
-<main class="page-container">
+<main class="main-content">
     <section class="page-header">
         <div>
-            <h1>Ticket Detail</h1>
-            <p class="muted">Visa all information om ett ärende</p>
+            <h1>Ticketdetaljer</h1>
+            <p class="muted">Status och kommunikation</p>
         </div>
-        <a id="editTicketLink" href="#" class="btn btn-primary">Redigera</a>
+        <a id="editTicketLink" href="#" class="btn btn-primary">Redigera ärende</a>
     </section>
 
-    <section class="card">
-        <div id="ticketDetail"></div>
-    </section>
+    <div id="ticketDetail"></div>
 
     <section class="card">
-        <h2>Ladda upp fil</h2>
-        <form id="uploadForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="uploadedById">Uploaded By ID</label>
-                    <input type="number" id="uploadedById" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="ticketFile">Välj fil</label>
-                    <input type="file" id="ticketFile" required />
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Ladda upp</button>
-        </form>
-        <p id="uploadMessage" class="message"></p>
-    </section>
-
-    <section class="card">
-        <h2>Kommentarer</h2>
+        <h2>Filer och Kommentarer</h2>
         <div id="commentsList" class="comments-list"></div>
 
-        <form id="commentForm" class="comment-form">
+        <form id="commentForm" style="margin-top: 2rem;">
             <div class="form-group">
-                <label for="commentText">Ny kommentar</label>
-                <textarea id="commentText" rows="4" required></textarea>
+                <label for="commentText">Skriv en uppdatering</label>
+                <textarea id="commentText" rows="4" placeholder="Vad händer i ärendet?" required></textarea>
             </div>
-
-            <button type="submit" class="btn btn-primary">Lägg till kommentar</button>
+            <button type="submit" class="btn btn-primary">Skicka meddelande</button>
         </form>
-
         <p id="commentMessage" class="message"></p>
+    </section>
+
+    <section class="card">
+        <h2>Ladda upp dokument</h2>
+        <form id="uploadForm">
+            <input type="number" id="uploadedById" value="1" hidden />
+            <input type="file" id="ticketFile" style="margin-bottom: 1rem;" required />
+            <button type="submit" class="btn btn-secondary">Ladda upp fil</button>
+        </form>
+        <p id="uploadMessage" class="message"></p>
     </section>
 </main>
 

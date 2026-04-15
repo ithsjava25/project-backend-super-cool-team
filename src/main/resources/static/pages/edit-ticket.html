@@ -9,15 +9,15 @@
 <body>
 <div id="navbar"></div>
 
-<main class="page-container">
+<main class="main-content">
     <section class="page-header">
         <div>
-            <h1>Redigera ticket</h1>
-            <p class="muted">Ändra information om ärendet</p>
+            <h1>Redigera ärende</h1>
+            <p class="muted">Freshdesk Style Edit</p>
         </div>
     </section>
 
-    <section class="card form-card">
+    <section class="card">
         <form id="editTicketForm">
             <div class="form-group">
                 <label for="editTitle">Titel</label>
@@ -25,11 +25,11 @@
             </div>
 
             <div class="form-group">
-                <label for="editDescription">Beskrivning</label>
-                <textarea id="editDescription" rows="6" required></textarea>
+                <label for="editDescription">Fullständig beskrivning</label>
+                <textarea id="editDescription" rows="8" required></textarea>
             </div>
 
-            <div class="form-row">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label for="editPriority">Prioritet</label>
                     <select id="editPriority" required>
@@ -51,12 +51,11 @@
                 </div>
             </div>
 
-            <div class="button-row">
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                 <button type="submit" class="btn btn-primary">Spara ändringar</button>
-                <a href="/pages/dashboard.html" class="btn btn-secondary">Tillbaka</a>
+                <a href="/pages/dashboard.html" class="btn btn-secondary">Avbryt</a>
             </div>
         </form>
-
         <p id="editMessage" class="message"></p>
     </section>
 </main>
