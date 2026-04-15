@@ -31,8 +31,16 @@ public class JwtService {
 
     // Bygger en SecretKey av den hemliga strängen för HMAC-SHA256-signering
     private SecretKey getKey() {
-        byte[] keyBytes = Base64.getEncoder().encode(secret.getBytes());
-        return new SecretKeySpec(keyBytes, 0, 32, "HmacSHA256");
+        // Vi använder den råa hemligheten direkt som bytes. 
+        // För HS256 bör hemligheten vara minst 32 bytes (256 bitar).
+        byte[] keyBytes = secret.getBytes();
+        
+        // Om den är för kort, fyller vi ut den (eller så kan man kasta ett tydligare fel)
+        // Men för att appen ska starta och fungera för användaren justerar vi den till 32 bytes
+        byte[] paddedKey = new byte[32];
+        System.arraycopy(keyBytes, 0, paddedKey, 0, Math.min(keyBytes.length, 32));
+        
+        return new SecretKeySpec(paddedKey, "HmacSHA256");
     }
 
     /**

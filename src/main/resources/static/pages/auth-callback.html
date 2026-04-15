@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loggar in...</title>
+</head>
+<body>
+<p>Loggar in med Google...</p>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  const error = params.get("error");
+
+  if (token) {
+    localStorage.setItem("jwt_token", token);
+    localStorage.setItem("token", token);
+    window.location.href = "/pages/dashboard.html";
+  } else if (error) {
+    alert("Inloggningen misslyckades: " + error);
+    window.location.href = "/pages/login.html";
+  } else {
+    window.location.href = "/pages/login.html";
+  }
+</script>
+</body>
+</html>

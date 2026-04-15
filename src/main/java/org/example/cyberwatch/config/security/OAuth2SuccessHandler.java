@@ -29,7 +29,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final StaffRepository staffRepository;
 
     // Byt ut mot riktiga frontend-URL när vi driftsätter
-    private static final String FRONTEND_URL = "http://localhost:8080/auth/callback";
+    private static final String FRONTEND_URL = "http://localhost:8080/pages/auth-callback.html";
 
     public OAuth2SuccessHandler(JwtService jwtService, StaffRepository staffRepository) {
         this.jwtService = jwtService;

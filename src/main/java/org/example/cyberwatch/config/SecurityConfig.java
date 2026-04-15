@@ -24,12 +24,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity  // Aktiverar @PreAuthorize på service-metoder
+// Aktiverar @PreAuthorize på service-metoder
+@EnableMethodSecurity
 public class SecurityConfig {
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Using BCrypt for password hashing
-    }
 
     private final JwtAuthFilter jwtAuthFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -37,6 +34,11 @@ public class SecurityConfig {
     public SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler oAuth2SuccessHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -59,6 +61,21 @@ public class SecurityConfig {
                         // Alla kan komma åt tickets
                         .requestMatchers("/api/tickets/**").authenticated()
                         // Alla andra endpoints kräver inloggning, djupare hantering av vem som får göra vad sköts i Service-lagret
+                        // Tillåt statiska filer och frontend-sidor
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/pages/**",
+                                "/css/**",
+                                "/js/**",
+                                "/oauth2/**",
+                                "/login/**"
+                        ).permitAll()
+
+                        // Endast ADMIN får hantera staff
+                        .requestMatchers("/api/staff/**").hasRole("ADMIN")
+
+                        // Alla andra endpoints kräver inloggning
                         .anyRequest().authenticated()
                 )
 
@@ -69,6 +86,7 @@ public class SecurityConfig {
 
                 // Kör JWT-filtret innan Spring Securitys eget autentiseringsfilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .build();
     }
 }
