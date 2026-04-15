@@ -58,11 +58,13 @@ public class TicketService {
         this.activityLogService = activityLogService;
     }
 
-    public TicketResponseDTO createTicket(TicketDTO dto) {
-        Staff creator = staffRepository.findById(dto.getCreatedById())
-                .orElseThrow(() -> new StaffNotFoundException(dto.getCreatedById()));
+    public TicketResponseDTO createTicket(TicketDTO dto, String creatorEmail) {
+        System.out.println("[DEBUG_LOG] Creating ticket for: " + creatorEmail);
+        Staff creator = staffRepository.findByEmail(creatorEmail)
+                .orElseThrow(() -> new RuntimeException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
 
         Ticket ticket = new Ticket();
+        ticket.setTicketCode("TEMP-" + System.currentTimeMillis()); // Temporär kod som är unik
         ticket.setTitle(dto.getTitle());
         ticket.setDescription(dto.getDescription());
         ticket.setPriority(dto.getPriority());
@@ -73,10 +75,7 @@ public class TicketService {
         Ticket savedTicket = ticketRepository.save(ticket);
 
         savedTicket.setTicketCode("TICKET-" + (1000 + savedTicket.getId()));
-
-        Ticket updatedTicket = ticketRepository.save(savedTicket);
-
-        return TicketResponseDTO.from(updatedTicket);
+        return TicketResponseDTO.from(ticketRepository.save(savedTicket));
     }
 
     @Transactional(readOnly = true)

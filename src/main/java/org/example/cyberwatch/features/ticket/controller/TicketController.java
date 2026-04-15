@@ -30,7 +30,16 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@Valid @RequestBody TicketDTO dto) {
-        TicketResponseDTO created = ticketService.createTicket(dto);
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if (principal instanceof org.example.cyberwatch.features.staff.model.Staff staff) {
+            email = staff.getEmail();
+        } else if (principal instanceof String s) {
+            email = s;
+        } else {
+            email = principal.toString();
+        }
+        TicketResponseDTO created = ticketService.createTicket(dto, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

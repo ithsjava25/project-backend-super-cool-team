@@ -90,8 +90,10 @@ public class GlobalExceptionHandler {
     // Från klasskamraten — generell fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleOtherErrors(Exception e) {
+        System.err.println("[DEBUG_LOG] Unexpected error: " + e.getMessage());
+        e.printStackTrace();
         Map<String, String> error = new HashMap<>();
-        error.put("message", "An unexpected error occurred");
+        error.put("message", "An unexpected error occurred: " + e.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
