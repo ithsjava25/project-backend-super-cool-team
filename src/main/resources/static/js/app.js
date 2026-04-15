@@ -63,15 +63,17 @@ async function loadStaffList(selectId, selectedIds = []) {
         if (!res.ok) return;
         const staff = await res.json();
         
-        const existingOptions = select.innerHTML.startsWith('<option value="">') 
-            ? '<option value="">' + select.options[0].text + '</option>' 
-            : '';
+        // Hitta den första option-taggen om den finns (t.ex. "Alla handläggare" eller "Välj handläggare")
+        const firstOption = select.querySelector('option[value=""]');
+        const existingDefault = firstOption ? firstOption.outerHTML : '<option value="">Välj...</option>';
 
-        select.innerHTML = existingOptions + staff.map(s => {
+        let staffOptions = staff.map(s => {
             const isAssigned = selectedIds.includes(s.id);
             const className = isAssigned ? 'class="badge-assigned"' : '';
             return `<option value="${s.id}" ${className}>${s.fullName} (${s.email})</option>`;
         }).join('');
+
+        select.innerHTML = existingDefault + staffOptions;
     } catch (e) { console.error("Error loading staff", e); }
 }
 
@@ -87,6 +89,23 @@ async function loadDashboardTickets() {
         const q = document.getElementById("searchInput")?.value || "";
         const staffId = document.getElementById("staffFilter")?.value || "";
         
+        // Update stats on top of dashboard
+        try {
+            const statsRes = await apiFetch(`/tickets?status=&priority=&search=&assignedStaffId=`);
+            if (statsRes.ok) {
+                const allTickets = await statsRes.json();
+                const totalCount = allTickets.length;
+                const openCount = allTickets.filter(t => t.status === 'SUBMITTED').length;
+                const inProgressCount = allTickets.filter(t => t.status === 'IN_PROGRESS').length;
+                const closedCount = allTickets.filter(t => t.status === 'CLOSED').length;
+
+                if (document.getElementById("totalTickets")) document.getElementById("totalTickets").innerText = totalCount;
+                if (document.getElementById("openTickets")) document.getElementById("openTickets").innerText = openCount;
+                if (document.getElementById("inProgressTickets")) document.getElementById("inProgressTickets").innerText = inProgressCount;
+                if (document.getElementById("closedTickets")) document.getElementById("closedTickets").innerText = closedCount;
+            }
+        } catch (e) { console.error("Stats error", e); }
+
         const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}&assignedStaffId=${staffId}`);
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
@@ -94,13 +113,9 @@ async function loadDashboardTickets() {
         const staffRes = await apiFetch("/staff");
         const allStaff = staffRes.ok ? await staffRes.json() : [];
 
-        const stats = { total: tickets.length, open: 0, inProgress: 0, closed: 0 };
         list.innerHTML = "";
         
         tickets.forEach(t => {
-            if (t.status === 'SUBMITTED') stats.open++;
-            else if (t.status === 'IN_PROGRESS') stats.inProgress++;
-            else if (t.status === 'CLOSED') stats.closed++;
 
             const item = document.createElement("div");
             item.className = "ticket-item";
@@ -123,7 +138,12 @@ async function loadDashboardTickets() {
                             </option>`;
                         }).join('')}
                     </select>
-                    <span class="badge badge-${t.status}">${t.status}</span>
+                    <select class="dashboard-status-select" data-id="${t.id}" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">
+                        <option value="SUBMITTED" ${t.status === 'SUBMITTED' ? 'selected' : ''}>Submitted</option>
+                        <option value="IN_PROGRESS" ${t.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                        <option value="RESOLVED" ${t.status === 'RESOLVED' ? 'selected' : ''}>Resolved</option>
+                        <option value="CLOSED" ${t.status === 'CLOSED' ? 'selected' : ''}>Closed</option>
+                    </select>
                 </div>`;
             list.appendChild(item);
         });
@@ -134,11 +154,6 @@ async function loadDashboardTickets() {
                 const ticketId = e.target.dataset.id;
                 const staffId = parseInt(e.target.value);
                 if (!staffId) return;
-
-                // Vi lägger till personen till den befintliga listan eller ersätter?
-                // Uppgiften säger "man ska kunna ändra detta på dashboard sidan".
-                // Vi gör så att man väljer EN person och det BLIR den nya tilldelningen (för enkelhet i dropdown),
-                // eller så lägger vi till den. Men dropdown i dashboard brukar vara "välj ny".
                 
                 const res = await apiFetch(`/tickets/${ticketId}/assign?assignedById=1`, {
                     method: "PUT",
@@ -153,9 +168,24 @@ async function loadDashboardTickets() {
             });
         });
 
-        ['total', 'open', 'inProgress', 'closed'].forEach(k => {
-            const el = document.getElementById(k + 'Tickets');
-            if (el) el.textContent = stats[k];
+        // Setup listeners for dashboard status changes
+        document.querySelectorAll('.dashboard-status-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const ticketId = e.target.dataset.id;
+                const newStatus = e.target.value;
+                
+                const res = await apiFetch(`/tickets/${ticketId}/status?status=${newStatus}&performedById=1`, {
+                    method: "PATCH"
+                });
+
+                if (res.ok) {
+                    loadDashboardTickets();
+                } else {
+                    const errorMsg = await res.text();
+                    alert("Kunde inte uppdatera status: " + (errorMsg || "Okänt fel"));
+                    loadDashboardTickets(); // Återställ till gammalt värde
+                }
+            });
         });
     } catch (e) { console.error(e); list.innerHTML = "<p>Något gick fel.</p>"; }
 }

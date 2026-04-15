@@ -1,20 +1,12 @@
 package org.example.cyberwatch.features.ticket.model;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class AssignTicketDTO {
-
     private List<Long> staffIds;
 
-    public AssignTicketDTO() {
-    }
+    public AssignTicketDTO() {}
 
-    public List<Long> getStaffIds() {
-        return staffIds;
-    }
-
-    public void setStaffIds(List<Long> staffIds) {
-        this.staffIds = staffIds;
-    }
+    public List<Long> getStaffIds() { return staffIds; }
+    public void setStaffIds(List<Long> staffIds) { this.staffIds = staffIds; }
 }

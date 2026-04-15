@@ -12,10 +12,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/staff")
-@RequiredArgsConstructor
 public class StaffRestController {
 
     private final StaffService staffService;
+
+    public StaffRestController(StaffService staffService) {
+        this.staffService = staffService;
+    }
 
     @GetMapping
     public ResponseEntity<List<StaffResponseDTO>> getAllStaff() {

@@ -11,9 +11,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
 public class TicketResponseDTO {
+    private Long id;
+    private String ticketCode;
+    private String title;
+    private String description;
+    private Status status;
+    private Priority priority;
+    private IssueType issueType;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private StaffSummary createdBy;
+    private List<StaffSummary> assignedStaff = new ArrayList<>();
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getTicketCode() { return ticketCode; }
@@ -37,19 +47,6 @@ public class TicketResponseDTO {
     public List<StaffSummary> getAssignedStaff() { return assignedStaff; }
     public void setAssignedStaff(List<StaffSummary> assignedStaff) { this.assignedStaff = assignedStaff; }
 
-    private Long id;
-    private String ticketCode;
-    private String title;
-    private String description;
-    private Status status;
-    private Priority priority;
-    private IssueType issueType;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private StaffSummary createdBy;
-    private List<StaffSummary> assignedStaff = new ArrayList<>();
-
-    @Getter
     public static class StaffSummary {
         private final Long id;
         private final String fullName;
