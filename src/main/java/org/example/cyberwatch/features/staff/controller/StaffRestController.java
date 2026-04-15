@@ -1,12 +1,14 @@
 package org.example.cyberwatch.features.staff.controller;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
+import org.example.cyberwatch.features.staff.model.StaffDTO;
 import org.example.cyberwatch.features.staff.model.StaffResponseDTO;
+import org.example.cyberwatch.features.staff.model.UpdateStaffDTO;
 import org.example.cyberwatch.features.staff.service.StaffService;
+import org.example.cyberwatch.shared.model.enums.Department;
+import org.example.cyberwatch.shared.model.enums.Role;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,5 +25,28 @@ public class StaffRestController {
     @GetMapping
     public ResponseEntity<List<StaffResponseDTO>> getAllStaff() {
         return ResponseEntity.ok(staffService.getAllStaff());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id) {
+        return ResponseEntity.ok(staffService.getStaffById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto) {
+        return ResponseEntity.ok(staffService.updateStaff(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStaff(@PathVariable Long id) {
+        staffService.deleteStaff(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) Department department) {
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department));
     }
 }
