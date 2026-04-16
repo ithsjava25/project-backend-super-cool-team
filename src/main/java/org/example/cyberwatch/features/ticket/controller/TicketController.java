@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,16 +30,11 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<TicketResponseDTO> createTicket(@Valid @RequestBody TicketDTO dto) {
-        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-        if (principal instanceof org.example.cyberwatch.features.staff.model.Staff staff) {
-            email = staff.getEmail();
-        } else if (principal instanceof String s) {
-            email = s;
-        } else {
-            email = principal.toString();
-        }
+    public ResponseEntity<TicketResponseDTO> createTicket(
+            @Valid @RequestBody TicketDTO dto,
+            Authentication authentication) {
+
+        String email = authentication.getName();
         TicketResponseDTO created = ticketService.createTicket(dto, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }

@@ -23,6 +23,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class EmploymentFormService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmploymentFormService.class);
@@ -33,20 +34,6 @@ public class EmploymentFormService {
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
-
-    public EmploymentFormService(EmploymentFormRepository employmentFormRepository,
-                                 StaffRepository staffRepository,
-                                 EmploymentMapper employmentMapper,
-                                 S3Service s3Service,
-                                 ObjectMapper objectMapper,
-                                 PasswordEncoder passwordEncoder) {
-        this.employmentFormRepository = employmentFormRepository;
-        this.staffRepository = staffRepository;
-        this.employmentMapper = employmentMapper;
-        this.s3Service = s3Service;
-        this.objectMapper = objectMapper;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     //Create employment form
     @Transactional

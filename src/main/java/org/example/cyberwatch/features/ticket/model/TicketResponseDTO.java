@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public class TicketResponseDTO {
     private Long id;
     private String ticketCode;
@@ -24,29 +26,8 @@ public class TicketResponseDTO {
     private StaffSummary createdBy;
     private List<StaffSummary> assignedStaff = new ArrayList<>();
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getTicketCode() { return ticketCode; }
-    public void setTicketCode(String ticketCode) { this.ticketCode = ticketCode; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
-    public Priority getPriority() { return priority; }
-    public void setPriority(Priority priority) { this.priority = priority; }
-    public IssueType getIssueType() { return issueType; }
-    public void setIssueType(IssueType issueType) { this.issueType = issueType; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public StaffSummary getCreatedBy() { return createdBy; }
-    public void setCreatedBy(StaffSummary createdBy) { this.createdBy = createdBy; }
-    public List<StaffSummary> getAssignedStaff() { return assignedStaff; }
-    public void setAssignedStaff(List<StaffSummary> assignedStaff) { this.assignedStaff = assignedStaff; }
-
+    @Getter
+    @Setter
     public static class StaffSummary {
         private final Long id;
         private final String fullName;
@@ -57,10 +38,6 @@ public class TicketResponseDTO {
             this.fullName = fullName;
             this.email = email;
         }
-
-        public Long getId() { return id; }
-        public String getFullName() { return fullName; }
-        public String getEmail() { return email; }
     }
 
     public static TicketResponseDTO from(Ticket ticket) {

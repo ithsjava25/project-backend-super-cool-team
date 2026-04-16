@@ -9,10 +9,6 @@ import lombok.Setter;
 public class CommentDTO {
 
     // authorId är borttaget — författaren hämtas från den inloggade användaren via SecurityContext i CommentService för att förhindra imitation.
-
     @NotBlank(message = "Comment text cannot be blank")
     private String text;
-
-    public String getText() { return text; }
-    public void setText(String text) { this.text = text; }
 }

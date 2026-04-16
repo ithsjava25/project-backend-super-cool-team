@@ -43,24 +43,4 @@ public class ActivityLog {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Ticket getTicket() { return ticket; }
-    public void setTicket(Ticket ticket) { this.ticket = ticket; }
-    public Staff getPerformedBy() { return performedBy; }
-    public void setPerformedBy(Staff performedBy) { this.performedBy = performedBy; }
-    public ActivityType getActivityType() { return activityType; }
-    public void setActivityType(ActivityType activityType) { this.activityType = activityType; }
-    public String getDetails() { return details; }
-    public void setDetails(String details) { this.details = details; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
-
-    public ActivityLog(Ticket ticket, Staff performedBy, ActivityType activityType, String details) {
-        this.ticket = ticket;
-        this.performedBy = performedBy;
-        this.activityType = activityType;
-        this.details = details;
-    }
 }

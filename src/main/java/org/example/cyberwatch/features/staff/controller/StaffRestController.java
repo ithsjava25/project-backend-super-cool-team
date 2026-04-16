@@ -2,7 +2,6 @@ package org.example.cyberwatch.features.staff.controller;
 
 import jakarta.validation.Valid;
 import org.example.cyberwatch.features.staff.model.StaffDTO;
-import org.example.cyberwatch.features.staff.model.StaffResponseDTO;
 import org.example.cyberwatch.features.staff.model.UpdateStaffDTO;
 import org.example.cyberwatch.features.staff.service.StaffService;
 import org.example.cyberwatch.shared.model.enums.Department;
@@ -38,10 +37,17 @@ public class StaffRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/filter")
+    @GetMapping
     public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) Department department) {
         return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department));
     }
+
+   /* @GetMapping
+    public ResponseEntity<List<StaffDTO>> getAllStaff() {
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(null, null));
+    }
+
+    */
 }
