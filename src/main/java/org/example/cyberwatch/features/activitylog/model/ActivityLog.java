@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ActivityLog {
 
     @Id
@@ -43,4 +42,11 @@ public class ActivityLog {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime timestamp;
+
+    public ActivityLog(Ticket ticket, Staff performedBy, ActivityType activityType, String details) {
+        this.ticket = ticket;
+        this.performedBy = performedBy;
+        this.activityType = activityType;
+        this.details = details;
+    }
 }

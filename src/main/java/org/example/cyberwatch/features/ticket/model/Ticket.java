@@ -2,7 +2,6 @@ package org.example.cyberwatch.features.ticket.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.IssueType;
@@ -17,10 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
 @Entity
-@NoArgsConstructor
 @Table(name = "tickets")
 public class Ticket {
 
@@ -70,6 +66,33 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTicketCode() { return ticketCode; }
+    public void setTicketCode(String ticketCode) { this.ticketCode = ticketCode; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
+    public Priority getPriority() { return priority; }
+    public void setPriority(Priority priority) { this.priority = priority; }
+    public IssueType getIssueType() { return issueType; }
+    public void setIssueType(IssueType issueType) { this.issueType = issueType; }
+    public Staff getCreatedBy() { return createdBy; }
+    public void setCreatedBy(Staff createdBy) { this.createdBy = createdBy; }
+    public List<Staff> getAssignedStaff() { return assignedStaff; }
+    public void setAssignedStaff(List<Staff> assignedStaff) { this.assignedStaff = assignedStaff; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public List<Comment> getComments() { return comments; }
+    public void setComments(List<Comment> comments) { this.comments = comments; }
+    public List<ActivityLog> getActivityLogs() { return activityLogs; }
+    public void setActivityLogs(List<ActivityLog> activityLogs) { this.activityLogs = activityLogs; }
 
     public void advanceStatus() {
         this.status = switch (this.status) {
