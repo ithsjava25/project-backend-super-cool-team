@@ -54,6 +54,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/pages/**",
+                                "/css/**",
+                                "/js/**"
+                        ).permitAll()
                         // Endast ADMIN, HR, CEO & CTO får hantera staff
                         .requestMatchers("/api/staff/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
                         // Endast ADMIN, HR, CEO & CTO får hantera forms
@@ -62,18 +69,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/tickets/**").authenticated()
                         // Alla andra endpoints kräver inloggning, djupare hantering av vem som får göra vad sköts i Service-lagret
                         // Tillåt statiska filer och frontend-sidor
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/pages/**",
-                                "/css/**",
-                                "/js/**",
-                                "/oauth2/**",
-                                "/login/**"
-                        ).permitAll()
-
-                        // Endast ADMIN får hantera staff
-                        .requestMatchers("/api/staff/**").hasRole("ADMIN")
 
                         // Alla andra endpoints kräver inloggning
                         .anyRequest().authenticated()

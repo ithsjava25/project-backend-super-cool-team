@@ -22,11 +22,6 @@ public class StaffRestController {
         this.staffService = staffService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<StaffResponseDTO>> getAllStaff() {
-        return ResponseEntity.ok(staffService.getAllStaff());
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id) {
         return ResponseEntity.ok(staffService.getStaffById(id));
