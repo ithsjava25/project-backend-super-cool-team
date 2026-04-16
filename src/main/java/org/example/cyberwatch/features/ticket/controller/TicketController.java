@@ -1,6 +1,7 @@
 package org.example.cyberwatch.features.ticket.controller;
 
 import jakarta.validation.Valid;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.AssignTicketDTO;
 import org.example.cyberwatch.features.ticket.model.TicketDTO;
@@ -13,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,10 +34,17 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(
-            @Valid @RequestBody TicketDTO dto,
-            Authentication authentication) {
+            @Valid @RequestBody TicketDTO dto) {
 
-        String email = authentication.getName();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email;
+        if(principal instanceof Staff staff) {
+            email = staff.getEmail();
+        }else if(principal instanceof String s){
+            email = s;
+        }else {
+            email = principal.toString();
+        }
         TicketResponseDTO created = ticketService.createTicket(dto, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
