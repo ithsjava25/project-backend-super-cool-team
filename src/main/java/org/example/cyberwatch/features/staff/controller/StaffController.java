@@ -1,7 +1,50 @@
 package org.example.cyberwatch.features.staff.controller;
 
-import org.springframework.stereotype.Controller;
+import jakarta.validation.Valid;
+import org.example.cyberwatch.features.staff.model.StaffDTO;
+import org.example.cyberwatch.features.staff.model.UpdateStaffDTO;
+import org.example.cyberwatch.features.staff.service.StaffService;
+import org.example.cyberwatch.shared.model.enums.Department;
+import org.example.cyberwatch.shared.model.enums.Role;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/staff")
 public class StaffController {
+
+    private final StaffService service;
+
+    public StaffController(StaffService service) {
+        this.service = service;
+    }
+
+    //Hämta en staff
+    @GetMapping("/{id}")
+    public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getStaffById(id));
+    }
+
+    //updatera en staff
+    @PutMapping("/{id}")
+    public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto) {
+        return ResponseEntity.ok(service.updateStaff(id, dto));
+    }
+
+    //radera en staff
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteStaff(@PathVariable Long id) {
+        service.deleteStaff(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    //visa en lista baserat på staff eller department, visar allt om inget filter anges
+    @GetMapping
+    public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(@RequestParam(required = false) Role role,
+                                                                     @RequestParam(required = false) Department department) {
+        return ResponseEntity.ok(service.getStaffByRoleOrDepartment(role, department));
+
+    }
 }
