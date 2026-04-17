@@ -3,10 +3,16 @@ const API_BASE = "/api"; // Relativ URL — fungerar oavsett host och port
 // --------------------
 // Auth & Headers
 // --------------------
+function getCsrfToken() {
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 function getHeaders() {
-    return {
-        "Content-Type": "application/json"
-    };
+    const headers = { "Content-Type": "application/json" };
+    const csrf = getCsrfToken();
+    if (csrf) headers["X-XSRF-TOKEN"] = csrf;
+    return headers;
 }
 
 async function apiFetch(endpoint, options = {}) {
@@ -318,10 +324,8 @@ function setupAssignmentUI() {
             body: JSON.stringify({ staffIds: selectedIds })
         });
 
-        if (res.ok) {
-            alert("Tilldelning uppdaterad!");
-            loadTicketDetail();
-        } else {
+        if (res.ok) { alert("Tilldelning uppdaterad!"); loadTicketDetail(); }
+        else {
             const err = await res.json().catch(() => ({}));
             alert("Kunde inte uppdatera tilldelning: " + (err.message || res.statusText));
         }

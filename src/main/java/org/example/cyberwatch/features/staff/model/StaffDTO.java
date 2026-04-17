@@ -21,4 +21,8 @@ public class StaffDTO {
     private String phoneNumber;
     private Role role;
     private Department department;
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 }
