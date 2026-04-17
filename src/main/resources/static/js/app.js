@@ -4,16 +4,15 @@ const API_BASE = "/api"; // Relativ URL — fungerar oavsett host och port
 // Auth & Headers
 // --------------------
 function getHeaders() {
-    const token = localStorage.getItem("jwt_token") || localStorage.getItem("token");
     return {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${token}` : ""
+        "Content-Type": "application/json"
     };
 }
 
 async function apiFetch(endpoint, options = {}) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
+        credentials: "same-origin", // Skickar alltid sessions-cookie automatiskt
         headers: { ...getHeaders(), ...options.headers }
     });
     if (response.status === 401) logout();
@@ -21,15 +20,11 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("jwt_token");
-    window.location.href = "/pages/login.html";
+    window.location.href = "/logout";
 }
 
 function requireLogin() {
-    if (!(localStorage.getItem("jwt_token") || localStorage.getItem("token"))) {
-        window.location.href = "/pages/login.html";
-    }
+    // Inget att kolla — om sessionen saknas redirectar servern till login automatiskt
 }
 
 // --------------------
@@ -63,7 +58,6 @@ async function loadStaffList(selectId, selectedIds = []) {
         if (!res.ok) return;
         const staff = await res.json();
 
-        // Hitta den första option-taggen om den finns (t.ex. "Alla handläggare" eller "Välj handläggare")
         const firstOption = select.querySelector('option[value=""]');
         const existingDefault = firstOption ? firstOption.outerHTML : '<option value="">Välj...</option>';
 
@@ -89,7 +83,6 @@ async function loadDashboardTickets() {
         const q = document.getElementById("searchInput")?.value || "";
         const staffId = document.getElementById("staffFilter")?.value || "";
 
-        // Update stats on top of dashboard
         try {
             const statsRes = await apiFetch(`/tickets?status=&priority=&search=&assignedStaffId=`);
             if (statsRes.ok) {
@@ -116,7 +109,6 @@ async function loadDashboardTickets() {
         list.innerHTML = "";
 
         tickets.forEach(t => {
-
             const item = document.createElement("div");
             item.className = "ticket-item";
 
@@ -148,7 +140,6 @@ async function loadDashboardTickets() {
             list.appendChild(item);
         });
 
-        // Setup listeners for dashboard assignment changes
         document.querySelectorAll('.dashboard-assignment-select').forEach(select => {
             select.addEventListener('change', async (e) => {
                 const ticketId = e.target.dataset.id;
@@ -160,15 +151,11 @@ async function loadDashboardTickets() {
                     body: JSON.stringify({ staffIds: [staffId] })
                 });
 
-                if (res.ok) {
-                    loadDashboardTickets();
-                } else {
-                    alert("Kunde inte uppdatera tilldelning.");
-                }
+                if (res.ok) loadDashboardTickets();
+                else alert("Kunde inte uppdatera tilldelning.");
             });
         });
 
-        // Setup listeners for dashboard status changes
         document.querySelectorAll('.dashboard-status-select').forEach(select => {
             select.addEventListener('change', async (e) => {
                 const ticketId = e.target.dataset.id;
@@ -178,12 +165,11 @@ async function loadDashboardTickets() {
                     method: "PATCH"
                 });
 
-                if (res.ok) {
-                    loadDashboardTickets();
-                } else {
+                if (res.ok) loadDashboardTickets();
+                else {
                     const errorMsg = await res.text();
                     alert("Kunde inte uppdatera status: " + (errorMsg || "Okänt fel"));
-                    loadDashboardTickets(); // Återställ till gammalt värde
+                    loadDashboardTickets();
                 }
             });
         });
@@ -222,7 +208,6 @@ async function loadTicketDetail() {
             </div>`;
         loadComments(id);
 
-        // Uppdatera assignment UI med nuvarande tilldelade
         const assignedIds = t.assignedStaff?.map(s => s.id) || [];
         if (typeof window.clearStaffBadges === 'function') {
             window.clearStaffBadges();
@@ -298,7 +283,7 @@ function setupUploadForm() {
         formData.append("file", file);
         const res = await fetch(`${API_BASE}/tickets/${id}/upload?uploadedById=${document.getElementById("uploadedById").value}`, {
             method: "POST",
-            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token") || localStorage.getItem("token")}` },
+            credentials: "same-origin", // Sessions-cookie skickas automatiskt
             body: formData
         });
         if (res.ok) { alert("Fil uppladdad!"); form.reset(); }
@@ -328,9 +313,7 @@ function setupAssignmentUI() {
         const selectedIds = window.currentAssignedIds ? Array.from(window.currentAssignedIds) : Array.from(document.getElementById("reassignStaff").selectedOptions).map(o => parseInt(o.value));
         if (selectedIds.length === 0) return alert("Välj minst en person.");
 
-        const assignedById = 1;
-
-        const res = await apiFetch(`/tickets/${id}/assign?assignedById=${assignedById}`, {
+        const res = await apiFetch(`/tickets/${id}/assign?assignedById=1`, {
             method: "PUT",
             body: JSON.stringify({ staffIds: selectedIds })
         });

@@ -10,7 +10,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * Anropas av Spring Security när Google-inloggningen lyckas.
@@ -19,20 +18,18 @@ import java.util.Optional;
  * 1. Användaren loggar in via Google
  * 2. Google skickar tillbaka användarens email till oss
  * 3. Vi kollar om emailen finns i staff-tabellen
- * → Ja: generera en JWT-token och skicka den till frontend
- * → Nej: redirect med felmeddelande (emailen är inte registrerad i systemet)
+ * → Ja: redirect till dashboard (Spring Security hanterar sessionen automatiskt)
+ * → Nej: redirect med felmeddelande
  */
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtService jwtService;
     private final StaffRepository staffRepository;
 
-    // Relativ path — fungerar oavsett host och port vid driftsättning
-    private static final String FRONTEND_PATH = "/pages/auth-callback.html";
+    private static final String DASHBOARD_PATH = "/pages/dashboard.html";
+    private static final String ERROR_PATH = "/pages/login.html?error=unauthorized";
 
-    public OAuth2SuccessHandler(JwtService jwtService, StaffRepository staffRepository) {
-        this.jwtService = jwtService;
+    public OAuth2SuccessHandler(StaffRepository staffRepository) {
         this.staffRepository = staffRepository;
     }
 
@@ -44,22 +41,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        Optional<Staff> staffOptional = staffRepository.findByEmail(email);
-
-        if (staffOptional.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + FRONTEND_PATH + "?error=unauthorized");
+        if (staffRepository.findByEmail(email).isEmpty()) {
+            response.sendRedirect(request.getContextPath() + ERROR_PATH);
             return;
         }
 
-        Staff staff = staffOptional.get();
-        final String token;
-        try {
-            token = jwtService.generateToken(staff.getEmail(), staff.getRole().name());
-        } catch (RuntimeException ex) {
-            response.sendRedirect(request.getContextPath() + FRONTEND_PATH + "?error=login_failed");
-            return;
-        }
-
-        response.sendRedirect(request.getContextPath() + FRONTEND_PATH + "?token=" + token);
+        response.sendRedirect(request.getContextPath() + DASHBOARD_PATH);
     }
 }

@@ -1,38 +1,31 @@
 package org.example.cyberwatch.config;
 
-import org.example.cyberwatch.config.security.JwtAuthFilter;
 import org.example.cyberwatch.config.security.OAuth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Huvudkonfiguration för Spring Security.
  *
  * Autentiseringsflöde:
  * - Inloggning sker via Google OAuth2 (/oauth2/authorization/google)
- * - Efter lyckad Google-inloggning genereras en intern JWT-token (OAuth2SuccessHandler)
- * - Alla efterföljande API-anrop autentiseras via JWT-token i Authorization-headern (JwtAuthFilter)
- * - Sessioner används inte — varje request är självständig (STATELESS)
+ * - Efter lyckad Google-inloggning sparar Spring Security sessionen automatiskt via cookie
+ * - Alla efterföljande API-anrop autentiseras via sessions-cookie
  */
 @Configuration
 @EnableWebSecurity
-// Aktiverar @PreAuthorize på service-metoder
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler oAuth2SuccessHandler) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfig(OAuth2SuccessHandler oAuth2SuccessHandler) {
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
@@ -44,32 +37,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // CSRF inaktiveras eftersom vi använder JWT istället för sessions/cookies
-                .csrf(csrf -> csrf.disable())
-
-                // Inga server-side sessioner — varje request autentiseras via JWT
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // CSRF aktiveras eftersom vi använder sessions/cookies
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**") // API-anrop från JS behöver inte CSRF-token
+                )
 
                 .authorizeHttpRequests(auth -> auth
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        // Statiska filer och frontend-sidor
                         .requestMatchers(
                                 "/",
                                 "/index.html",
                                 "/pages/**",
                                 "/css/**",
-                                "/js/**"
+                                "/js/**",
+                                "/auth/**"
                         ).permitAll()
-                        // Endast ADMIN, HR, CEO & CTO får hantera staff
+                        // Endast HR, CEO, CTO & ADMIN får hantera staff
                         .requestMatchers("/api/staff/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
-                        // Endast ADMIN, HR, CEO & CTO får hantera forms
+                        // Endast HR, CEO, CTO & ADMIN får hantera forms
                         .requestMatchers("/api/forms/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")
-                        // Alla kan komma åt tickets
+                        // Alla inloggade kan komma åt tickets
                         .requestMatchers("/api/tickets/**").authenticated()
-                        // Alla andra endpoints kräver inloggning, djupare hantering av vem som får göra vad sköts i Service-lagret
-                        // Tillåt statiska filer och frontend-sidor
-
                         // Alla andra endpoints kräver inloggning
                         .anyRequest().authenticated()
                 )
@@ -79,8 +69,16 @@ public class SecurityConfig {
                         .successHandler(oAuth2SuccessHandler)
                 )
 
-                // Kör JWT-filtret innan Spring Securitys eget autentiseringsfilter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // Redirect till login vid 401
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            if (request.getRequestURI().startsWith("/api/")) {
+                                response.sendError(401);
+                            } else {
+                                response.sendRedirect("/pages/login.html");
+                            }
+                        })
+                )
 
                 .build();
     }

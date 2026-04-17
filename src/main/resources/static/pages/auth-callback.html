@@ -7,23 +7,10 @@
 </head>
 <body>
 <p>Loggar in med Google...</p>
-
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-  const error = params.get("error");
-
-  if (token) {
-    localStorage.setItem("jwt_token", token);
-    localStorage.setItem("token", token);
-    // Använd replace() så att callback-URL:en med token inte sparas i webbläsarhistoriken
-    window.location.replace("/pages/dashboard.html");
-  } else if (error) {
-    alert("Inloggningen misslyckades: " + error);
-    window.location.replace("/pages/login.html");
-  } else {
-    window.location.replace("/pages/login.html");
-  }
+  // Sessionen hanteras automatiskt av servern via cookie.
+  // Den här sidan behövs inte längre — redirect sker direkt i OAuth2SuccessHandler.
+  window.location.replace("/pages/dashboard.html");
 </script>
 </body>
 </html>
