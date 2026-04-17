@@ -16,6 +16,7 @@ public class TicketAttachment {
 
     private String fileName;
     private String fileUrl;
+    @Column(name = "s3_key")
     private String s3Key;
 
     @ManyToOne

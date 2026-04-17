@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /**
  * Huvudkonfiguration för Spring Security.
@@ -17,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * - Inloggning sker via Google OAuth2 (/oauth2/authorization/google)
  * - Efter lyckad Google-inloggning sparar Spring Security sessionen automatiskt via cookie
  * - Alla efterföljande API-anrop autentiseras via sessions-cookie
+ * - CSRF-skydd via XSRF-TOKEN cookie som JS läser och skickar som X-XSRF-TOKEN header
  */
 @Configuration
 @EnableWebSecurity
@@ -37,9 +39,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // CSRF aktiveras eftersom vi använder sessions/cookies
+                // CSRF via cookie — JS läser XSRF-TOKEN och skickar som X-XSRF-TOKEN header
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**") // API-anrop från JS behöver inte CSRF-token
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
 
                 .authorizeHttpRequests(auth -> auth
@@ -51,8 +53,7 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/pages/**",
                                 "/css/**",
-                                "/js/**",
-                                "/auth/**"
+                                "/js/**"
                         ).permitAll()
                         // Endast HR, CEO, CTO & ADMIN får hantera staff
                         .requestMatchers("/api/staff/**").hasAnyRole("HR", "CEO", "CTO", "ADMIN")

@@ -66,7 +66,7 @@ class SecurityIntegrationTests {
     void hrCanCreateForm() throws Exception {
         mockMvc.perform(post("/api/forms/employment")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .content("{}").with(csrf()))
                 .andExpect(status().isBadRequest()); // 400 pga ogiltig body, men inte 403
     }
 
