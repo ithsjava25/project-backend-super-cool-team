@@ -5,11 +5,7 @@ import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
-import org.example.cyberwatch.features.ticket.model.Ticket;
-import org.example.cyberwatch.features.ticket.model.TicketAttachment;
-import org.example.cyberwatch.features.ticket.model.TicketDTO;
-import org.example.cyberwatch.features.ticket.model.TicketFilterParams;
-import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
+import org.example.cyberwatch.features.ticket.model.*;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
 import org.example.cyberwatch.shared.model.enums.Status;
@@ -181,7 +177,7 @@ public class TicketService {
                 .orElseThrow(() -> new StaffNotFoundException(assignedById));
 
         List<Staff> staffList = staffRepository.findAllById(staffIds);
-        if (staffList.isEmpty()) {
+        if (staffList.size() != staffIds.size()) {
             throw new RuntimeException("Ingen av de valda personerna hittades.");
         }
 
