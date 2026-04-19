@@ -1,5 +1,6 @@
 package org.example.cyberwatch.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.cyberwatch.config.security.OAuth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Huvudkonfiguration för Spring Security.
- *
+ * <p>
  * Autentiseringsflöde:
  * - Inloggning sker via Google OAuth2 (/oauth2/authorization/google)
  * - Efter lyckad Google-inloggning sparar Spring Security sessionen automatiskt via cookie
@@ -75,7 +76,9 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             if (request.getRequestURI().startsWith("/api/")) {
-                                response.sendError(401);
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json");
+                                response.getWriter().write("{\"error\":\"unauthorized\"}");
                             } else {
                                 response.sendRedirect("/pages/login.html");
                             }
