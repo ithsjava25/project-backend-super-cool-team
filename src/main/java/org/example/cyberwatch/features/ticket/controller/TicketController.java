@@ -36,12 +36,15 @@ public class TicketController {
             @Valid @RequestBody TicketDTO dto) {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
+            throw new IllegalStateException("No authenticated user found");
+        }
         String email;
-        if(principal instanceof Staff staff) {
+        if (principal instanceof Staff staff) {
             email = staff.getEmail();
-        }else if(principal instanceof String s){
+        } else if (principal instanceof String s) {
             email = s;
-        }else {
+        } else {
             email = principal.toString();
         }
         TicketResponseDTO created = ticketService.createTicket(dto, email);
@@ -119,6 +122,9 @@ public class TicketController {
     // Hjälpmetod — för autensierad användare för att ersätta det hårdkodade id:t i js-filen
     private Long getAuthenticatedStaffId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
+            throw new IllegalStateException("No authenticated user found");
+        }
         if (principal instanceof Staff staff) {
             return staff.getId();
         }
