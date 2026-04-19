@@ -162,7 +162,7 @@ async function loadDashboardTickets() {
                 const staffId = parseInt(e.target.value);
                 if (!staffId) return;
 
-                const res = await apiFetch(`/tickets/${ticketId}/assign?assignedById=1`, {
+                const res = await apiFetch(`/tickets/${ticketId}/assign`, {
                     method: "PUT",
                     body: JSON.stringify({staffIds: [staffId]})
                 });
@@ -177,7 +177,7 @@ async function loadDashboardTickets() {
                 const ticketId = e.target.dataset.id;
                 const newStatus = e.target.value;
 
-                const res = await apiFetch(`/tickets/${ticketId}/status?status=${newStatus}&performedById=1`, {
+                const res = await apiFetch(`/tickets/${ticketId}/status?status=${newStatus}`, {
                     method: "PATCH"
                 });
 
