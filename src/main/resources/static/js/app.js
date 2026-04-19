@@ -3,13 +3,14 @@ const API_BASE = "/api"; // Relativ URL — fungerar oavsett host och port
 // --------------------
 // Auth & Headers
 // --------------------
+//Updated regex to prevent a header containing ex "XSRF-TOKEN" from being matched as the cookie value, which caused issues when the header was included in the response cookies.
 function getCsrfToken() {
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : null;
 }
 
 function getHeaders() {
-    const headers = { "Content-Type": "application/json" };
+    const headers = {"Content-Type": "application/json"};
     const csrf = getCsrfToken();
     if (csrf) headers["X-XSRF-TOKEN"] = csrf;
     return headers;
@@ -19,7 +20,7 @@ async function apiFetch(endpoint, options = {}) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
         credentials: "same-origin", // Skickar alltid sessions-cookie automatiskt
-        headers: { ...getHeaders(), ...options.headers }
+        headers: {...getHeaders(), ...options.headers}
     });
     if (response.status === 401) logout();
     return response;
@@ -74,7 +75,9 @@ async function loadStaffList(selectId, selectedIds = []) {
         }).join('');
 
         select.innerHTML = existingDefault + staffOptions;
-    } catch (e) { console.error("Error loading staff", e); }
+    } catch (e) {
+        console.error("Error loading staff", e);
+    }
 }
 
 // --------------------
@@ -103,9 +106,16 @@ async function loadDashboardTickets() {
                 if (document.getElementById("inProgressTickets")) document.getElementById("inProgressTickets").innerText = inProgressCount;
                 if (document.getElementById("closedTickets")) document.getElementById("closedTickets").innerText = closedCount;
             }
-        } catch (e) { console.error("Stats error", e); }
+        } catch (e) {
+            console.error("Stats error", e);
+        }
 
-        const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}&assignedStaffId=${staffId}`);
+        const params = new URLSearchParams();
+        if (s) params.set("status", s);
+        if (p) params.set("priority", p);
+        if (q) params.set("search", q);
+        if (staffId) params.set("assignedStaffId", staffId);
+        const res = await apiFetch(`/tickets?${params}`);
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
 
@@ -154,7 +164,7 @@ async function loadDashboardTickets() {
 
                 const res = await apiFetch(`/tickets/${ticketId}/assign?assignedById=1`, {
                     method: "PUT",
-                    body: JSON.stringify({ staffIds: [staffId] })
+                    body: JSON.stringify({staffIds: [staffId]})
                 });
 
                 if (res.ok) loadDashboardTickets();
@@ -179,7 +189,10 @@ async function loadDashboardTickets() {
                 }
             });
         });
-    } catch (e) { console.error(e); list.innerHTML = "<p>Något gick fel.</p>"; }
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = "<p>Något gick fel.</p>";
+    }
 }
 
 // --------------------
@@ -220,7 +233,9 @@ async function loadTicketDetail() {
             t.assignedStaff?.forEach(s => window.addStaffBadge(s.id, s.fullName));
         }
         loadStaffList("reassignStaff", assignedIds);
-    } catch (e) { container.innerHTML = "<p>Något gick fel.</p>"; }
+    } catch (e) {
+        container.innerHTML = "<p>Något gick fel.</p>";
+    }
 }
 
 async function loadComments(id) {
@@ -232,7 +247,7 @@ async function loadComments(id) {
     list.innerHTML = comments.length ? comments.map(c => `
         <div class="comment-item">
             <div class="comment-header"><span>${c.authorName || c.authorEmail || 'Användare'}</span><span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
-            <div class="comment-text">${c.text || c.content || c.commentText || "..." }</div>
+            <div class="comment-text">${c.text || c.content || c.commentText || "..."}</div>
         </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
 }
 
@@ -251,7 +266,7 @@ function setupCreateTicketForm() {
             issueType: document.getElementById("issueType").value,
             assignedStaffIds: typeof window.getSelectedStaffIds === 'function' ? window.getSelectedStaffIds() : Array.from(document.getElementById("assignedStaff").selectedOptions).map(o => parseInt(o.value))
         };
-        const res = await apiFetch("/tickets", { method: "POST", body: JSON.stringify(data) });
+        const res = await apiFetch("/tickets", {method: "POST", body: JSON.stringify(data)});
         if (res.ok) {
             const t = await res.json();
             window.location.href = `/pages/ticket-detail.html?id=${t.id}`;
@@ -270,10 +285,14 @@ function setupCommentForm() {
         e.preventDefault();
         const res = await apiFetch(`/tickets/${id}/comments`, {
             method: "POST",
-            body: JSON.stringify({ text: document.getElementById("commentText").value })
+            body: JSON.stringify({text: document.getElementById("commentText").value})
         });
-        if (res.ok) { form.reset(); loadComments(id); }
-        else { alert("Kunde inte skicka meddelande."); }
+        if (res.ok) {
+            form.reset();
+            loadComments(id);
+        } else {
+            alert("Kunde inte skicka meddelande.");
+        }
     });
 }
 
@@ -292,7 +311,10 @@ function setupUploadForm() {
             credentials: "same-origin", // Sessions-cookie skickas automatiskt
             body: formData
         });
-        if (res.ok) { alert("Fil uppladdad!"); form.reset(); }
+        if (res.ok) {
+            alert("Fil uppladdad!");
+            form.reset();
+        }
     });
 }
 
@@ -321,11 +343,13 @@ function setupAssignmentUI() {
 
         const res = await apiFetch(`/tickets/${id}/assign?assignedById=1`, {
             method: "PUT",
-            body: JSON.stringify({ staffIds: selectedIds })
+            body: JSON.stringify({staffIds: selectedIds})
         });
 
-        if (res.ok) { alert("Tilldelning uppdaterad!"); loadTicketDetail(); }
-        else {
+        if (res.ok) {
+            alert("Tilldelning uppdaterad!");
+            loadTicketDetail();
+        } else {
             const err = await res.json().catch(() => ({}));
             alert("Kunde inte uppdatera tilldelning: " + (err.message || res.statusText));
         }
@@ -346,7 +370,7 @@ function setupEditTicketForm() {
             priority: document.getElementById("editPriority").value,
             status: document.getElementById("editStatus").value
         };
-        const res = await apiFetch(`/tickets/${id}/status?status=${body.status}&performedById=1`, { method: "PATCH" });
+        const res = await apiFetch(`/tickets/${id}/status?status=${body.status}&performedById=1`, {method: "PATCH"});
         if (res.ok) {
             msg.textContent = "Status uppdaterad! Omdirigerar...";
             setTimeout(() => window.location.href = `/pages/ticket-detail.html?id=${id}`, 1000);

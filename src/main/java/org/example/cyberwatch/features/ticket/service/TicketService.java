@@ -53,7 +53,7 @@ public class TicketService {
 
     public TicketResponseDTO createTicket(TicketDTO dto, String creatorEmail) {
         Staff creator = staffRepository.findByEmail(creatorEmail)
-                .orElseThrow(() -> new RuntimeException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
+                .orElseThrow(() -> new StaffNotFoundException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
 
         if (dto.getAssignedStaffIds() == null || dto.getAssignedStaffIds().isEmpty()) {
             throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
@@ -71,7 +71,7 @@ public class TicketService {
         Set<Long> requestedIds = new HashSet<>(dto.getAssignedStaffIds());
         List<Staff> assignedStaff = staffRepository.findAllById(requestedIds);
         if (assignedStaff.size() != requestedIds.size()) {
-            throw new RuntimeException("En eller flera valda personer hittades inte.");
+            throw new StaffNotFoundException("En eller flera valda personer hittades inte.");
         }
         ticket.setAssignedStaff(assignedStaff);
 
@@ -94,7 +94,7 @@ public class TicketService {
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketByCode(String ticketCode) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
-                .orElseThrow(() -> new RuntimeException("Ticket not found: " + ticketCode));
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + ticketCode));
 
         return TicketResponseDTO.from(ticket);
     }
@@ -178,21 +178,15 @@ public class TicketService {
 
         List<Staff> staffList = staffRepository.findAllById(staffIds);
         if (staffList.size() != staffIds.size()) {
-            throw new RuntimeException("Ingen av de valda personerna hittades.");
+            throw new StaffNotFoundException("Ingen av de valda personerna hittades.");
         }
 
-        Status oldStatus = ticket.getStatus();
         ticket.setAssignedStaff(staffList);
         Ticket saved = ticketRepository.save(ticket);
 
-        if (oldStatus == Status.SUBMITTED) {
-            ticket.setStatus(Status.IN_PROGRESS);
-            saved = ticketRepository.save(ticket);
-            activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
+        //if SUBMITTED acts as a triage queue, and staff need to manually acknowledge/start the ticket to move it to IN_PROGRESS, regardless of whether it was routed to them at creation or later.
             activityLogService.logAssignmentChange(saved, assigner, staffList);
-        } else {
-            activityLogService.logAssignmentChange(saved, assigner, staffList);
-        }
+
 
         return TicketResponseDTO.from(saved);
     }
