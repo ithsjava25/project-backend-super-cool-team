@@ -9,6 +9,12 @@ function getCsrfToken() {
     return match ? decodeURIComponent(match[1]) : null;
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function getHeaders() {
     const headers = {"Content-Type": "application/json"};
     const csrf = getCsrfToken();
@@ -213,16 +219,16 @@ async function loadTicketDetail() {
                     <span class="badge badge-${t.status}">${t.status}</span>
                     <span class="muted">#${t.id}</span>
                 </div>
-                <h2>${t.title}</h2>
+                <h2>${escapeHtml(t.title)}</h2>
                 <div style="margin-bottom: 1rem;">
                     <strong>Tilldelad till:</strong> 
                     ${t.assignedStaff && t.assignedStaff.length > 0
             ? t.assignedStaff.map(s => `<span class="badge badge-secondary" style="margin-right: 5px;">${s.fullName}</span>`).join('')
             : '<span class="muted">Ingen tilldelad</span>'}
                 </div>
-                <p style="margin: 1.5rem 0; font-size: 1.1rem; white-space: pre-wrap;">${t.description}</p>
+                <p style="margin: 1.5rem 0; font-size: 1.1rem; white-space: pre-wrap;">${escapeHtml(t.description)}</p>
                 <div class="muted" style="border-top:1px solid var(--border); padding-top:1rem;">
-                    Skapad av: ${t.createdBy?.fullName || 'Okänd'} • Typ: ${t.issueType} • Prioritet: ${t.priority}
+                    Skapad av: ${escapeHtml(t.createdBy?.fullName || 'Okänd')} • Typ: ${escapeHtml(t.issueType)} • Prioritet: ${escapeHtml(t.priority)}
                 </div>
             </div>`;
         loadComments(id);
@@ -245,10 +251,11 @@ async function loadComments(id) {
     if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta kommentarer.</p>";
     const comments = await res.json();
     list.innerHTML = comments.length ? comments.map(c => `
-        <div class="comment-item">
-            <div class="comment-header"><span>${c.authorName || c.authorEmail || 'Användare'}</span><span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
-            <div class="comment-text">${c.text || c.content || c.commentText || "..."}</div>
-        </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
+    <div class="comment-item">
+        <div class="comment-header"><span>${escapeHtml(c.authorName || c.authorEmail || 'Användare')}</span>
+                    <span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
+        <div class="comment-text">${escapeHtml(c.text || c.content || c.commentText || "...")}</div>
+    </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
 }
 
 // --------------------
@@ -306,9 +313,11 @@ function setupUploadForm() {
         if (!file) return alert("Välj en fil.");
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch(`${API_BASE}/tickets/${id}/upload?uploadedById=${document.getElementById("uploadedById").value}`, {
+        const csrf = getCsrfToken();
+        const res = await fetch(`${API_BASE}/tickets/${id}/upload`, {
             method: "POST",
             credentials: "same-origin", // Sessions-cookie skickas automatiskt
+            headers: csrf ? {"X-XSRF-TOKEN": csrf} : {},
             body: formData
         });
         if (res.ok) {
@@ -341,7 +350,7 @@ function setupAssignmentUI() {
         const selectedIds = window.currentAssignedIds ? Array.from(window.currentAssignedIds) : Array.from(document.getElementById("reassignStaff").selectedOptions).map(o => parseInt(o.value));
         if (selectedIds.length === 0) return alert("Välj minst en person.");
 
-        const res = await apiFetch(`/tickets/${id}/assign?assignedById=1`, {
+        const res = await apiFetch(`/tickets/${id}/assign`, {
             method: "PUT",
             body: JSON.stringify({staffIds: selectedIds})
         });
@@ -370,7 +379,7 @@ function setupEditTicketForm() {
             priority: document.getElementById("editPriority").value,
             status: document.getElementById("editStatus").value
         };
-        const res = await apiFetch(`/tickets/${id}/status?status=${body.status}&performedById=1`, {method: "PATCH"});
+        const res = await apiFetch(`/tickets/${id}/status?status=${body.status}`, {method: "PATCH"});
         if (res.ok) {
             msg.textContent = "Status uppdaterad! Omdirigerar...";
             setTimeout(() => window.location.href = `/pages/ticket-detail.html?id=${id}`, 1000);
