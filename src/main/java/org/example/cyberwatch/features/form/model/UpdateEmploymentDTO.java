@@ -10,9 +10,10 @@ import org.example.cyberwatch.shared.model.enums.Role;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class UpdateEmploymentDTO {
+
     @NotBlank(message = "Social security number cannot be blank")
     @Pattern(regexp = "\\d{6}-\\d{4}|\\d{8}-\\d{4}", message = "Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN")
     private String socialSecurityNumber;

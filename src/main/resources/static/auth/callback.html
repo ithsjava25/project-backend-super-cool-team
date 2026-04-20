@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Logging in...</title>
+</head>
+<body>
+    <script>
+        // Hämta token från URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const error = urlParams.get('error');
+
+        if (error === 'unauthorized') {
+            alert('Din e-postadress är inte registrerad i systemet. Kontakta en administratör.');
+            window.location.href = '/pages/login.html';
+        } else if (token) {
+            // Spara token i localStorage
+            localStorage.setItem('jwt_token', token);
+            // Skicka vidare till dashboard
+            window.location.href = '/pages/dashboard.html';
+        } else {
+            window.location.href = '/pages/login.html';
+        }
+    </script>
+</body>
+</html>

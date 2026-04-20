@@ -14,18 +14,15 @@ import org.example.cyberwatch.shared.model.enums.Role;
 @AllArgsConstructor
 public class StaffDTO {
     private Long id;
-
     private String socialSecurityNumber;
-
     private String firstName;
-
     private String lastName;
-
     private String email;
-
     private String phoneNumber;
-
     private Role role;
-
     private Department department;
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 }

@@ -13,38 +13,41 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/staff")
-public class StaffController {
+public class StaffRestController {
 
-    private final StaffService service;
+    private final StaffService staffService;
 
-    public StaffController(StaffService service) {
-        this.service = service;
+    public StaffRestController(StaffService staffService) {
+        this.staffService = staffService;
     }
 
-    //Hämta en staff
     @GetMapping("/{id}")
     public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getStaffById(id));
+        return ResponseEntity.ok(staffService.getStaffById(id));
     }
 
-    //updatera en staff
     @PutMapping("/{id}")
     public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto) {
-        return ResponseEntity.ok(service.updateStaff(id, dto));
+        return ResponseEntity.ok(staffService.updateStaff(id, dto));
     }
 
-    //radera en staff
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStaff(@PathVariable Long id) {
-        service.deleteStaff(id);
+        staffService.deleteStaff(id);
         return ResponseEntity.noContent().build();
     }
 
-    //visa en lista baserat på staff eller department, visar allt om inget filter anges
     @GetMapping
-    public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(@RequestParam(required = false) Role role,
-                                                                     @RequestParam(required = false) Department department) {
-        return ResponseEntity.ok(service.getStaffByRoleOrDepartment(role, department));
-
+    public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) Department department) {
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department));
     }
+
+   /* @GetMapping
+    public ResponseEntity<List<StaffDTO>> getAllStaff() {
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(null, null));
+    }
+
+    */
 }

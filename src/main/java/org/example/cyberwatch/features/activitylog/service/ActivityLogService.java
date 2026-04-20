@@ -40,6 +40,16 @@ public class ActivityLogService {
         activityLogRepository.save(log);
     }
 
+    public void logAssignmentChange(Ticket ticket, Staff performedBy, List<Staff> staffList) {
+        String names = staffList.stream()
+                .map(s -> s.getFirstName() + " " + s.getLastName())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("Ingen");
+        String details = "Tilldelad personal: " + names;
+        ActivityLog log = new ActivityLog(ticket, performedBy, ActivityType.STAFF_ASSIGNED, details);
+        activityLogRepository.save(log);
+    }
+
     @Transactional(readOnly = true)
     public List<ActivityLogResponseDTO> getLogsForTicket(Long ticketId) {
         return activityLogRepository.findByTicketIdOrderByTimestampAsc(ticketId)

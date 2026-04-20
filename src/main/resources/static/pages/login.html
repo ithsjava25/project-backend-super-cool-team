@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - IT Ticket System</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="login-body">
+<div class="login-container">
+    <div class="login-card">
+        <h1>CyberWatch</h1>
+        <p class="muted">IT Ticket System</p>
+
+        <button id="googleLoginBtn" class="btn btn-primary btn-full">
+            Logga in med Google
+        </button>
+
+        <p class="small-text">
+            Den här versionen använder Google-inloggning via backend.
+        </p>
+    </div>
+</div>
+
+<script>
+    document.getElementById("googleLoginBtn").addEventListener("click", function () {
+        // Använd relativ URL — fungerar oavsett host och port
+        window.location.href = "/oauth2/authorization/google";
+    });
+</script>
+</body>
+</html>

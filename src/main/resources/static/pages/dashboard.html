@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dashboard - Cyber Watch</title>
+    <link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<body>
+<div id="navbar"></div>
+
+<main class="main-content">
+    <section class="page-header">
+        <div>
+            <h1>Tickets</h1>
+            <p class="muted">Cyber Watch - Dashboard</p>
+        </div>
+        <a href="/pages/create-ticket.html" class="btn btn-primary">+ Skapa ticket</a>
+    </section>
+
+    <section class="stats-grid">
+        <div class="card stat-card"><h3>Totalt</h3>
+            <p id="totalTickets">0</p></div>
+        <div class="card stat-card"><h3>Öppna</h3>
+            <p id="openTickets">0</p></div>
+        <div class="card stat-card"><h3>Pågående</h3>
+            <p id="inProgressTickets">0</p></div>
+        <div class="card stat-card"><h3>Stängda</h3>
+            <p id="closedTickets">0</p></div>
+    </section>
+
+    <section class="card">
+        <div class="filter-row">
+            <label for="searchInput" class="sr-only">Sök tickets</label>
+            <input type="text" id="searchInput" placeholder="Sök tickets..."/>
+            <label for="statusFilter" class="sr-only">Filtrera på status</label>
+            <select id="statusFilter">
+                <option value="">Alla statusar</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="CLOSED">Closed</option>
+            </select>
+            <label for="priorityFilter" class="sr-only">Filtrera på prioritet</label>
+            <select id="priorityFilter">
+                <option value="">Alla prioriteter</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="CRITICAL">Critical</option>
+            </select>
+            <label for="staffFilter" class="sr-only">Filtrera på handläggare</label>
+            <select id="staffFilter">
+                <option value="">Alla handläggare</option>
+            </select>
+            <button id="clearFiltersBtn" class="btn btn-secondary">Rensa filter</button>
+            <button id="filterBtn" class="btn btn-primary" style="display:none;">Uppdatera</button>
+        </div>
+    </section>
+
+    <div id="ticketList" class="ticket-list"></div>
+</main>
+
+<script src="/js/app.js"></script>
+<script>
+    renderNavbar();
+    loadDashboardTickets();
+    loadStaffList("staffFilter");
+
+    ['filterBtn', 'statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', loadDashboardTickets);
+    });
+    document.getElementById('filterBtn').onclick = loadDashboardTickets;
+    document.getElementById('clearFiltersBtn').onclick = () => {
+        ['statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('searchInput').value = "";
+        loadDashboardTickets();
+    };
+    document.getElementById('searchInput').oninput = loadDashboardTickets;
+</script>
+</body>
+</html>

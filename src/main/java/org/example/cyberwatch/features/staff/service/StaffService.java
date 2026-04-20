@@ -30,7 +30,6 @@ public class StaffService {
         this.staffMapper = staffMapper;
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public StaffDTO getStaffById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
@@ -78,7 +77,6 @@ public class StaffService {
 
     }
 
-    @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department) {
         if (role != null) {
             return staffRepository.findByRole(role)

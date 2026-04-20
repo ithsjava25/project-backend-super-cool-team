@@ -5,11 +5,7 @@ import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
-import org.example.cyberwatch.features.ticket.model.Ticket;
-import org.example.cyberwatch.features.ticket.model.TicketAttachment;
-import org.example.cyberwatch.features.ticket.model.TicketDTO;
-import org.example.cyberwatch.features.ticket.model.TicketFilterParams;
-import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
+import org.example.cyberwatch.features.ticket.model.*;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
 import org.example.cyberwatch.shared.model.enums.Status;
@@ -25,10 +21,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -58,11 +51,16 @@ public class TicketService {
         this.activityLogService = activityLogService;
     }
 
-    public TicketResponseDTO createTicket(TicketDTO dto) {
-        Staff creator = staffRepository.findById(dto.getCreatedById())
-                .orElseThrow(() -> new StaffNotFoundException(dto.getCreatedById()));
+    public TicketResponseDTO createTicket(TicketDTO dto, String creatorEmail) {
+        Staff creator = staffRepository.findByEmail(creatorEmail)
+                .orElseThrow(() -> new StaffNotFoundException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
+
+        if (dto.getAssignedStaffIds() == null || dto.getAssignedStaffIds().isEmpty()) {
+            throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
+        }
 
         Ticket ticket = new Ticket();
+        ticket.setTicketCode("TEMP-" + System.currentTimeMillis());
         ticket.setTitle(dto.getTitle());
         ticket.setDescription(dto.getDescription());
         ticket.setPriority(dto.getPriority());
@@ -70,13 +68,34 @@ public class TicketService {
         ticket.setCreatedBy(creator);
         ticket.setStatus(Status.SUBMITTED);
 
-        return TicketResponseDTO.from(ticketRepository.save(ticket));
+        Set<Long> requestedIds = new HashSet<>(dto.getAssignedStaffIds());
+        List<Staff> assignedStaff = staffRepository.findAllById(requestedIds);
+        if (assignedStaff.size() != requestedIds.size()) {
+            throw new StaffNotFoundException("En eller flera valda personer hittades inte.");
+        }
+        ticket.setAssignedStaff(assignedStaff);
+
+        Ticket savedTicket = ticketRepository.save(ticket);
+        savedTicket.setTicketCode("TICKET-" + (1000 + savedTicket.getId()));
+        savedTicket = ticketRepository.save(savedTicket);
+
+        activityLogService.logAssignmentChange(savedTicket, creator, assignedStaff);
+
+        return TicketResponseDTO.from(savedTicket);
     }
 
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
+        return TicketResponseDTO.from(ticket);
+    }
+
+    @Transactional(readOnly = true)
+    public TicketResponseDTO getTicketByCode(String ticketCode) {
+        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + ticketCode));
+
         return TicketResponseDTO.from(ticket);
     }
 
@@ -101,8 +120,9 @@ public class TicketService {
                         filters.getStatus(),
                         filters.getPriority(),
                         filters.getIssueType(),
-                        filters.getAssignedToId(),
-                        filters.getCreatedById()
+                        filters.getAssignedStaffId(),
+                        filters.getCreatedById(),
+                        filters.getSearch()
                 ).stream()
                 .map(TicketResponseDTO::from)
                 .toList();
@@ -145,17 +165,30 @@ public class TicketService {
         return TicketResponseDTO.from(saved);
     }
 
-    public TicketResponseDTO assignTicket(Long ticketId, Long staffId, Long assignedById) {
+    public TicketResponseDTO assignTicket(Long ticketId, List<Long> staffIds, Long assignedById) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new StaffNotFoundException(staffId));
+
+        if (staffIds == null || staffIds.isEmpty()) {
+            throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
+        }
+
         Staff assigner = staffRepository.findById(assignedById)
                 .orElseThrow(() -> new StaffNotFoundException(assignedById));
-        Status oldStatus = ticket.getStatus();
-        ticket.setAssignedTo(staff);
+
+        Set<Long> requestedIds = new HashSet<>(staffIds);
+        List<Staff> staffList = staffRepository.findAllById(requestedIds);
+        if (staffList.size() != requestedIds.size()) {
+            throw new StaffNotFoundException("En eller flera valda personer hittades inte.");
+        }
+
+        ticket.setAssignedStaff(staffList);
         Ticket saved = ticketRepository.save(ticket);
-        activityLogService.logStatusChange(saved, assigner, oldStatus, Status.IN_PROGRESS);
+
+        //if SUBMITTED acts as a triage queue, and staff need to manually acknowledge/start the ticket to move it to IN_PROGRESS, regardless of whether it was routed to them at creation or later.
+            activityLogService.logAssignmentChange(saved, assigner, staffList);
+
+
         return TicketResponseDTO.from(saved);
     }
 
@@ -222,14 +255,16 @@ public class TicketService {
     }
 
     private void validateStatusTransition(Status current, Status next) {
+        if (current == next) return;
+
         boolean valid = switch (current) {
             case DRAFT            -> next == Status.SUBMITTED;
-            case SUBMITTED        -> next == Status.IN_PROGRESS;
-            case IN_PROGRESS      -> next == Status.RESOLVED || next == Status.WAITING_FOR_USER;
-            case WAITING_FOR_USER -> next == Status.IN_PROGRESS;
-            case RESOLVED         -> next == Status.CLOSED;
-            case REOPENED         -> next == Status.IN_PROGRESS;
-            case CLOSED           -> false;
+            case SUBMITTED        -> next == Status.IN_PROGRESS || next == Status.RESOLVED || next == Status.CLOSED;
+            case IN_PROGRESS      -> next == Status.RESOLVED || next == Status.WAITING_FOR_USER || next == Status.CLOSED || next == Status.SUBMITTED;
+            case WAITING_FOR_USER -> next == Status.IN_PROGRESS || next == Status.RESOLVED || next == Status.CLOSED;
+            case RESOLVED         -> next == Status.CLOSED || next == Status.IN_PROGRESS || next == Status.REOPENED;
+            case REOPENED         -> next == Status.IN_PROGRESS || next == Status.RESOLVED || next == Status.CLOSED;
+            case CLOSED           -> next == Status.REOPENED || next == Status.IN_PROGRESS || next == Status.SUBMITTED || next == Status.RESOLVED;
         };
 
         if (!valid) {

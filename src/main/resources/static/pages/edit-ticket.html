@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Ticket</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<div id="navbar"></div>
+
+<main class="main-content">
+    <section class="page-header">
+        <div>
+            <h1>Redigera ärende</h1>
+            <p class="muted">Cyber Watch</p>
+        </div>
+    </section>
+
+    <section class="card">
+        <form id="editTicketForm">
+            <div class="form-group">
+                <label for="editTitle">Titel</label>
+                <input type="text" id="editTitle" required />
+            </div>
+
+            <div class="form-group">
+                <label for="editDescription">Fullständig beskrivning</label>
+                <textarea id="editDescription" rows="8" required></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="form-group">
+                    <label for="editPriority">Prioritet</label>
+                    <select id="editPriority" required>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="CRITICAL">Critical</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus" required>
+                        <option value="SUBMITTED">Submitted</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary">Spara ändringar</button>
+                <a href="/pages/dashboard.html" class="btn btn-secondary">Avbryt</a>
+            </div>
+        </form>
+        <p id="editMessage" class="message"></p>
+    </section>
+</main>
+
+<script src="/js/app.js"></script>
+<script>
+    renderNavbar();
+    loadEditTicketData();
+    setupEditTicketForm();
+</script>
+</body>
+</html>

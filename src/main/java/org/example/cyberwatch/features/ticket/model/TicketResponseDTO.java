@@ -8,12 +8,14 @@ import org.example.cyberwatch.shared.model.enums.Priority;
 import org.example.cyberwatch.shared.model.enums.Status;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 public class TicketResponseDTO {
-
     private Long id;
+    private String ticketCode;
     private String title;
     private String description;
     private Status status;
@@ -22,9 +24,10 @@ public class TicketResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private StaffSummary createdBy;
-    private StaffSummary assignedTo;
+    private List<StaffSummary> assignedStaff = new ArrayList<>();
 
     @Getter
+    @Setter
     public static class StaffSummary {
         private final Long id;
         private final String fullName;
@@ -40,6 +43,7 @@ public class TicketResponseDTO {
     public static TicketResponseDTO from(Ticket ticket) {
         TicketResponseDTO dto = new TicketResponseDTO();
         dto.id = ticket.getId();
+        dto.ticketCode = ticket.getTicketCode();
         dto.title = ticket.getTitle();
         dto.description = ticket.getDescription();
         dto.status = ticket.getStatus();
@@ -57,13 +61,14 @@ public class TicketResponseDTO {
             );
         }
 
-        if (ticket.getAssignedTo() != null) {
-            Staff a = ticket.getAssignedTo();
-            dto.assignedTo = new StaffSummary(
-                    a.getId(),
-                    a.getFirstName() + " " + a.getLastName(),
-                    a.getEmail()
-            );
+        if (ticket.getAssignedStaff() != null) {
+            for (Staff staff : ticket.getAssignedStaff()) {
+                dto.assignedStaff.add(new StaffSummary(
+                        staff.getId(),
+                        staff.getFirstName() + " " + staff.getLastName(),
+                        staff.getEmail()
+                ));
+            }
         }
 
         return dto;

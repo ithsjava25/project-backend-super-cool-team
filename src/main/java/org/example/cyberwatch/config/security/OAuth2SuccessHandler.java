@@ -1,15 +1,20 @@
 package org.example.cyberwatch.config.security;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,48 +22,50 @@ import java.util.Optional;
  *
  * Flödet:
  * 1. Användaren loggar in via Google
- * 2. Google skickar tillbaka användarens email till oss
+ * 2. Google skickar tillbaka användarens email
  * 3. Vi kollar om emailen finns i staff-tabellen
- * → Ja: generera en JWT-token och skicka den till frontend
- * → Nej: redirect med felmeddelande (emailen är inte registrerad i systemet)
+ * → Ja: byt ut OAuth2User mot Staff som principal i SecurityContext, redirect till dashboard
+ * → Nej: redirect med felmeddelande
  */
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtService jwtService;
     private final StaffRepository staffRepository;
+    private static final String ERROR_PATH = "/pages/login.html?error=unauthorized";
 
-    // Byt ut mot riktiga frontend-URL när vi driftsätter
-    private static final String FRONTEND_URL = "http://localhost:8080/auth/callback";
-
-    public OAuth2SuccessHandler(JwtService jwtService, StaffRepository staffRepository) {
-        this.jwtService = jwtService;
+    public OAuth2SuccessHandler(StaffRepository staffRepository) {
         this.staffRepository = staffRepository;
+        setDefaultTargetUrl("/pages/dashboard.html");
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+                                        Authentication authentication) throws IOException, ServletException {
 
-        // Hämta Google-användaren och plocka ut emailen
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        Optional<Staff> staffOptional = staffRepository.findByEmail(email);
-
-        if (staffOptional.isEmpty()) {
-            // Emailen finns inte i systemet — användaren är inte anställd här
-            response.sendRedirect(FRONTEND_URL + "?error=unauthorized");
+        if (email == null) {
+            response.sendRedirect(request.getContextPath() + ERROR_PATH);
             return;
         }
 
-        // Emailen finns — generera en JWT-token med email och roll
-        Staff staff = staffOptional.get();
-        String token = jwtService.generateToken(staff.getEmail(), staff.getRole().name());
+        Optional<Staff> staffOpt = staffRepository.findByEmail(email);
+        if (staffOpt.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + ERROR_PATH);
+            return;
+        }
 
-        // Skicka token till frontend via query-parameter i redirect-URL:en
-        // Frontend sparar token och skickar den som "Authorization: Bearer <token>" på varje request
-        response.sendRedirect(FRONTEND_URL + "?token=" + token);
+        // Byt ut OAuth2User mot Staff som principal så att alla efterföljande
+        // anrop till authentication.getPrincipal() får ett Staff-objekt
+        Staff staff = staffOpt.get();
+        var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + staff.getRole().name()));
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                staff, null, authorities
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        super.onAuthenticationSuccess(request, response, auth);
     }
 }

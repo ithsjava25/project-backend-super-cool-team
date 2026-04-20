@@ -8,13 +8,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.cyberwatch.shared.model.enums.IssueType;
 import org.example.cyberwatch.shared.model.enums.Priority;
+import java.util.List;
 
 @Getter
 @Setter
 public class TicketDTO {
 
     @NotBlank(message = "Titel får inte vara tom")
-    @Size(min = 5, max = 100, message = "Titel måste vara mellan 5-100 tecken")
+    @Size(max = 100, message = "Titel kan max vara 100 tecken")
     private String title;
 
     @NotBlank(message = "Beskrivning får inte vara tom")
@@ -26,8 +27,6 @@ public class TicketDTO {
 
     @NotNull(message = "Ärendetyp måste anges")
     private IssueType issueType;
-
-    @NotNull(message = "createdById måste anges")
-    @Positive(message = "createdById måste vara ett positivt tal")
     private Long createdById;
+    private List<Long> assignedStaffIds;
 }

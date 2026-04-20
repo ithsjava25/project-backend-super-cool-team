@@ -63,18 +63,4 @@ public class Staff {
 
     @Column(name = "employed_s3_key")
     private String employedS3Key;
-
-    // An employee can have many reports
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ReportForm> reportForms = new HashSet<>();
-
-    @OneToMany(mappedBy = "createdBy")
-    private Set<EmploymentForm> createdForms;
-
-    @OneToMany(mappedBy = "assignedTo")
-    private Set<Ticket> assignedTickets = new HashSet<>();
-
-    public Staff() {
-
-    }
 }

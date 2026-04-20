@@ -5,18 +5,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
 @Getter
 @Setter
+@Entity
 @NoArgsConstructor
 public class TicketAttachment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String fileName;
     private String fileUrl;
+    @Column(name = "s3_key")
     private String s3Key;
 
     @ManyToOne

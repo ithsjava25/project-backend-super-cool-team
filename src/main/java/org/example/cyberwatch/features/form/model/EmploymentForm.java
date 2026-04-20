@@ -2,7 +2,9 @@ package org.example.cyberwatch.features.form.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class EmploymentForm {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,8 +78,4 @@ public class EmploymentForm {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approver_management_id", nullable = true)
     private Staff approvedBy;
-
-    public EmploymentForm() {
-    }
-
 }

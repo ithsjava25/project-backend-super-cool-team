@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class CreateEmploymentDTO {
 
     @NotBlank(message = "Social security number cannot be blank")
