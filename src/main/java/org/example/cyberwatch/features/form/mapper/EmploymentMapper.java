@@ -1,5 +1,9 @@
-package org.example.cyberwatch.features.form.model;
+package org.example.cyberwatch.features.form.mapper;
 
+import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
+import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
+import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
+import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.stereotype.Component;

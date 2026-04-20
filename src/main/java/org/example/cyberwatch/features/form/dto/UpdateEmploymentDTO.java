@@ -1,21 +1,18 @@
-package org.example.cyberwatch.features.form.model;
+package org.example.cyberwatch.features.form.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateEmploymentDTO {
+public class UpdateEmploymentDTO {
 
     @NotBlank(message = "Social security number cannot be blank")
     @Pattern(regexp = "\\d{6}-\\d{4}|\\d{8}-\\d{4}", message = "Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN")
@@ -42,12 +39,4 @@ public class CreateEmploymentDTO {
 
     @NotNull(message = "Department cannot be null")
     private Department department;
-
-    private ApprovalStatus status;
-
-    private LocalDateTime createdDate;
-
-    //Long when fetching the Id?
-    private Long hrId;
-
 }
