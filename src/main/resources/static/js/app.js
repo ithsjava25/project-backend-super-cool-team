@@ -77,7 +77,7 @@ async function loadStaffList(selectId, selectedIds = []) {
         let staffOptions = staff.map(s => {
             const isAssigned = selectedIds.includes(s.id);
             const className = isAssigned ? 'class="badge-assigned"' : '';
-            return `<option value="${s.id}" ${className}>${s.fullName} (${s.email})</option>`;
+            return `<option value="${s.id}" ${className}>${escapeHtml(s.fullName)} (${escapeHtml(s.email)})</option>`;
         }).join('');
 
         select.innerHTML = existingDefault + staffOptions;
@@ -195,6 +195,7 @@ async function loadDashboardTickets() {
         list.innerHTML = "<p>Något gick fel.</p>";
     }
 }
+
 // --------------------
 // Ticket Detail & Comments
 // --------------------

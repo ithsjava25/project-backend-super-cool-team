@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,18 +36,7 @@ public class TicketController {
     public ResponseEntity<TicketResponseDTO> createTicket(
             @Valid @RequestBody TicketDTO dto) {
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal == null) {
-            throw new IllegalStateException("No authenticated user found");
-        }
-        String email;
-        if (principal instanceof Staff staff) {
-            email = staff.getEmail();
-        } else if (principal instanceof String s) {
-            email = s;
-        } else {
-            email = principal.toString();
-        }
+        String email = getAuthenticatedStaff().getEmail();
         TicketResponseDTO created = ticketService.createTicket(dto, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -121,12 +111,18 @@ public class TicketController {
 
     // Hjälpmetod — för autensierad användare för att ersätta det hårdkodade id:t i js-filen
     private Long getAuthenticatedStaffId() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal == null) {
-            throw new IllegalStateException("No authenticated user found");
+        return getAuthenticatedStaff().getId();
+    }
+
+
+    private Staff getAuthenticatedStaff() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Ingen autentiserad användare");
         }
+        Object principal = authentication.getPrincipal();
         if (principal instanceof Staff staff) {
-            return staff.getId();
+            return staff;
         }
         throw new AccessDeniedException("Unauthorized");
     }
