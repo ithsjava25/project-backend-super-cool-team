@@ -26,6 +26,10 @@ public class TicketResponseDTO {
     private StaffSummary createdBy;
     private List<StaffSummary> assignedStaff = new ArrayList<>();
 
+    // Bilagor returneras med en relativ nedladdningslänk istället för direkt S3-URL.
+    // Frontend anropar downloadUrl för att få en tidsbegränsad presigned URL via backend.
+    private List<AttachmentSummary> attachments = new ArrayList<>();
+
     @Getter
     @Setter
     public static class StaffSummary {
@@ -37,6 +41,21 @@ public class TicketResponseDTO {
             this.id = id;
             this.fullName = fullName;
             this.email = email;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class AttachmentSummary {
+        private final Long id;
+        private final String fileName;
+        private final String downloadUrl;
+
+        public AttachmentSummary(Long id, String fileName, Long ticketId) {
+            this.id = id;
+            this.fileName = fileName;
+            // Relativ URL – backend kontrollerar behörighet och redirectar till presigned URL
+            this.downloadUrl = "/api/tickets/" + ticketId + "/attachments/" + id + "/download";
         }
     }
 
@@ -67,6 +86,16 @@ public class TicketResponseDTO {
                         staff.getId(),
                         staff.getFirstName() + " " + staff.getLastName(),
                         staff.getEmail()
+                ));
+            }
+        }
+
+        if (ticket.getAttachments() != null) {
+            for (TicketAttachment attachment : ticket.getAttachments()) {
+                dto.attachments.add(new AttachmentSummary(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        ticket.getId()
                 ));
             }
         }
