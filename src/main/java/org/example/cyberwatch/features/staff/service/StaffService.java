@@ -1,5 +1,6 @@
 package org.example.cyberwatch.features.staff.service;
 
+import org.example.cyberwatch.config.security.EncryptionService;
 import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.model.StaffDTO;
@@ -23,22 +24,28 @@ public class StaffService {
 
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
+    private final EncryptionService encryptionService;
 
 
-    public StaffService(StaffRepository staffRepository, StaffMapper staffMapper) {
+    public StaffService(StaffRepository staffRepository, StaffMapper staffMapper, EncryptionService encryptionService) {
         this.staffRepository = staffRepository;
         this.staffMapper = staffMapper;
+        this.encryptionService = encryptionService;
     }
 
-    public StaffDTO getStaffById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Staff ID cannot be null");
+    public StaffDTO getStaffById(Long id, Role requesterRole) {
+        Staff staff = staffRepository.findById(id)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id));
+
+        StaffDTO dto = staffMapper.toDto(staff);
+
+        if (requesterRole == Role.ADMIN) {
+            dto.setSocialSecurityNumber(encryptionService.decrypt(staff.getSocialSecurityNumber()));
+        } else {
+            dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
         }
-        return staffMapper.toDto(staffRepository.findById(id).orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id)));
-    }
 
-    private List<StaffDTO> getAllStaff() {
-        return staffMapper.toDTOList(staffRepository.findAll());
+        return dto;
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
@@ -77,14 +84,27 @@ public class StaffService {
 
     }
 
-    public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department) {
+    public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department, Role requesterRole) {
+
+        List<Staff> staffList;
         if (role != null) {
-            return staffRepository.findByRole(role)
-                    .stream().map(staffMapper::toDto).toList();
+            staffList = staffRepository.findByRole(role);
         } else if (department != null) {
-            return staffRepository.findByDepartment(department)
-                    .stream().map(staffMapper::toDto).toList();
+            staffList = staffRepository.findByDepartment(department);
+        } else {
+            staffList = staffRepository.findAll(); // ersätter getAllStaff()
         }
-        return getAllStaff();
+
+        return staffList.stream()
+                .map(s -> {
+                    StaffDTO dto = staffMapper.toDto(s);
+                    if (requesterRole == Role.ADMIN) {
+                        dto.setSocialSecurityNumber(encryptionService.decrypt(s.getSocialSecurityNumber()));
+                    } else {
+                        dto.setSocialSecurityNumber(encryptionService.maskLastFour(s.getSocialSecurityNumber()));
+                    }
+                    return dto;
+                })
+                .toList();
     }
 }

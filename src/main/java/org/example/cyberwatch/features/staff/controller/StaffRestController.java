@@ -1,12 +1,14 @@
 package org.example.cyberwatch.features.staff.controller;
 
 import jakarta.validation.Valid;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.model.StaffDTO;
 import org.example.cyberwatch.features.staff.model.UpdateStaffDTO;
 import org.example.cyberwatch.features.staff.service.StaffService;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,8 +24,11 @@ public class StaffRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaffById(id));
+    public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id,
+                                                 @AuthenticationPrincipal Staff user) {
+
+        return ResponseEntity.ok(staffService.getStaffById(id, user.getRole()));
+
     }
 
     @PutMapping("/{id}")
@@ -40,8 +45,9 @@ public class StaffRestController {
     @GetMapping
     public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(
             @RequestParam(required = false) Role role,
-            @RequestParam(required = false) Department department) {
-        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department));
+            @RequestParam(required = false) Department department,
+            @AuthenticationPrincipal Staff user) {
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department, user.getRole()));
     }
 
    /* @GetMapping

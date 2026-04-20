@@ -2,6 +2,7 @@ package org.example.cyberwatch.features.form.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.example.cyberwatch.config.security.EncryptionService;
 import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
@@ -38,6 +39,7 @@ public class EmploymentFormService {
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EncryptionService encryptionService;
 
     //Create employment form
     @Transactional
@@ -60,6 +62,9 @@ public class EmploymentFormService {
         // Set default status to PENDING
         formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
+        formEntity.setSocialSecurityNumber(
+                encryptionService.encrypt(form.getSocialSecurityNumber())
+        );
 
         EmploymentFormDTO savedForm = employmentMapper.toDTO(employmentFormRepository.save(formEntity));
         logger.info("New employment form created with ID: {} by HR: {}", savedForm.getId(), loggedInHr);
@@ -241,7 +246,9 @@ public class EmploymentFormService {
         if (employmentFormRepository.existsBySocialSecurityNumber(ssn)) {
             throw new IllegalStateException("An application with this SSN already exists.");
         }
-        if (staffRepository.existsBySocialSecurityNumber(ssn)) {
+        // Kryptera innan sökning i staff-tabellen
+        String encryptedSsn = encryptionService.encrypt(ssn);
+        if (staffRepository.existsBySocialSecurityNumber(encryptedSsn)) {
             throw new IllegalStateException("An employee with this SSN already exists.");
         }
     }
