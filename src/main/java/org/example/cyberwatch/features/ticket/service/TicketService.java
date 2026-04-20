@@ -176,9 +176,10 @@ public class TicketService {
         Staff assigner = staffRepository.findById(assignedById)
                 .orElseThrow(() -> new StaffNotFoundException(assignedById));
 
-        List<Staff> staffList = staffRepository.findAllById(staffIds);
-        if (staffList.size() != staffIds.size()) {
-            throw new StaffNotFoundException("Ingen av de valda personerna hittades.");
+        Set<Long> requestedIds = new HashSet<>(staffIds);
+        List<Staff> staffList = staffRepository.findAllById(requestedIds);
+        if (staffList.size() != requestedIds.size()) {
+            throw new StaffNotFoundException("En eller flera valda personer hittades inte.");
         }
 
         ticket.setAssignedStaff(staffList);

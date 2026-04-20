@@ -116,12 +116,7 @@ async function loadDashboardTickets() {
             console.error("Stats error", e);
         }
 
-        const params = new URLSearchParams();
-        if (s) params.set("status", s);
-        if (p) params.set("priority", p);
-        if (q) params.set("search", q);
-        if (staffId) params.set("assignedStaffId", staffId);
-        const res = await apiFetch(`/tickets?${params}`);
+        const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}&assignedStaffId=${staffId}`);
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
 
@@ -134,13 +129,13 @@ async function loadDashboardTickets() {
             const item = document.createElement("div");
             item.className = "ticket-item";
 
-            const assignedStaffNames = t.assignedStaff?.map(s => s.fullName).join(', ') || 'Ingen';
+            const assignedStaffNames = t.assignedStaff?.map(s => escapeHtml(s.fullName)).join(', ') || 'Ingen';
             const assignedIds = t.assignedStaff?.map(s => s.id) || [];
 
             item.innerHTML = `
                 <div class="ticket-info" onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'">
-                    <h3>${t.title}</h3>
-                    <div class="muted">#${t.id} • ${t.priority} • Tilldelad: ${assignedStaffNames}</div>
+                    <h3>${escapeHtml(t.title)}</h3>
+                    <div class="muted">#${t.id} • ${escapeHtml(t.priority)} • Tilldelad: ${assignedStaffNames}</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <select class="dashboard-assignment-select" data-id="${t.id}">
@@ -148,7 +143,7 @@ async function loadDashboardTickets() {
                         ${allStaff.map(staff => {
                 const isAssigned = assignedIds.includes(staff.id);
                 return `<option value="${staff.id}" ${isAssigned ? 'class="badge-assigned"' : ''}>
-                                ${isAssigned ? '✓ ' : ''}${staff.fullName}
+                                ${isAssigned ? '✓ ' : ''}${escapeHtml(staff.fullName)}
                             </option>`;
             }).join('')}
                     </select>
@@ -200,7 +195,6 @@ async function loadDashboardTickets() {
         list.innerHTML = "<p>Något gick fel.</p>";
     }
 }
-
 // --------------------
 // Ticket Detail & Comments
 // --------------------
@@ -223,7 +217,7 @@ async function loadTicketDetail() {
                 <div style="margin-bottom: 1rem;">
                     <strong>Tilldelad till:</strong> 
                     ${t.assignedStaff && t.assignedStaff.length > 0
-            ? t.assignedStaff.map(s => `<span class="badge badge-secondary" style="margin-right: 5px;">${s.fullName}</span>`).join('')
+            ? t.assignedStaff.map(s => `<span class="badge badge-secondary" style="margin-right: 5px;">${escapeHtml(s.fullName)}</span>`).join('')
             : '<span class="muted">Ingen tilldelad</span>'}
                 </div>
                 <p style="margin: 1.5rem 0; font-size: 1.1rem; white-space: pre-wrap;">${escapeHtml(t.description)}</p>
@@ -316,7 +310,7 @@ function setupUploadForm() {
         const csrf = getCsrfToken();
         const res = await fetch(`${API_BASE}/tickets/${id}/upload`, {
             method: "POST",
-            credentials: "same-origin", // Sessions-cookie skickas automatiskt
+            credentials: "same-origin",
             headers: csrf ? {"X-XSRF-TOKEN": csrf} : {},
             body: formData
         });
