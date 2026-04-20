@@ -96,7 +96,7 @@ class TicketServiceUploadTest {
 
         TicketAttachment sparad = attachmentCaptor.getValue();
         assertThat(sparad.getS3Key()).isNotBlank();
-        assertThat(sparad.getS3Key()).startsWith("tickets/1/");
+        assertThat(sparad.getS3Key()).startsWith("attachments/1/");
         assertThat(sparad.getFileName()).isEqualTo("rapport.pdf");
 
         verify(activityLogService).logFileUpload(eq(ticket), eq(uploader), eq("rapport.pdf"));
