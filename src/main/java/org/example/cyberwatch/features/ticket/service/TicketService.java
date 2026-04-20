@@ -8,8 +8,12 @@ import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.*;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
+import org.example.cyberwatch.shared.model.enums.Role;
 import org.example.cyberwatch.shared.model.enums.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,14 +31,13 @@ import java.util.*;
 @Transactional
 public class TicketService {
 
+    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
+
     private final TicketRepository ticketRepository;
     private final StaffRepository staffRepository;
     private final TicketAttachmentRepository ticketAttachmentRepository;
     private final S3Client s3Client;
     private final ActivityLogService activityLogService;
-
-    @Value("${app.s3.endpoint}")
-    private String endpoint;
 
     @Value("${app.s3.bucket}")
     private String bucket;
@@ -53,7 +56,9 @@ public class TicketService {
 
     public TicketResponseDTO createTicket(TicketDTO dto, String creatorEmail) {
         Staff creator = staffRepository.findByEmail(creatorEmail)
-                .orElseThrow(() -> new StaffNotFoundException("Användare inte funnen i databasen: " + creatorEmail + ". Se till att din epost finns i staff-tabellen."));
+                .orElseThrow(() -> new StaffNotFoundException(
+                        "Användare inte funnen i databasen: " + creatorEmail +
+                                ". Se till att din epost finns i staff-tabellen."));
 
         if (dto.getAssignedStaffIds() == null || dto.getAssignedStaffIds().isEmpty()) {
             throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
@@ -84,19 +89,20 @@ public class TicketService {
         return TicketResponseDTO.from(savedTicket);
     }
 
+    // Detaljvy – inkluderar bilagor via fromDetail
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        return TicketResponseDTO.from(ticket);
+        return TicketResponseDTO.fromDetail(ticket);
     }
 
+    // Detaljvy – inkluderar bilagor via fromDetail
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketByCode(String ticketCode) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + ticketCode));
-
-        return TicketResponseDTO.from(ticket);
+        return TicketResponseDTO.fromDetail(ticket);
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +116,7 @@ public class TicketService {
      * Returnerar tickets filtrerade på valfria parametrar.
      * Alla parametrar är valfria — null-värden ignoreras i queryn.
      * Alltid sorterat nyast först oavsett om filter är satta eller inte.
+     * Bilagor exkluderas medvetet för att undvika N+1-queries i listvyn.
      */
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> getFilteredTickets(TicketFilterParams filters) {
@@ -126,6 +133,31 @@ public class TicketService {
                 ).stream()
                 .map(TicketResponseDTO::from)
                 .toList();
+    }
+
+    /**
+     * Kontrollerar att en användare har behörighet att ladda ner bilagor från ett ärende.
+     *
+     * Körs inom en transaktion så att lazy-laddade relationer (createdBy, assignedStaff)
+     * kan nås utan att trigga LazyInitializationException i controllern.
+     *
+     * Kastar AccessDeniedException om användaren varken är ägare, tilldelad handläggare eller admin.
+     */
+    @Transactional(readOnly = true)
+    public void verifyDownloadAccess(Long ticketId, Staff requester) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        boolean isOwner = ticket.getCreatedBy() != null &&
+                ticket.getCreatedBy().getId().equals(requester.getId());
+        boolean isAssigned = ticket.getAssignedStaff() != null &&
+                ticket.getAssignedStaff().stream()
+                        .anyMatch(s -> s.getId().equals(requester.getId()));
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+
+        if (!isOwner && !isAssigned && !isAdmin) {
+            throw new AccessDeniedException("Du har inte tillgång till filer i detta ärende.");
+        }
     }
 
     public TicketResponseDTO advanceTicketStatus(Long id, Long performedById) {
@@ -184,22 +216,20 @@ public class TicketService {
 
         ticket.setAssignedStaff(staffList);
         Ticket saved = ticketRepository.save(ticket);
-
-        //if SUBMITTED acts as a triage queue, and staff need to manually acknowledge/start the ticket to move it to IN_PROGRESS, regardless of whether it was routed to them at creation or later.
-            activityLogService.logAssignmentChange(saved, assigner, staffList);
-
+        activityLogService.logAssignmentChange(saved, assigner, staffList);
 
         return TicketResponseDTO.from(saved);
     }
 
     public Map<String, Object> uploadFile(Long ticketId, Long uploadedById, MultipartFile file) throws IOException {
+        log.info("Använder bucket: '{}'", bucket);
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
         Staff uploader = staffRepository.findById(uploadedById)
                 .orElseThrow(() -> new StaffNotFoundException(uploadedById));
 
         if (file.isEmpty()) {
-            throw new RuntimeException("File is empty");
+            throw new RuntimeException("Filen är tom.");
         }
 
         try {
@@ -213,11 +243,13 @@ public class TicketService {
             originalFileName = "unnamed";
         }
 
+        // Rensa filnamnet från potentiellt farliga tecken och path-traversal
         originalFileName = originalFileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        originalFileName = originalFileName.replaceAll("\\.{2,}", "_"); // stoppar .. traversal
         originalFileName = originalFileName.substring(Math.max(0, originalFileName.lastIndexOf('/') + 1));
         originalFileName = originalFileName.substring(Math.max(0, originalFileName.lastIndexOf('\\') + 1));
 
-        String key = "tickets/" + ticketId + "/" + UUID.randomUUID() + "-" + originalFileName;
+        String key = "attachments/" + ticketId + "/" + UUID.randomUUID() + "-" + originalFileName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
@@ -227,22 +259,20 @@ public class TicketService {
 
         s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
-        String fileUrl = endpoint + "/" + bucket + "/" + key;
-
+        // fileUrl sparas INTE – nedladdning sker via presigned URL-endpoint
         TicketAttachment attachment = new TicketAttachment();
         attachment.setFileName(originalFileName);
-        attachment.setFileUrl(fileUrl);
         attachment.setS3Key(key);
         attachment.setTicket(ticket);
 
-        ticketAttachmentRepository.save(attachment);
+        TicketAttachment saved = ticketAttachmentRepository.save(attachment);
 
         activityLogService.logFileUpload(ticket, uploader, originalFileName);
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("message", "File uploaded successfully");
-        response.put("fileName", attachment.getFileName());
-        response.put("fileUrl", attachment.getFileUrl());
+        response.put("message", "Filen laddades upp.");
+        response.put("fileName", saved.getFileName());
+        response.put("downloadUrl", "/api/tickets/" + ticketId + "/attachments/" + saved.getId() + "/download");
         response.put("ticketId", ticket.getId());
 
         return response;
@@ -268,8 +298,7 @@ public class TicketService {
         };
 
         if (!valid) {
-            throw new IllegalStateException(
-                    "Ogiltig statusövergång: " + current + " → " + next);
+            throw new IllegalStateException("Ogiltig statusövergång: " + current + " → " + next);
         }
     }
 }

@@ -67,6 +67,12 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    // Bilagor laddas LAZY – de hämtas bara när de faktiskt behövs (t.ex. i TicketResponseDTO.from()).
+    // orphanRemoval = true säkerställer att en bilaga raderas från databasen
+    // om den tas bort från listan, även om S3-objektet måste hanteras separat.
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<TicketAttachment> attachments = new ArrayList<>();
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getTicketCode() { return ticketCode; }
@@ -93,6 +99,8 @@ public class Ticket {
     public void setComments(List<Comment> comments) { this.comments = comments; }
     public List<ActivityLog> getActivityLogs() { return activityLogs; }
     public void setActivityLogs(List<ActivityLog> activityLogs) { this.activityLogs = activityLogs; }
+    public List<TicketAttachment> getAttachments() { return attachments; }
+    public void setAttachments(List<TicketAttachment> attachments) { this.attachments = attachments; }
 
     public void advanceStatus() {
         this.status = switch (this.status) {

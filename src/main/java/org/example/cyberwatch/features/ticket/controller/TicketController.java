@@ -2,11 +2,11 @@ package org.example.cyberwatch.features.ticket.controller;
 
 import jakarta.validation.Valid;
 import org.example.cyberwatch.features.staff.model.Staff;
+import org.example.cyberwatch.features.ticket.exception.AttachmentNotFoundException;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
-import org.example.cyberwatch.features.ticket.model.AssignTicketDTO;
-import org.example.cyberwatch.features.ticket.model.TicketDTO;
-import org.example.cyberwatch.features.ticket.model.TicketFilterParams;
-import org.example.cyberwatch.features.ticket.model.TicketResponseDTO;
+import org.example.cyberwatch.features.ticket.model.*;
+import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
+import org.example.cyberwatch.features.ticket.service.S3Service;
 import org.example.cyberwatch.features.ticket.service.TicketService;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.http.HttpStatus;
@@ -19,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -27,15 +29,19 @@ import java.util.Map;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final S3Service s3Service;
+    private final TicketAttachmentRepository ticketAttachmentRepository;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService,
+                            S3Service s3Service,
+                            TicketAttachmentRepository ticketAttachmentRepository) {
         this.ticketService = ticketService;
+        this.s3Service = s3Service;
+        this.ticketAttachmentRepository = ticketAttachmentRepository;
     }
 
     @PostMapping
-    public ResponseEntity<TicketResponseDTO> createTicket(
-            @Valid @RequestBody TicketDTO dto) {
-
+    public ResponseEntity<TicketResponseDTO> createTicket(@Valid @RequestBody TicketDTO dto) {
         String email = getAuthenticatedStaff().getEmail();
         TicketResponseDTO created = ticketService.createTicket(dto, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -44,11 +50,10 @@ public class TicketController {
     /**
      * Hämtar tickets med valfri filtrering via query params.
      * Exempel:
-     * GET /api/tickets → alla tickets
-     * GET /api/tickets?status=IN_PROGRESS → bara pågående
-     * GET /api/tickets?priority=HIGH → bara hög prioritet
-     * GET /api/tickets?assignedToId=3 → tilldelade till staff med id 3
-     * GET /api/tickets?status=SUBMITTED&priority=CRITICAL → kombination
+     * GET /api/tickets              → alla tickets
+     * GET /api/tickets?status=IN_PROGRESS
+     * GET /api/tickets?assignedToId=3
+     * Bilagor exkluderas i listvyn för att undvika N+1-queries.
      */
     @GetMapping
     public ResponseEntity<List<TicketResponseDTO>> getAllTickets(@ModelAttribute TicketFilterParams filters) {
@@ -102,23 +107,65 @@ public class TicketController {
             @RequestParam("file") MultipartFile file) {
         try {
             return ResponseEntity.ok(ticketService.uploadFile(ticketId, getAuthenticatedStaffId(), file));
-        } catch (TicketNotFoundException e) {
+        } catch (TicketNotFoundException | AccessDeniedException e) {
             throw e;
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "File upload failed"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Uppladdning misslyckades"));
         }
     }
 
-    // Hjälpmetod — för autensierad användare för att ersätta det hårdkodade id:t i js-filen
+    /**
+     * Genererar en tidsbegränsad, signerad nedladdningslänk för en bilaga.
+     *
+     * Flöde:
+     * 1. Autentisering kontrolleras av Spring Security
+     * 2. verifyDownloadAccess() körs inom en transaktion i service-lagret –
+     *    detta löser LazyInitializationException som uppstår om lazy-laddade
+     *    relationer (createdBy, assignedStaff) nås utanför en transaktion
+     * 3. Bilagan hämtas och verifieras tillhöra rätt ärende
+     * 4. En presigned URL giltig i 5 minuter genereras och 302 returneras
+     */
+    @GetMapping("/{ticketId}/attachments/{attachmentId}/download")
+    public ResponseEntity<Void> downloadAttachment(
+            @PathVariable Long ticketId,
+            @PathVariable Long attachmentId) {
+
+        Staff requester = getAuthenticatedStaff();
+
+        // Behörighetskontroll sker inuti en transaktion i service-lagret
+        // så att lazy-laddade relationer kan nås utan LazyInitializationException
+        ticketService.verifyDownloadAccess(ticketId, requester);
+
+        // Hämta bilagan och verifiera att den tillhör rätt ärende
+        TicketAttachment attachment = ticketAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new AttachmentNotFoundException(attachmentId));
+
+        if (!attachment.getTicket().getId().equals(ticketId)) {
+            throw new AccessDeniedException("Bilagan tillhör inte angivet ärende.");
+        }
+
+        // Generera en presigned URL giltig i 5 minuter och redirecta dit
+        URL presignedUrl = s3Service.generatePresignedUrl(
+                attachment.getS3Key(),
+                Duration.ofMinutes(5));
+
+        try {
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(presignedUrl.toURI())
+                    .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Kunde inte generera nedladdningslänk.", e);
+        }
+    }
+
     private Long getAuthenticatedStaffId() {
         return getAuthenticatedStaff().getId();
     }
 
-
     private Staff getAuthenticatedStaff() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AccessDeniedException("Ingen autentiserad användare");
+            throw new AccessDeniedException("Ingen autentiserad användare.");
         }
         Object principal = authentication.getPrincipal();
         if (principal instanceof Staff staff) {
