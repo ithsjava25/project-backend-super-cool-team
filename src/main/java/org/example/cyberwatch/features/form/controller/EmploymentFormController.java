@@ -1,9 +1,9 @@
 package org.example.cyberwatch.features.form.controller;
 
 import jakarta.validation.Valid;
-import org.example.cyberwatch.features.form.model.CreateEmploymentDTO;
-import org.example.cyberwatch.features.form.model.EmploymentFormDTO;
-import org.example.cyberwatch.features.form.model.UpdateEmploymentDTO;
+import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
+import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
+import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package org.example.cyberwatch.features.form.model;
+package org.example.cyberwatch.features.form.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

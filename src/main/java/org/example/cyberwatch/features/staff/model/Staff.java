@@ -4,14 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.cyberwatch.features.form.model.EmploymentForm;
-import org.example.cyberwatch.features.form.model.ReportForm;
-import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
-
-import java.util.HashSet;
-import java.util.Set;
 
 // Represents an employee in the system, base entity for all staff with personal information. Linked 1:1 to HR/Management/Consultant roles.
 // Differs from Employee form which is the process/form HR uses to create a new employee.
