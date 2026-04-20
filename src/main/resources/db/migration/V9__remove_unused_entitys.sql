@@ -1,2 +1,0 @@
-DROP TABLE if EXISTS attachment CASCADE;
-DROP TABLE if EXISTS report_form CASCADE;
