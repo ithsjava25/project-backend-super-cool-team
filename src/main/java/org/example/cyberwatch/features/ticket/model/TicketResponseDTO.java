@@ -26,8 +26,9 @@ public class TicketResponseDTO {
     private StaffSummary createdBy;
     private List<StaffSummary> assignedStaff = new ArrayList<>();
 
-    // Bilagor returneras med en relativ nedladdningslänk istället för direkt S3-URL.
-    // Frontend anropar downloadUrl för att få en tidsbegränsad presigned URL via backend.
+    // Bilagor inkluderas bara i detaljvyn (fromDetail) – inte i listvyn (from).
+    // Detta förhindrar N+1-queries när tickets listas på dashboard,
+    // eftersom varje ticket annars skulle trigga en extra SELECT för attachments.
     private List<AttachmentSummary> attachments = new ArrayList<>();
 
     @Getter
@@ -59,7 +60,17 @@ public class TicketResponseDTO {
         }
     }
 
+    // Används i listvyer (dashboard, filtrering) – bilagor exkluderas för att undvika N+1
     public static TicketResponseDTO from(Ticket ticket) {
+        return build(ticket, false);
+    }
+
+    // Används i detaljvyer (getTicketById, getTicketByCode) – bilagor inkluderas
+    public static TicketResponseDTO fromDetail(Ticket ticket) {
+        return build(ticket, true);
+    }
+
+    private static TicketResponseDTO build(Ticket ticket, boolean includeAttachments) {
         TicketResponseDTO dto = new TicketResponseDTO();
         dto.id = ticket.getId();
         dto.ticketCode = ticket.getTicketCode();
@@ -90,7 +101,7 @@ public class TicketResponseDTO {
             }
         }
 
-        if (ticket.getAttachments() != null) {
+        if (includeAttachments && ticket.getAttachments() != null) {
             for (TicketAttachment attachment : ticket.getAttachments()) {
                 dto.attachments.add(new AttachmentSummary(
                         attachment.getId(),

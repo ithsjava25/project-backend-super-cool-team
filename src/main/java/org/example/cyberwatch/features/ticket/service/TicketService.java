@@ -8,10 +8,12 @@ import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.*;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
+import org.example.cyberwatch.shared.model.enums.Role;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -87,26 +89,20 @@ public class TicketService {
         return TicketResponseDTO.from(savedTicket);
     }
 
+    // Detaljvy – inkluderar bilagor via fromDetail
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
-        return TicketResponseDTO.from(ticket);
+        return TicketResponseDTO.fromDetail(ticket);
     }
 
-    // Returnerar entiteten direkt – används av TicketController för behörighetskontroll
-    // innan presigned URL genereras. Kastar TicketNotFoundException om inte hittad.
-    @Transactional(readOnly = true)
-    public Ticket getTicketEntityById(Long id) {
-        return ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException(id));
-    }
-
+    // Detaljvy – inkluderar bilagor via fromDetail
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketByCode(String ticketCode) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found: " + ticketCode));
-        return TicketResponseDTO.from(ticket);
+        return TicketResponseDTO.fromDetail(ticket);
     }
 
     @Transactional(readOnly = true)
@@ -120,6 +116,7 @@ public class TicketService {
      * Returnerar tickets filtrerade på valfria parametrar.
      * Alla parametrar är valfria — null-värden ignoreras i queryn.
      * Alltid sorterat nyast först oavsett om filter är satta eller inte.
+     * Bilagor exkluderas medvetet för att undvika N+1-queries i listvyn.
      */
     @Transactional(readOnly = true)
     public List<TicketResponseDTO> getFilteredTickets(TicketFilterParams filters) {
@@ -136,6 +133,31 @@ public class TicketService {
                 ).stream()
                 .map(TicketResponseDTO::from)
                 .toList();
+    }
+
+    /**
+     * Kontrollerar att en användare har behörighet att ladda ner bilagor från ett ärende.
+     *
+     * Körs inom en transaktion så att lazy-laddade relationer (createdBy, assignedStaff)
+     * kan nås utan att trigga LazyInitializationException i controllern.
+     *
+     * Kastar AccessDeniedException om användaren varken är ägare, tilldelad handläggare eller admin.
+     */
+    @Transactional(readOnly = true)
+    public void verifyDownloadAccess(Long ticketId, Staff requester) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        boolean isOwner = ticket.getCreatedBy() != null &&
+                ticket.getCreatedBy().getId().equals(requester.getId());
+        boolean isAssigned = ticket.getAssignedStaff() != null &&
+                ticket.getAssignedStaff().stream()
+                        .anyMatch(s -> s.getId().equals(requester.getId()));
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+
+        if (!isOwner && !isAssigned && !isAdmin) {
+            throw new AccessDeniedException("Du har inte tillgång till filer i detta ärende.");
+        }
     }
 
     public TicketResponseDTO advanceTicketStatus(Long id, Long performedById) {

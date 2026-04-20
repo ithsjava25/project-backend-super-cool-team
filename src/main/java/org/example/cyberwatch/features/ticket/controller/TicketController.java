@@ -2,12 +2,12 @@ package org.example.cyberwatch.features.ticket.controller;
 
 import jakarta.validation.Valid;
 import org.example.cyberwatch.features.staff.model.Staff;
+import org.example.cyberwatch.features.ticket.exception.AttachmentNotFoundException;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.example.cyberwatch.features.ticket.model.*;
 import org.example.cyberwatch.features.ticket.repository.TicketAttachmentRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
 import org.example.cyberwatch.features.ticket.service.TicketService;
-import org.example.cyberwatch.shared.model.enums.Role;
 import org.example.cyberwatch.shared.model.enums.Status;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
@@ -54,6 +53,7 @@ public class TicketController {
      * GET /api/tickets              → alla tickets
      * GET /api/tickets?status=IN_PROGRESS
      * GET /api/tickets?assignedToId=3
+     * Bilagor exkluderas i listvyn för att undvika N+1-queries.
      */
     @GetMapping
     public ResponseEntity<List<TicketResponseDTO>> getAllTickets(@ModelAttribute TicketFilterParams filters) {
@@ -118,13 +118,12 @@ public class TicketController {
      * Genererar en tidsbegränsad, signerad nedladdningslänk för en bilaga.
      *
      * Flöde:
-     * 1. Kontrollera att användaren är inloggad (via Spring Security)
-     * 2. Kontrollera att användaren har tillgång till ärendet (ägare, handläggare eller admin)
-     * 3. Hämta bilagan och generera en presigned URL giltig i 5 minuter
-     * 4. Returnera HTTP 302 redirect till den signerade URL:en
-     *
-     * Direkta S3-URL:er exponeras aldrig mot klienten. Efter 5 minuter
-     * upphör länken att fungera och en ny måste genereras via detta endpoint.
+     * 1. Autentisering kontrolleras av Spring Security
+     * 2. verifyDownloadAccess() körs inom en transaktion i service-lagret –
+     *    detta löser LazyInitializationException som uppstår om lazy-laddade
+     *    relationer (createdBy, assignedStaff) nås utanför en transaktion
+     * 3. Bilagan hämtas och verifieras tillhöra rätt ärende
+     * 4. En presigned URL giltig i 5 minuter genereras och 302 returneras
      */
     @GetMapping("/{ticketId}/attachments/{attachmentId}/download")
     public ResponseEntity<Void> downloadAttachment(
@@ -133,23 +132,13 @@ public class TicketController {
 
         Staff requester = getAuthenticatedStaff();
 
-        // Hämta ärendet och kontrollera att användaren har tillgång
-        Ticket ticket = ticketService.getTicketEntityById(ticketId);
-
-        boolean isOwner = ticket.getCreatedBy() != null &&
-                ticket.getCreatedBy().getId().equals(requester.getId());
-        boolean isAssigned = ticket.getAssignedStaff() != null &&
-                ticket.getAssignedStaff().stream()
-                        .anyMatch(s -> s.getId().equals(requester.getId()));
-        boolean isAdmin = requester.getRole() == Role.ADMIN;
-
-        if (!isOwner && !isAssigned && !isAdmin) {
-            throw new AccessDeniedException("Du har inte tillgång till filer i detta ärende.");
-        }
+        // Behörighetskontroll sker inuti en transaktion i service-lagret
+        // så att lazy-laddade relationer kan nås utan LazyInitializationException
+        ticketService.verifyDownloadAccess(ticketId, requester);
 
         // Hämta bilagan och verifiera att den tillhör rätt ärende
         TicketAttachment attachment = ticketAttachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new RuntimeException("Bilaga hittades inte: " + attachmentId));
+                .orElseThrow(() -> new AttachmentNotFoundException(attachmentId));
 
         if (!attachment.getTicket().getId().equals(ticketId)) {
             throw new AccessDeniedException("Bilagan tillhör inte angivet ärende.");
