@@ -95,6 +95,7 @@ class EmploymentFormServiceTest {
         assertThrows(StaffNotFoundException.class, () ->
                 service.updateFormBeforeApproval(formId, updateDto, "hacker@cyberwatch.local")
         );
+        verify(formRepository, never()).save(any());
     }
 
 
@@ -121,6 +122,7 @@ class EmploymentFormServiceTest {
         assertThrows(IllegalStateException.class, () ->
                 service.updateFormBeforeApproval(formId, updateDto, "other@cyberwatch.local")
         );
+        verify(formRepository, never()).save(any());
     }
 
     @Test
@@ -255,10 +257,6 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should throw exception if form not found")
     void rejectForm_FormNotFound_ThrowsException() {
-        //act
-        when(formRepository.findById(99L)).thenReturn(Optional.empty());
-
-        //assert
         assertThrows(EmploymentFormNotFound.class, () ->
                 service.rejectForm(99L, "cto@cyberwatch.local")
         );
