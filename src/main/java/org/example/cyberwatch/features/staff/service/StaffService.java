@@ -87,4 +87,11 @@ public class StaffService {
         }
         return getAllStaff();
     }
+
+    public StaffDTO updateStatus(Long staffId, String status) {
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
+        staff.setStatus(status);
+        return staffMapper.toDto(staffRepository.save(staff));
+    }
 }

@@ -1,12 +1,14 @@
 package org.example.cyberwatch.features.staff.controller;
 
 import jakarta.validation.Valid;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.model.StaffDTO;
 import org.example.cyberwatch.features.staff.model.UpdateStaffDTO;
 import org.example.cyberwatch.features.staff.service.StaffService;
 import org.example.cyberwatch.shared.model.enums.Department;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +21,23 @@ public class StaffRestController {
 
     public StaffRestController(StaffService staffService) {
         this.staffService = staffService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<StaffDTO> getCurrentUser(@AuthenticationPrincipal Staff staff) {
+        if (staff == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(staffService.getStaffById(staff.getId()));
+    }
+
+    @PatchMapping("/me/status")
+    public ResponseEntity<StaffDTO> updateMyStatus(@AuthenticationPrincipal Staff staff,
+                                                   @RequestParam String status) {
+        if (staff == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status));
     }
 
     @GetMapping("/{id}")
@@ -43,11 +62,4 @@ public class StaffRestController {
             @RequestParam(required = false) Department department) {
         return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department));
     }
-
-   /* @GetMapping
-    public ResponseEntity<List<StaffDTO>> getAllStaff() {
-        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(null, null));
-    }
-
-    */
 }

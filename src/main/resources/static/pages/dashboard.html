@@ -63,20 +63,23 @@
 
 <script src="/js/app.js"></script>
 <script>
-    renderNavbar();
-    loadDashboardTickets();
-    loadStaffList("staffFilter");
-
-    ['filterBtn', 'statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => {
-        document.getElementById(id).addEventListener('change', loadDashboardTickets);
-    });
-    document.getElementById('filterBtn').onclick = loadDashboardTickets;
-    document.getElementById('clearFiltersBtn').onclick = () => {
-        ['statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('searchInput').value = "";
+    (async () => {
+        await renderNavbar();
         loadDashboardTickets();
-    };
-    document.getElementById('searchInput').oninput = loadDashboardTickets;
+        loadStaffList("staffFilter");
+
+        ['filterBtn', 'statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => {
+            document.getElementById(id).addEventListener('change', loadDashboardTickets);
+        });
+
+        document.getElementById('filterBtn').onclick = loadDashboardTickets;
+        document.getElementById('clearFiltersBtn').onclick = () => {
+            ['statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => document.getElementById(id).value = "");
+            document.getElementById('searchInput').value = "";
+            loadDashboardTickets();
+        };
+        document.getElementById('searchInput').oninput = loadDashboardTickets;
+    })();
 </script>
 </body>
 </html>

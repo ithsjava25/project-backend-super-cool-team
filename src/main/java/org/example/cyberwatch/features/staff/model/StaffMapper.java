@@ -16,7 +16,9 @@ public class StaffMapper {
                 entity.getEmail(),
                 entity.getPhoneNumber(),
                 entity.getRole(),
-                entity.getDepartment()
+                entity.getDepartment(),
+                entity.getProfilePictureUrl(),
+                entity.getStatus()
         );
     }
 
@@ -29,7 +31,6 @@ public class StaffMapper {
         entity.setRole(dto.getRole());
         entity.setDepartment(dto.getDepartment());
     }
-
 
     public List<StaffDTO> toDTOList(List<Staff> entities) {
         return entities.stream()

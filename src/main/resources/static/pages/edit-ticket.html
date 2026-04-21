@@ -62,9 +62,11 @@
 
 <script src="/js/app.js"></script>
 <script>
-    renderNavbar();
-    loadEditTicketData();
-    setupEditTicketForm();
+    (async () => {
+        await renderNavbar();
+        loadEditTicketData();
+        setupEditTicketForm();
+    })();
 </script>
 </body>
 </html>

@@ -43,21 +43,75 @@ function requireLogin() {
 // --------------------
 // Sidebar
 // --------------------
-function renderNavbar() {
+async function renderNavbar() {
     const navbar = document.getElementById("navbar");
     if (!navbar) return;
+
     const path = window.location.pathname;
+    let currentUser = null;
+
+    try {
+        const res = await apiFetch("/staff/me");
+        if (res.ok) {
+            currentUser = await res.json();
+        }
+    } catch (e) {
+        console.error("Could not load current user", e);
+    }
+
+    const fullName =
+        currentUser?.fullName ||
+        (currentUser?.firstName || currentUser?.lastName ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim() : "Användare");
+
+    const profileImage = currentUser?.profilePictureUrl || "https://via.placeholder.com/40";
+    const status = currentUser?.status || "ONLINE";
+    const role = currentUser?.role || "";
+
     navbar.innerHTML = `
         <aside class="sidebar">
             <a href="/pages/dashboard.html" class="sidebar-logo">🛡️ CyberWatch</a>
+
             <nav class="sidebar-nav">
                 <a href="/pages/dashboard.html" class="sidebar-link ${path.includes('dashboard') ? 'active' : ''}">Tickets</a>
                 <a href="/pages/create-ticket.html" class="sidebar-link ${path.includes('create-ticket') ? 'active' : ''}">Ny Ticket</a>
             </nav>
+
+            <div class="sidebar-profile">
+                <img src="${profileImage}" alt="Profilbild" class="sidebar-profile-img">
+                <div class="sidebar-profile-info">
+                    <div class="sidebar-profile-name">${escapeHtml(fullName)}</div>
+                    <div class="sidebar-profile-role">${escapeHtml(role)}</div>
+                    <select id="statusSelect" class="sidebar-status-select">
+                        <option value="ONLINE" ${status === 'ONLINE' ? 'selected' : ''}>🟢 Online</option>
+                        <option value="BUSY" ${status === 'BUSY' ? 'selected' : ''}>🔴 Busy</option>
+                        <option value="AWAY" ${status === 'AWAY' ? 'selected' : ''}>🟡 Away</option>
+                        <option value="OFFLINE" ${status === 'OFFLINE' ? 'selected' : ''}>⚫ Offline</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="sidebar-footer">
                 <button onclick="logout()" class="btn logout-btn">🚪 Logga ut</button>
             </div>
         </aside>`;
+
+    const statusSelect = document.getElementById("statusSelect");
+    if (statusSelect) {
+        statusSelect.addEventListener("change", async (e) => {
+            try {
+                const res = await apiFetch(`/staff/me/status?status=${encodeURIComponent(e.target.value)}`, {
+                    method: "PATCH"
+                });
+
+                if (!res.ok) {
+                    alert("Kunde inte uppdatera status.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Något gick fel när status skulle sparas.");
+            }
+        });
+    }
 }
 
 // --------------------
