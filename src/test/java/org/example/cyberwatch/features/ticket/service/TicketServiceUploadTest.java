@@ -147,4 +147,38 @@ class TicketServiceUploadTest {
 
         verify(s3Client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
+    @Test
+    @DisplayName("Otillåten filtyp ska kasta RuntimeException")
+    void uploadFile_withInvalidMimeType_throwsException() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "virus.exe", "application/x-msdownload", "data".getBytes());
+
+        assertThatThrownBy(() -> ticketService.uploadFile(1L, 10L, file))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Otillåten filtyp");
+    }
+
+    @Test
+    @DisplayName("Null Content-Type ska kasta RuntimeException")
+    void uploadFile_withNullContentType_throwsException() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "fil.pdf", null, "data".getBytes());
+
+        assertThatThrownBy(() -> ticketService.uploadFile(1L, 10L, file))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Otillåten filtyp");
+    }
+
+    @Test
+    @DisplayName("För stor fil ska kasta RuntimeException")
+    void uploadFile_withOversizedFile_throwsException() {
+        // Skapar en fil på 10 MB + 1 byte
+        byte[] tooLarge = new byte[10 * 1024 * 1024 + 1];
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "stor.pdf", "application/pdf", tooLarge);
+
+        assertThatThrownBy(() -> ticketService.uploadFile(1L, 10L, file))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("för stor");
+    }
 }
