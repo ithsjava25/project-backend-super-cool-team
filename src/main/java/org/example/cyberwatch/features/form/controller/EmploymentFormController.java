@@ -17,6 +17,8 @@ import java.util.List;
 @RequestMapping("/api/forms")
 public class EmploymentFormController {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(EmploymentFormController.class);
+
     private final EmploymentFormService employmentFormService;
 
     public EmploymentFormController(EmploymentFormService employmentFormService) {
@@ -26,8 +28,12 @@ public class EmploymentFormController {
     @PostMapping("/employment")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
                                                                   Authentication authentication) {
-        String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
-        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, loggedInHr);
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new IllegalArgumentException("Principal must be a Staff object");
+        }
+        logger.info("Creating employment form for HR staff: {}", staff.getEmail());
+        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, staff);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 

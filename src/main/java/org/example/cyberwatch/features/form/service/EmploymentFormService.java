@@ -42,27 +42,24 @@ public class EmploymentFormService {
     //Create employment form
     @Transactional
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public EmploymentFormDTO createForm(CreateEmploymentDTO form, String loggedInHr) {
+    public EmploymentFormDTO createForm(CreateEmploymentDTO form, Staff hrStaff) {
         if (form == null) {
             throw new IllegalArgumentException("CreateEmploymentDTO cannot be null");
+        }
+        if (hrStaff == null) {
+            throw new IllegalArgumentException("HR staff cannot be null");
         }
 
         validateSsnNotExists(form.getSocialSecurityNumber());
 
         //NOTE: Set HR based on logged in HR-staff
-        Staff hrStaff = staffRepository.findByEmail(loggedInHr)
-                .orElseThrow(() -> {
-                    logger.error("HR staff not found with email: {}", loggedInHr);
-                    return new StaffNotFoundException("HR staff not found with username: " + loggedInHr);
-                });
-
         EmploymentForm formEntity = employmentMapper.toEntity(form);
         // Set default status to PENDING
         formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
 
         EmploymentFormDTO savedForm = employmentMapper.toDTO(employmentFormRepository.save(formEntity));
-        logger.info("New employment form created with ID: {} by HR: {}", savedForm.getId(), loggedInHr);
+        logger.info("New employment form created with ID: {} by HR: {}", savedForm.getId(), hrStaff.getEmail());
 
         return savedForm;
     }
@@ -133,7 +130,7 @@ public class EmploymentFormService {
 
     // Reject a form (only PENDING forms can be rejected, and only by management)
     @Transactional
-    @PreAuthorize("hasAnyRole('CEO', 'CTO')")
+    @PreAuthorize("hasAnyRole('CEO', 'CTO', 'ADMIN')")
     public String rejectForm(Long formId, String loggedInManagementEmail) {
 
         EmploymentForm form = findFormById(formId);
@@ -187,13 +184,13 @@ public class EmploymentFormService {
 
     // When approved by management, archive to S3 and add the employee to staff
     @Transactional
-    @PreAuthorize("hasAnyRole('CEO', 'CTO')")
+    @PreAuthorize("hasAnyRole('CEO', 'CTO', 'ADMIN')")
     public String approveAndFinalizeEmployment(Long formId, String loggedInManagement) {
         EmploymentForm form = findFormById(formId);
 
         Staff approver = staffRepository.findByEmail(loggedInManagement)
                 .orElseThrow(() -> new StaffNotFoundException("Approver not found"));
-        if (approver.getRole() != Role.CEO && approver.getRole() != Role.CTO) {
+        if (approver.getRole() != Role.CEO && approver.getRole() != Role.CTO && approver.getRole() != Role.ADMIN) {
             throw new IllegalStateException("Only CEO or CTO can approve employment forms");
         }
 

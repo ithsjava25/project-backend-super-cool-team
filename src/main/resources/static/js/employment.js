@@ -28,7 +28,7 @@ function setupEmploymentPageButtons() {
 
     const role = employmentCurrentUser?.role || "";
     const canCreate = role === "HR" || role === "ADMIN";
-    const canApprove = role === "CEO" || role === "CTO";
+    const canApprove = role === "CEO" || role === "CTO" || role === "ADMIN" || role === "HR";
 
     if (openBtn && canCreate) {
         openBtn.style.display = "inline-flex";
@@ -171,10 +171,11 @@ async function submitEmploymentForm(e) {
 
 async function loadPendingEmploymentForms() {
     const role = employmentCurrentUser?.role || "";
-    const canApprove = role === "CEO" || role === "CTO";
+    const canView = role === "CEO" || role === "CTO" || role === "ADMIN" || role === "HR";
+    const canApprove = role === "CEO" || role === "CTO" || role === "ADMIN";
     const pendingList = document.getElementById("pendingFormsList");
 
-    if (!pendingList || !canApprove) return;
+    if (!pendingList || !canView) return;
 
     try {
         const res = await apiFetch("/forms?status=PENDING");
@@ -206,8 +207,10 @@ async function loadPendingEmploymentForms() {
                 </div>
 
                 <div style="margin-top: 1rem; display:flex; gap:0.75rem;">
-                    <button class="btn btn-primary" onclick="approveEmploymentForm(${form.id})">Approve</button>
-                    <button class="btn btn-secondary" onclick="rejectEmploymentForm(${form.id})">Reject</button>
+            ${canApprove ? `
+                <button class="btn btn-primary" onclick="approveEmploymentForm(${form.id})">Approve</button>
+                <button class="btn btn-secondary" onclick="rejectEmploymentForm(${form.id})">Reject</button>
+                ` : ""}
                 </div>
             </div>
         `).join("");
