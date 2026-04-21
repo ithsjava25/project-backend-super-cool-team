@@ -37,6 +37,10 @@ public class StaffRestController {
         if (staff == null) {
             return ResponseEntity.status(401).build();
         }
+
+        if (!List.of("ONLINE", "BUSY", "AWAY", "OFFLINE").contains(status)) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status));
     }
 
