@@ -26,6 +26,11 @@ public class TicketResponseDTO {
     private StaffSummary createdBy;
     private List<StaffSummary> assignedStaff = new ArrayList<>();
 
+    // Bilagor inkluderas bara i detaljvyn (fromDetail) – inte i listvyn (from).
+    // Detta förhindrar N+1-queries när tickets listas på dashboard,
+    // eftersom varje ticket annars skulle trigga en extra SELECT för attachments.
+    private List<AttachmentSummary> attachments = new ArrayList<>();
+
     @Getter
     @Setter
     public static class StaffSummary {
@@ -40,7 +45,32 @@ public class TicketResponseDTO {
         }
     }
 
+    @Getter
+    @Setter
+    public static class AttachmentSummary {
+        private final Long id;
+        private final String fileName;
+        private final String downloadUrl;
+
+        public AttachmentSummary(Long id, String fileName, Long ticketId) {
+            this.id = id;
+            this.fileName = fileName;
+            // Relativ URL – backend kontrollerar behörighet och redirectar till presigned URL
+            this.downloadUrl = "/api/tickets/" + ticketId + "/attachments/" + id + "/download";
+        }
+    }
+
+    // Används i listvyer (dashboard, filtrering) – bilagor exkluderas för att undvika N+1
     public static TicketResponseDTO from(Ticket ticket) {
+        return build(ticket, false);
+    }
+
+    // Används i detaljvyer (getTicketById, getTicketByCode) – bilagor inkluderas
+    public static TicketResponseDTO fromDetail(Ticket ticket) {
+        return build(ticket, true);
+    }
+
+    private static TicketResponseDTO build(Ticket ticket, boolean includeAttachments) {
         TicketResponseDTO dto = new TicketResponseDTO();
         dto.id = ticket.getId();
         dto.ticketCode = ticket.getTicketCode();
@@ -67,6 +97,16 @@ public class TicketResponseDTO {
                         staff.getId(),
                         staff.getFirstName() + " " + staff.getLastName(),
                         staff.getEmail()
+                ));
+            }
+        }
+
+        if (includeAttachments && ticket.getAttachments() != null) {
+            for (TicketAttachment attachment : ticket.getAttachments()) {
+                dto.attachments.add(new AttachmentSummary(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        ticket.getId()
                 ));
             }
         }

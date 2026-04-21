@@ -10,13 +10,18 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 public class TicketAttachment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String fileName;
-    private String fileUrl;
-    @Column(name = "s3_key")
+
+    // fileUrl är borttagen – direkta S3-URL:er ska aldrig exponeras mot klienten.
+    // Nedladdning sker via /api/tickets/{ticketId}/attachments/{id}/download
+    // som genererar en tidsbegränsad presigned URL efter behörighetskontroll.
+
+    @Column(name = "s3_key", nullable = false)
     private String s3Key;
 
     @ManyToOne

@@ -2,6 +2,7 @@ package org.example.cyberwatch.exception;
 
 import org.example.cyberwatch.features.form.exception.EmploymentFormNotFound;
 import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
+import org.example.cyberwatch.features.ticket.exception.AttachmentNotFoundException;
 import org.example.cyberwatch.features.ticket.exception.TicketNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TicketNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleTicketNotFound(
             TicketNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AttachmentNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleAttachmentNotFound(
+            AttachmentNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", ex.getMessage()));
     }

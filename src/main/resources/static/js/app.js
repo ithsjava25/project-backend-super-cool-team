@@ -208,6 +208,24 @@ async function loadTicketDetail() {
         if (!res.ok) return container.innerHTML = "<p>Kunde inte hämta ticket.</p>";
         const t = await res.json();
         document.getElementById("editTicketLink").href = `/pages/edit-ticket.html?id=${t.id}`;
+
+        // Rendera bilagor – varje fil får en nedladdningslänk via backend
+        // som i sin tur genererar en tidsbegränsad presigned URL mot S3
+        const attachmentsHtml = t.attachments && t.attachments.length > 0
+            ? `<div style="margin-top: 1rem;">
+                <strong>Bilagor:</strong>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
+                    ${t.attachments.map(a => `
+                        <li style="margin-bottom: 0.4rem;">
+                            <a href="${escapeHtml(a.downloadUrl)}" target="_blank" rel="noopener noreferrer">
+                                📎 ${escapeHtml(a.fileName)}
+                            </a>
+                        </li>
+                    `).join('')}
+                </ul>
+               </div>`
+            : `<p class="muted" style="margin-top: 1rem;">Inga bilagor uppladdade.</p>`;
+
         container.innerHTML = `
             <div class="card">
                 <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
@@ -222,7 +240,8 @@ async function loadTicketDetail() {
             : '<span class="muted">Ingen tilldelad</span>'}
                 </div>
                 <p style="margin: 1.5rem 0; font-size: 1.1rem; white-space: pre-wrap;">${escapeHtml(t.description)}</p>
-                <div class="muted" style="border-top:1px solid var(--border); padding-top:1rem;">
+                ${attachmentsHtml}
+                <div class="muted" style="border-top:1px solid var(--border); padding-top:1rem; margin-top: 1rem;">
                     Skapad av: ${escapeHtml(t.createdBy?.fullName || 'Okänd')} • Typ: ${escapeHtml(t.issueType)} • Prioritet: ${escapeHtml(t.priority)}
                 </div>
             </div>`;
@@ -306,6 +325,7 @@ function setupUploadForm() {
         e.preventDefault();
         const file = document.getElementById("ticketFile").files[0];
         if (!file) return alert("Välj en fil.");
+
         const formData = new FormData();
         formData.append("file", file);
         const csrf = getCsrfToken();
@@ -315,9 +335,14 @@ function setupUploadForm() {
             headers: csrf ? {"X-XSRF-TOKEN": csrf} : {},
             body: formData
         });
+
         if (res.ok) {
-            alert("Fil uppladdad!");
             form.reset();
+            // Ladda om ärendet så att den nya bilagan visas direkt
+            loadTicketDetail();
+        } else {
+            const err = await res.json().catch(() => ({}));
+            alert("Uppladdning misslyckades: " + (err.error || res.statusText));
         }
     });
 }
