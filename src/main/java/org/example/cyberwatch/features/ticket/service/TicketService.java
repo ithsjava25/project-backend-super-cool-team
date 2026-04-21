@@ -32,6 +32,28 @@ public class TicketService {
 
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
+    // Tillåtna MIME-typer för uppladdning.
+    // Begränsar attackytan – en angripare ska inte kunna ladda upp
+    // exekverbara filer eller skript som sedan kan köras på servern.
+    // Utöka listan vid behov men var restriktiv i känsliga miljöer.
+    private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/plain"
+    );
+
+    // Maximal filstorlek: 10 MB.
+    // Matchar spring.servlet.multipart.max-file-size i application.properties.
+    // Dubbel kontroll är medveten – multipart-gränsen kastar ett annat undantag
+    // (MaxUploadSizeExceededException) medan denna ger ett tydligare felmeddelande.
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
+
     private final TicketRepository ticketRepository;
     private final StaffRepository staffRepository;
     private final TicketAttachmentRepository ticketAttachmentRepository;
@@ -216,6 +238,23 @@ public class TicketService {
 
         if (file.isEmpty()) {
             throw new RuntimeException("Filen är tom.");
+        }
+
+        // Validera filstorlek innan S3-anrop för att undvika onödig nätverkstrafik
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new RuntimeException("Filen är för stor. Max storlek är 10 MB.");
+        }
+
+        // Validera MIME-typ mot whitelist.
+        // Notera: getContentType() läser Content-Type-headern som klienten skickar –
+        // en angripare kan sätta vilken typ som helst. För högre säkerhet bör man
+        // komplettera med Apache Tika som läser filens faktiska magic bytes.
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
+            throw new RuntimeException(
+                    "Otillåten filtyp: " + contentType +
+                            ". Tillåtna typer: PDF, Word, Excel, bilder (JPEG/PNG/GIF) och text."
+            );
         }
 
         try {
