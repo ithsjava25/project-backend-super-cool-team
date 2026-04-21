@@ -8,6 +8,7 @@ import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class EmploymentFormController {
                                                                   Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
-            throw new IllegalArgumentException("Principal must be a Staff object");
+            throw new AccessDeniedException("Principal must be a Staff object");
         }
         logger.info("Creating employment form for HR staff: {}", staff.getEmail());
         EmploymentFormDTO createdForm = employmentFormService.createForm(dto, staff);
@@ -43,9 +44,9 @@ public class EmploymentFormController {
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
-            throw new IllegalArgumentException("Principal must be a Staff object");
+            throw new AccessDeniedException("Principal must be a Staff object");
         }
-        logger.info("Creating employment form for HR staff: {}", staff.getEmail());
+        logger.info("Creating employment form with approval from staff: {}", staff.getEmail());
         return ResponseEntity.ok(
                 employmentFormService.approveAndFinalizeEmployment(id, staff));
     }
@@ -57,7 +58,7 @@ public class EmploymentFormController {
             Authentication auth) {
         Object principal = auth.getPrincipal();
         if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
-            throw new IllegalArgumentException("Principal must be a Staff object");
+            throw new AccessDeniedException("Principal must be a Staff object");
         }
         EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, staff);
         return ResponseEntity.ok(updatedForm);
@@ -83,7 +84,7 @@ public class EmploymentFormController {
 
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
-            throw new IllegalArgumentException("Principal must be a Staff object");
+            throw new AccessDeniedException("Principal must be a Staff object");
         }
 
         String message = employmentFormService.rejectForm(id, staff);
@@ -97,7 +98,7 @@ public class EmploymentFormController {
             Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
-            throw new IllegalArgumentException("Principal must be a Staff object");
+            throw new AccessDeniedException("Principal must be a Staff object");
         }
         employmentFormService.deleteForm(id, staff);
         return ResponseEntity.noContent().build();
