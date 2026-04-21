@@ -69,12 +69,21 @@ async function renderNavbar() {
 
     navbar.innerHTML = `
         <aside class="sidebar">
-            <a href="/pages/dashboard.html" class="sidebar-logo">🛡️ CyberWatch</a>
+            <a href="/pages/dashboard.html" class="sidebar-logo">
+                <span style="font-size: 1.75rem;">🛡️</span> CyberWatch
+            </a>
 
             <nav class="sidebar-nav">
-                <a href="/pages/dashboard.html" class="sidebar-link ${path.includes('dashboard') ? 'active' : ''}">Tickets</a>
-                <a href="/pages/create-ticket.html" class="sidebar-link ${path.includes('create-ticket') ? 'active' : ''}">Ny Ticket</a>
-            </nav>
+    <a href="/pages/dashboard.html" class="sidebar-link ${path.includes('dashboard') ? 'active' : ''}">
+        <span>🎫</span> Tickets
+    </a>
+    <a href="/pages/create-ticket.html" class="sidebar-link ${path.includes('create-ticket') ? 'active' : ''}">
+        <span>➕</span> Ny Ticket
+    </a>
+    <a href="/pages/employment.html" class="sidebar-link ${path.includes('employment') ? 'active' : ''}">
+        <span>👥</span> Employment
+    </a>
+</nav>
 
             <div class="sidebar-profile">
                 <img src="${profileImage}" alt="Profilbild" class="sidebar-profile-img">
@@ -83,14 +92,14 @@ async function renderNavbar() {
                     <div class="sidebar-profile-role">${escapeHtml(role)}</div>
                     <select id="statusSelect" class="sidebar-status-select">
                         <option value="ONLINE" ${status === 'ONLINE' ? 'selected' : ''}>🟢 Online</option>
-                        <option value="BUSY" ${status === 'BUSY' ? 'selected' : ''}>🔴 Busy</option>
-                        <option value="AWAY" ${status === 'AWAY' ? 'selected' : ''}>🟡 Away</option>
+                        <option value="BUSY" ${status === 'BUSY' ? 'selected' : ''}>🔴 Upptagen</option>
+                        <option value="AWAY" ${status === 'AWAY' ? 'selected' : ''}>🟡 Borta</option>
                         <option value="OFFLINE" ${status === 'OFFLINE' ? 'selected' : ''}>⚫ Offline</option>
                     </select>
                 </div>
             </div>
 
-            <div class="sidebar-footer">
+            <div style="padding-top: 1.5rem;">
                 <button onclick="logout()" class="btn logout-btn">🚪 Logga ut</button>
             </div>
         </aside>`;
@@ -186,22 +195,36 @@ async function loadDashboardTickets() {
             const assignedStaffNames = t.assignedStaff?.map(s => escapeHtml(s.fullName)).join(', ') || 'Ingen';
             const assignedIds = t.assignedStaff?.map(s => s.id) || [];
 
+            // Map priority to Swedish and icon
+            let priorityIcon = "⚪";
+            if (t.priority === 'CRITICAL') priorityIcon = "🚨";
+            else if (t.priority === 'HIGH') priorityIcon = "🟠";
+            else if (t.priority === 'MEDIUM') priorityIcon = "🔵";
+            else if (t.priority === 'LOW') priorityIcon = "🟢";
+
             item.innerHTML = `
-                <div class="ticket-info" onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'">
-                    <h3>${escapeHtml(t.title)}</h3>
-                    <div class="muted">#${t.id} • ${escapeHtml(t.priority)} • Tilldelad: ${assignedStaffNames}</div>
+                <div class="ticket-main" onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'">
+                    <div class="ticket-header">
+                        <span class="badge badge-${t.status}">${t.status}</span>
+                        <span class="ticket-title">${escapeHtml(t.title)}</span>
+                    </div>
+                    <div class="ticket-meta">
+                        <span>#${t.id}</span>
+                        <span>${priorityIcon} <span class="badge badge-${t.priority}">${t.priority}</span></span>
+                        <span>👤 ${assignedStaffNames}</span>
+                    </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <select class="dashboard-assignment-select" data-id="${t.id}">
-                        <option value="">Ändra tilldelning...</option>
+                <div class="ticket-actions">
+                    <select class="dashboard-assignment-select" data-id="${t.id}" style="max-width: 150px;">
+                        <option value="">Tilldela...</option>
                         ${allStaff.map(staff => {
                 const isAssigned = assignedIds.includes(staff.id);
-                return `<option value="${staff.id}" ${isAssigned ? 'class="badge-assigned"' : ''}>
+                return `<option value="${staff.id}" ${isAssigned ? 'selected' : ''}>
                                 ${isAssigned ? '✓ ' : ''}${escapeHtml(staff.fullName)}
                             </option>`;
             }).join('')}
                     </select>
-                    <select class="dashboard-status-select" data-id="${t.id}" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">
+                    <select class="dashboard-status-select" data-id="${t.id}" style="width: auto;">
                         <option value="SUBMITTED" ${t.status === 'SUBMITTED' ? 'selected' : ''}>Submitted</option>
                         <option value="IN_PROGRESS" ${t.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
                         <option value="RESOLVED" ${t.status === 'RESOLVED' ? 'selected' : ''}>Resolved</option>
