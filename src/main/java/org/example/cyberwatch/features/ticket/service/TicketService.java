@@ -10,8 +10,6 @@ import org.example.cyberwatch.features.ticket.repository.TicketAttachmentReposit
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.example.cyberwatch.shared.model.enums.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,12 +28,6 @@ import java.util.*;
 @Transactional
 public class TicketService {
 
-    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
-
-    // Tillåtna MIME-typer för uppladdning.
-    // Begränsar attackytan – en angripare ska inte kunna ladda upp
-    // exekverbara filer eller skript som sedan kan köras på servern.
-    // Utöka listan vid behov men var restriktiv i känsliga miljöer.
     private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
             "image/jpeg",
             "image/png",
@@ -48,10 +40,6 @@ public class TicketService {
             "text/plain"
     );
 
-    // Maximal filstorlek: 10 MB.
-    // Matchar spring.servlet.multipart.max-file-size i application.properties.
-    // Dubbel kontroll är medveten – multipart-gränsen kastar ett annat undantag
-    // (MaxUploadSizeExceededException) medan denna ger ett tydligare felmeddelande.
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
 
     private final TicketRepository ticketRepository;
@@ -77,12 +65,10 @@ public class TicketService {
 
     public TicketResponseDTO createTicket(TicketDTO dto, String creatorEmail) {
         Staff creator = staffRepository.findByEmail(creatorEmail)
-                .orElseThrow(() -> new StaffNotFoundException(
-                        "Användare inte funnen i databasen: " + creatorEmail +
-                                ". Se till att din epost finns i staff-tabellen."));
+                .orElseThrow(() -> new StaffNotFoundException("Användare inte funnen: " + creatorEmail));
 
         if (dto.getAssignedStaffIds() == null || dto.getAssignedStaffIds().isEmpty()) {
-            throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
+            throw new IllegalArgumentException("Du måste välja minst en person att tilldela ärendet till.");
         }
 
         Ticket ticket = new Ticket();
@@ -110,7 +96,6 @@ public class TicketService {
         return TicketResponseDTO.from(savedTicket);
     }
 
-    // Detaljvy – inkluderar bilagor via fromDetail
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
@@ -118,7 +103,6 @@ public class TicketService {
         return TicketResponseDTO.fromDetail(ticket);
     }
 
-    // Detaljvy – inkluderar bilagor via fromDetail
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketByCode(String ticketCode) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
@@ -127,52 +111,22 @@ public class TicketService {
     }
 
     @Transactional(readOnly = true)
-    public List<TicketResponseDTO> getAllTickets() {
-        return ticketRepository.findAll().stream()
-                .map(TicketResponseDTO::from)
-                .toList();
-    }
-
-    /**
-     * Returnerar tickets filtrerade på valfria parametrar med rollbaserad åtkomstkontroll.
-     *
-     * Förhöjda roller (ADMIN, CEO, CTO) ser alla ärenden (viewerId = null).
-     * Standardroller (HR, PM, CONSULTANT) ser bara ärenden de skapat
-     * eller är tilldelade till.
-     *
-     * Bilagor exkluderas medvetet för att undvika N+1-queries i listvyn.
-     */
-    @Transactional(readOnly = true)
     public List<TicketResponseDTO> getFilteredTickets(TicketFilterParams filters, Staff viewer) {
-        if (filters == null) {
-            filters = new TicketFilterParams();
-        }
-
-        // Förhöjda roller (ADMIN, CEO, CTO) får viewerId = null – ser alla ärenden
-        // Standardroller (HR, PM, CONSULTANT) får sitt eget ID – ser bara sina ärenden
-        boolean isElevated = viewer.getRole() == Role.ADMIN
-                || viewer.getRole() == Role.CEO
-                || viewer.getRole() == Role.CTO;
+        if (filters == null) filters = new TicketFilterParams();
+        boolean isElevated = viewer.getRole() == Role.ADMIN || viewer.getRole() == Role.CEO || viewer.getRole() == Role.CTO;
         Long viewerId = isElevated ? null : viewer.getId();
 
         return ticketRepository.findByFilters(
-                        filters.getStatus(),
-                        filters.getPriority(),
-                        filters.getIssueType(),
-                        filters.getAssignedStaffId(),
-                        filters.getCreatedById(),
-                        filters.getSearch(),
-                        viewerId
+                        filters.getStatus(), filters.getPriority(), filters.getIssueType(),
+                        filters.getAssignedStaffId(), filters.getCreatedById(), filters.getSearch(), viewerId
                 ).stream()
                 .map(TicketResponseDTO::from)
                 .toList();
     }
 
     public TicketResponseDTO advanceTicketStatus(Long id, Long performedById) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException(id));
-        Staff performer = staffRepository.findById(performedById)
-                .orElseThrow(() -> new StaffNotFoundException(performedById));
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
+        Staff performer = staffRepository.findById(performedById).orElseThrow(() -> new StaffNotFoundException(performedById));
         Status oldStatus = ticket.getStatus();
         ticket.advanceStatus();
         Ticket saved = ticketRepository.save(ticket);
@@ -181,10 +135,8 @@ public class TicketService {
     }
 
     public TicketResponseDTO setTicketStatus(Long id, Status newStatus, Long performedById) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException(id));
-        Staff performer = staffRepository.findById(performedById)
-                .orElseThrow(() -> new StaffNotFoundException(performedById));
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
+        Staff performer = staffRepository.findById(performedById).orElseThrow(() -> new StaffNotFoundException(performedById));
         Status oldStatus = ticket.getStatus();
         validateStatusTransition(oldStatus, newStatus);
         ticket.setStatus(newStatus);
@@ -194,10 +146,8 @@ public class TicketService {
     }
 
     public TicketResponseDTO reopenTicket(Long id, Long performedById) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException(id));
-        Staff performer = staffRepository.findById(performedById)
-                .orElseThrow(() -> new StaffNotFoundException(performedById));
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
+        Staff performer = staffRepository.findById(performedById).orElseThrow(() -> new StaffNotFoundException(performedById));
         Status oldStatus = ticket.getStatus();
         ticket.reopen();
         Ticket saved = ticketRepository.save(ticket);
@@ -206,112 +156,65 @@ public class TicketService {
     }
 
     public TicketResponseDTO assignTicket(Long ticketId, List<Long> staffIds, Long assignedById) {
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException(ticketId));
-
-        if (staffIds == null || staffIds.isEmpty()) {
-            throw new RuntimeException("Du måste välja minst en person att tilldela ärendet till.");
-        }
-
-        Staff assigner = staffRepository.findById(assignedById)
-                .orElseThrow(() -> new StaffNotFoundException(assignedById));
-
-        Set<Long> requestedIds = new HashSet<>(staffIds);
-        List<Staff> staffList = staffRepository.findAllById(requestedIds);
-        if (staffList.size() != requestedIds.size()) {
-            throw new StaffNotFoundException("En eller flera valda personer hittades inte.");
-        }
-
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new TicketNotFoundException(ticketId));
+        if (staffIds == null || staffIds.isEmpty()) throw new IllegalArgumentException("Välj minst en person.");
+        Staff assigner = staffRepository.findById(assignedById).orElseThrow(() -> new StaffNotFoundException(assignedById));
+        List<Staff> staffList = staffRepository.findAllById(staffIds);
         ticket.setAssignedStaff(staffList);
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logAssignmentChange(saved, assigner, staffList);
-
         return TicketResponseDTO.from(saved);
     }
 
     public Map<String, Object> uploadFile(Long ticketId, Long uploadedById, MultipartFile file) throws IOException {
-        log.info("Använder bucket: '{}'", bucket);
-        Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        Staff uploader = staffRepository.findById(uploadedById)
-                .orElseThrow(() -> new StaffNotFoundException(uploadedById));
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new TicketNotFoundException(ticketId));
+        Staff uploader = staffRepository.findById(uploadedById).orElseThrow(() -> new StaffNotFoundException(uploadedById));
 
-        if (file.isEmpty()) {
-            throw new RuntimeException("Filen är tom.");
-        }
+        if (file.isEmpty()) throw new IllegalArgumentException("Filen är tom.");
+        if (file.getSize() > MAX_FILE_SIZE) throw new IllegalArgumentException("Filen är för stor (max 10MB).");
 
-        // Validera filstorlek innan S3-anrop för att undvika onödig nätverkstrafik
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new RuntimeException("Filen är för stor. Max storlek är 10 MB.");
-        }
-
-        // Validera MIME-typ mot whitelist.
-        // Notera: getContentType() läser Content-Type-headern som klienten skickar –
-        // en angripare kan sätta vilken typ som helst. För högre säkerhet bör man
-        // komplettera med Apache Tika som läser filens faktiska magic bytes.
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
-            throw new RuntimeException(
-                    "Otillåten filtyp: " + contentType +
-                            ". Tillåtna typer: PDF, Word, Excel, bilder (JPEG/PNG/GIF) och text."
-            );
+            throw new IllegalArgumentException("Otillåten filtyp: " + contentType);
         }
 
         try {
             s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        } catch (BucketAlreadyExistsException | BucketAlreadyOwnedByYouException e) {
-            // Bucket finns redan, fortsätt
-        }
+        } catch (BucketAlreadyExistsException | BucketAlreadyOwnedByYouException e) {}
 
-        String originalFileName = file.getOriginalFilename();
-        if (originalFileName == null || originalFileName.isBlank()) {
-            originalFileName = "unnamed";
-        }
-
-        // Rensa filnamnet från potentiellt farliga tecken och path-traversal
+        String originalFileName = Optional.ofNullable(file.getOriginalFilename()).orElse("unnamed");
         originalFileName = originalFileName.replaceAll("[^a-zA-Z0-9._-]", "_");
-        originalFileName = originalFileName.replaceAll("\\.{2,}", "_"); // stoppar .. traversal
-        originalFileName = originalFileName.substring(Math.max(0, originalFileName.lastIndexOf('/') + 1));
-        originalFileName = originalFileName.substring(Math.max(0, originalFileName.lastIndexOf('\\') + 1));
+        originalFileName = originalFileName.replaceAll("\\.{2,}", "_");
 
         String key = "attachments/" + ticketId + "/" + UUID.randomUUID() + "-" + originalFileName;
 
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .contentType(file.getContentType())
-                .build();
+        s3Client.putObject(PutObjectRequest.builder()
+                        .bucket(bucket).key(key).contentType(file.getContentType()).build(),
+                RequestBody.fromBytes(file.getBytes()));
 
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
-
-        // fileUrl sparas INTE – nedladdning sker via presigned URL-endpoint
         TicketAttachment attachment = new TicketAttachment();
         attachment.setFileName(originalFileName);
         attachment.setS3Key(key);
         attachment.setTicket(ticket);
-
         TicketAttachment saved = ticketAttachmentRepository.save(attachment);
 
         activityLogService.logFileUpload(ticket, uploader, originalFileName);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("message", "Filen laddades upp.");
-        response.put("fileName", saved.getFileName());
-        response.put("downloadUrl", "/api/tickets/" + ticketId + "/attachments/" + saved.getId() + "/download");
-        response.put("ticketId", ticket.getId());
-
-        return response;
+        return Map.of(
+                "message", "Filen laddades upp.",
+                "fileName", saved.getFileName(),
+                "downloadUrl", "/api/tickets/" + ticketId + "/attachments/" + saved.getId() + "/download",
+                "ticketId", ticket.getId()
+        );
     }
 
     public void deleteTicket(Long id) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new TicketNotFoundException(id));
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
         ticketRepository.delete(ticket);
     }
 
     private void validateStatusTransition(Status current, Status next) {
         if (current == next) return;
-
         boolean valid = switch (current) {
             case DRAFT            -> next == Status.SUBMITTED;
             case SUBMITTED        -> next == Status.IN_PROGRESS || next == Status.RESOLVED || next == Status.CLOSED;
@@ -321,9 +224,6 @@ public class TicketService {
             case REOPENED         -> next == Status.IN_PROGRESS || next == Status.RESOLVED || next == Status.CLOSED;
             case CLOSED           -> next == Status.REOPENED || next == Status.IN_PROGRESS || next == Status.SUBMITTED || next == Status.RESOLVED;
         };
-
-        if (!valid) {
-            throw new IllegalStateException("Ogiltig statusövergång: " + current + " → " + next);
-        }
+        if (!valid) throw new IllegalStateException("Ogiltig statusövergång: " + current + " → " + next);
     }
 }
