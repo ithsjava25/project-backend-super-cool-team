@@ -34,6 +34,9 @@ public class StaffService {
     }
 
     public StaffDTO getStaffById(Long id, Role requesterRole) {
+        if (id == null) {
+            throw new IllegalArgumentException("Staff ID cannot be null");
+        }
         Staff staff = staffRepository.findById(id)
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id));
 

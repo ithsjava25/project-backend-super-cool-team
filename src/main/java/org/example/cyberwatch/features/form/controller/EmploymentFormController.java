@@ -5,10 +5,11 @@ import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,28 +25,29 @@ public class EmploymentFormController {
     }
 
     @PostMapping("/employment")
-    public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
-                                                                  Authentication authentication) {
-        String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
-        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, loggedInHr);
+    public ResponseEntity<EmploymentFormDTO> createEmploymentForm(
+            @Valid @RequestBody CreateEmploymentDTO dto,
+            @AuthenticationPrincipal Staff hrStaff) { // Direct injection
+
+        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, hrStaff);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 
-
-    @PostMapping("/{id}/approve")
     //Change returntype when emailservice is implemented
-    public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
-        return ResponseEntity.ok(
-                employmentFormService.approveAndFinalizeEmployment(id, authentication.getName()));
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<String> approveForm(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Staff manager) {
+        return ResponseEntity.ok(employmentFormService.approveAndFinalizeEmployment(id, manager));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EmploymentFormDTO> updateForm(
             @PathVariable Long id,
             @Valid @RequestBody UpdateEmploymentDTO dto,
-            Authentication auth) {
+            @AuthenticationPrincipal Staff hrStaff) {
 
-        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, auth.getName());
+        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, hrStaff);
         return ResponseEntity.ok(updatedForm);
     }
 
@@ -65,9 +67,9 @@ public class EmploymentFormController {
     @PostMapping("/{id}/reject")
     public ResponseEntity<String> rejectForm(
             @PathVariable Long id,
-            Authentication authentication) {
+            @AuthenticationPrincipal Staff manager) {
 
-        String message = employmentFormService.rejectForm(id, authentication.getName());
+        String message = employmentFormService.rejectForm(id, manager);
         return ResponseEntity.ok(message);
     }
 
@@ -75,9 +77,9 @@ public class EmploymentFormController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteForm(
             @PathVariable Long id,
-            Authentication authentication) {
+            @AuthenticationPrincipal Staff staff) {
 
-        employmentFormService.deleteForm(id, authentication.getName());
+        employmentFormService.deleteForm(id, staff);
         return ResponseEntity.noContent().build();
     }
 
