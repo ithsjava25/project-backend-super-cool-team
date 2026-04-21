@@ -60,13 +60,10 @@
     </section>
 </main>
 
-<script src="/js/app.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/edit-ticket.js"></script>
 <script>
-    (async () => {
-        await renderNavbar();
-        loadEditTicketData();
-        setupEditTicketForm();
-    })();
+    document.addEventListener('DOMContentLoaded', initEditTicket);
 </script>
 </body>
 </html>

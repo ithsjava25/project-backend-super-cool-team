@@ -123,3 +123,52 @@ input, select, textarea { width: 100%; padding: 0.6rem; border: 1px solid var(--
 .sidebar-status-select option {
     color: black;
 }
+
+.employment-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.employment-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+    background: var(--surface, #fff);
+}
+
+.employment-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.employment-card-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.employment-card-body p {
+    margin: 0.45rem 0;
+}
+
+.employment-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.employment-form input,
+.employment-form select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-top: 0.35rem;
+}
+
+.employment-top-card {
+    margin-bottom: 1.5rem;
+}

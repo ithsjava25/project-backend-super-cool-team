@@ -58,45 +58,44 @@
     </section>
 </main>
 
-<script src="/js/app.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/ticket-detail.js"></script>
 <script>
-    renderNavbar();
-    loadTicketDetail();
-    setupAssignmentUI();
-    setupUploadForm();
-    setupCommentForm();
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Hantera val av personal via dropdown i detaljvyn
+        const reassignSelect = document.getElementById('reassignStaff');
+        const badgeContainer = document.getElementById('reassignStaffBadges');
+        window.currentAssignedIds = new Set();
 
-    // Hantera val av personal via dropdown i detaljvyn
-    const reassignSelect = document.getElementById('reassignStaff');
-    const badgeContainer = document.getElementById('reassignStaffBadges');
-    window.currentAssignedIds = new Set();
-
-    reassignSelect.addEventListener('change', (e) => {
-        const staffId = parseInt(e.target.value);
-        if (!staffId || window.currentAssignedIds.has(staffId)) return;
-
-        const staffName = e.target.options[e.target.selectedIndex].text;
-        addStaffBadge(staffId, staffName);
-        reassignSelect.value = "";
-    });
-
-    window.addStaffBadge = (id, name) => {
-        if (window.currentAssignedIds.has(id)) return;
-        window.currentAssignedIds.add(id);
-        const badge = document.createElement('span');
-        badge.className = 'badge badge-assigned';
-        badge.innerHTML = `${name} <span style="cursor:pointer; margin-left:5px;">&times;</span>`;
-        badge.onclick = () => {
-            window.currentAssignedIds.delete(id);
-            badge.remove();
+        window.addStaffBadge = (id, name) => {
+            if (window.currentAssignedIds.has(id)) return;
+            window.currentAssignedIds.add(id);
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-assigned';
+            badge.innerHTML = `${name} <span style="cursor:pointer; margin-left:5px;">&times;</span>`;
+            badge.onclick = () => {
+                window.currentAssignedIds.delete(id);
+                badge.remove();
+            };
+            badgeContainer.appendChild(badge);
         };
-        badgeContainer.appendChild(badge);
-    };
 
-    window.clearStaffBadges = () => {
-        window.currentAssignedIds.clear();
-        badgeContainer.innerHTML = '';
-    };
+        window.clearStaffBadges = () => {
+            window.currentAssignedIds.clear();
+            badgeContainer.innerHTML = '';
+        };
+
+        reassignSelect.addEventListener('change', (e) => {
+            const staffId = parseInt(e.target.value);
+            if (!staffId || window.currentAssignedIds.has(staffId)) return;
+
+            const staffName = e.target.options[e.target.selectedIndex].text;
+            addStaffBadge(staffId, staffName);
+            reassignSelect.value = "";
+        });
+
+        await initTicketDetail();
+    });
 </script>
 </body>
 </html>
