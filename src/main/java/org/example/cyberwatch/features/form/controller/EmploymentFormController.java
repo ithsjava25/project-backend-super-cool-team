@@ -41,8 +41,13 @@ public class EmploymentFormController {
     @PostMapping("/{id}/approve")
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new IllegalArgumentException("Principal must be a Staff object");
+        }
+        logger.info("Creating employment form for HR staff: {}", staff.getEmail());
         return ResponseEntity.ok(
-                employmentFormService.approveAndFinalizeEmployment(id, authentication.getName()));
+                employmentFormService.approveAndFinalizeEmployment(id, staff));
     }
 
     @PutMapping("/{id}")
@@ -50,8 +55,11 @@ public class EmploymentFormController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateEmploymentDTO dto,
             Authentication auth) {
-
-        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, auth.getName());
+        Object principal = auth.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new IllegalArgumentException("Principal must be a Staff object");
+        }
+        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, staff);
         return ResponseEntity.ok(updatedForm);
     }
 
@@ -73,7 +81,12 @@ public class EmploymentFormController {
             @PathVariable Long id,
             Authentication authentication) {
 
-        String message = employmentFormService.rejectForm(id, authentication.getName());
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new IllegalArgumentException("Principal must be a Staff object");
+        }
+
+        String message = employmentFormService.rejectForm(id, staff);
         return ResponseEntity.ok(message);
     }
 
@@ -82,8 +95,11 @@ public class EmploymentFormController {
     public ResponseEntity<Void> deleteForm(
             @PathVariable Long id,
             Authentication authentication) {
-
-        employmentFormService.deleteForm(id, authentication.getName());
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new IllegalArgumentException("Principal must be a Staff object");
+        }
+        employmentFormService.deleteForm(id, staff);
         return ResponseEntity.noContent().build();
     }
 

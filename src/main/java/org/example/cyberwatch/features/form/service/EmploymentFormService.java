@@ -9,7 +9,6 @@ import org.example.cyberwatch.features.form.exception.EmploymentFormNotFound;
 import org.example.cyberwatch.features.form.mapper.EmploymentMapper;
 import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
-import org.example.cyberwatch.features.staff.exception.StaffNotFoundException;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
 import org.example.cyberwatch.features.ticket.service.S3Service;
@@ -90,7 +89,7 @@ public class EmploymentFormService {
     // Update form before approval (only PENDING forms can be updated)
     @Transactional
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')") // Only HR or Admin can update forms before approval
-    public EmploymentFormDTO updateFormBeforeApproval(Long formId, UpdateEmploymentDTO updatedForm, String loggedInHrEmail) {
+    public EmploymentFormDTO updateFormBeforeApproval(Long formId, UpdateEmploymentDTO updatedForm, Staff loggedInHr) {
         if (formId == null) {
             throw new IllegalArgumentException("Form ID cannot be null");
         }
@@ -105,13 +104,9 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be updated. Current status: " + existingForm.getStatus());
         }
 
-        // Only the HR who created the form or an ADMIN can update it
-        Staff requester = staffRepository.findByEmail(loggedInHrEmail)
-                .orElseThrow(() -> new StaffNotFoundException("Staff not found: " + loggedInHrEmail));
-
-        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        boolean isAdmin = loggedInHr.getRole() == Role.ADMIN;
         boolean isCreator = existingForm.getCreatedBy() != null
-                && existingForm.getCreatedBy().getEmail().equals(loggedInHrEmail);
+                && existingForm.getCreatedBy().getId().equals(loggedInHr.getId());
 
         if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or an admin can update it");
@@ -124,14 +119,14 @@ public class EmploymentFormService {
 
         employmentMapper.updateEntity(updatedForm, existingForm);
 
-        logger.info("Form {} updated by HR {}", formId, loggedInHrEmail);
+        logger.info("Form {} updated by HR {}", formId, loggedInHr.getEmail());
         return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
     }
 
     // Reject a form (only PENDING forms can be rejected, and only by management)
     @Transactional
     @PreAuthorize("hasAnyRole('CEO', 'CTO', 'ADMIN')")
-    public String rejectForm(Long formId, String loggedInManagementEmail) {
+    public String rejectForm(Long formId, Staff loggedInRejecter) {
 
         EmploymentForm form = findFormById(formId);
 
@@ -139,14 +134,12 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be rejected. Current status: " + form.getStatus());
         }
 
-        Staff rejecter = staffRepository.findByEmail(loggedInManagementEmail)
-                .orElseThrow(() -> new StaffNotFoundException("Rejecter not found"));
-        if (rejecter.getRole() != Role.CEO && rejecter.getRole() != Role.CTO) {
+        if (loggedInRejecter.getRole() != Role.CEO && loggedInRejecter.getRole() != Role.CTO) {
             throw new IllegalStateException("Only CEO or CTO can reject employment forms");
         }
 
         form.setStatus(ApprovalStatus.REJECTED);
-        form.setApprovedBy(rejecter);
+        form.setApprovedBy(loggedInRejecter);
         try {
             archiveToS3(form);
         } catch (RuntimeException e) {
@@ -155,42 +148,37 @@ public class EmploymentFormService {
         }
         employmentFormRepository.save(form);
 
-        logger.info("Form {} rejected by {}", formId, loggedInManagementEmail);
+        logger.info("Form {} rejected by {}", formId, loggedInRejecter.getEmail());
         return "Employment form has been rejected";
     }
 
     // Delete a form (only PENDING forms can be deleted, and only by the HR who created it or an ADMIN)
     @Transactional
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public void deleteForm(Long formId, String loggedInEmail) {
+    public void deleteForm(Long formId, Staff loggedInDeleter) {
         EmploymentForm form = findFormById(formId);
 
         if (form.getStatus() != ApprovalStatus.PENDING) {
             throw new IllegalStateException("Only PENDING forms can be deleted. Current status: " + form.getStatus());
         }
 
-        Staff requester = staffRepository.findByEmail(loggedInEmail)
-                .orElseThrow(() -> new StaffNotFoundException("User not found"));
-
-        boolean isAdmin = requester.getRole() == Role.ADMIN;
-        boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getEmail().equals(loggedInEmail);
+        boolean isAdmin = loggedInDeleter.getRole() == Role.ADMIN;
+        boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getId().equals(loggedInDeleter.getId());
         if (!isAdmin && !isCreator) {
-            throw new IllegalStateException("Only the HR staff who created this form or management can delete it");
+            throw new IllegalStateException("Only the HR staff who created this form or admin can delete it");
         }
 
         employmentFormRepository.deleteById(formId);
-        logger.info("Form {} deleted by {}", formId, loggedInEmail);
+        logger.info("Form {} deleted by {}", formId, loggedInDeleter);
     }
 
     // When approved by management, archive to S3 and add the employee to staff
     @Transactional
     @PreAuthorize("hasAnyRole('CEO', 'CTO', 'ADMIN')")
-    public String approveAndFinalizeEmployment(Long formId, String loggedInManagement) {
+    public String approveAndFinalizeEmployment(Long formId, Staff loggedInManagement) {
         EmploymentForm form = findFormById(formId);
 
-        Staff approver = staffRepository.findByEmail(loggedInManagement)
-                .orElseThrow(() -> new StaffNotFoundException("Approver not found"));
-        if (approver.getRole() != Role.CEO && approver.getRole() != Role.CTO && approver.getRole() != Role.ADMIN) {
+        if (loggedInManagement.getRole() != Role.CEO && loggedInManagement.getRole() != Role.CTO && loggedInManagement.getRole() != Role.ADMIN) {
             throw new IllegalStateException("Only CEO or CTO can approve employment forms");
         }
 
@@ -204,7 +192,7 @@ public class EmploymentFormService {
         newStaff.setPassword(passwordEncoder.encode(rawPassword));
 
         // Update form status and save to DB and archive
-        form.setApprovedBy(approver);
+        form.setApprovedBy(loggedInManagement);
         form.setStatus(ApprovalStatus.APPROVED);
         try {
             archiveToS3(form);
