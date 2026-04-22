@@ -72,7 +72,12 @@
             window.currentAssignedIds.add(id);
             const badge = document.createElement('span');
             badge.className = 'badge badge-assigned';
-            badge.innerHTML = `${name} <span style="cursor:pointer; margin-left:5px;">&times;</span>`;
+            badge.append(document.createTextNode(`${name} `));
+            const removeIcon = document.createElement('span');
+            removeIcon.style.cursor = 'pointer';
+            removeIcon.style.marginLeft = '5px';
+            removeIcon.textContent = '×';
+            badge.appendChild(removeIcon);
             badge.onclick = () => {
                 window.currentAssignedIds.delete(id);
                 badge.remove();

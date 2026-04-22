@@ -91,7 +91,12 @@
 
             const badge = document.createElement('span');
             badge.className = 'badge badge-assigned';
-            badge.innerHTML = `${staffName} <span style="cursor:pointer; margin-left:5px;">&times;</span>`;
+            badge.append(document.createTextNode(`${staffName} `));
+            const removeIcon = document.createElement('span');
+            removeIcon.style.cursor = 'pointer';
+            removeIcon.style.marginLeft = '5px';
+            removeIcon.textContent = '×';
+            badge.appendChild(removeIcon);
             badge.onclick = () => {
                 selectedStaffIds.delete(staffId);
                 badge.remove();
