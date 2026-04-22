@@ -134,8 +134,10 @@ public class EmploymentFormService {
             throw new IllegalStateException("Only PENDING forms can be rejected. Current status: " + form.getStatus());
         }
 
-        if (loggedInRejecter.getRole() != Role.CEO && loggedInRejecter.getRole() != Role.CTO) {
-            throw new IllegalStateException("Only CEO or CTO can reject employment forms");
+        if (loggedInRejecter.getRole() != Role.CEO
+                && loggedInRejecter.getRole() != Role.CTO
+                && loggedInRejecter.getRole() != Role.ADMIN) {
+            throw new IllegalStateException("Only CEO, CTO or ADMIN can reject employment forms");
         }
 
         form.setStatus(ApprovalStatus.REJECTED);
@@ -179,7 +181,7 @@ public class EmploymentFormService {
         EmploymentForm form = findFormById(formId);
 
         if (loggedInManagement.getRole() != Role.CEO && loggedInManagement.getRole() != Role.CTO && loggedInManagement.getRole() != Role.ADMIN) {
-            throw new IllegalStateException("Only CEO or CTO can approve employment forms");
+            throw new IllegalStateException("Only CEO, CTO or ADMIN can approve employment forms");
         }
 
         if (form.getStatus() != ApprovalStatus.PENDING) {

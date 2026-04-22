@@ -250,6 +250,7 @@ class EmploymentFormServiceTest {
         //arrange
         Staff approver = new Staff();
         approver.setEmail("owner@cyberwatch.local");
+        approver.setRole(Role.CTO);
         Long formId = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.APPROVED);
