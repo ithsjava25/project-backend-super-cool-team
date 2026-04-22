@@ -8,11 +8,11 @@ function getCsrfToken() {
 function escapeHtml(text) {
     if (!text) return "";
     return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
 }
 
 function safeImageUrl(url) {
@@ -27,18 +27,8 @@ function safeImageUrl(url) {
     }
 }
 
-function safeHttpUrl(url) {
-    if (!url) return "#";
-    try {
-        const parsed = new URL(url, window.location.origin);
-        return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "#";
-    } catch {
-        return "#";
-    }
-}
-
 function getHeaders() {
-    const headers = { "Content-Type": "application/json" };
+    const headers = {"Content-Type": "application/json"};
     const csrf = getCsrfToken();
     if (csrf) headers["X-XSRF-TOKEN"] = csrf;
     return headers;
@@ -48,17 +38,19 @@ async function apiFetch(endpoint, options = {}) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
         credentials: "same-origin",
-        headers: { ...getHeaders(), ...options.headers }
+        headers: {...getHeaders(), ...options.headers}
     });
-
     if (response.status === 401) {
         logout();
+        // Return a never-resolving promise so callers don't try to parse the 401 body
+        // while the browser is navigating away.
         return new Promise(() => {});
     }
-
     return response;
 }
 
+// FIX 3 (Major): Use POST so Spring Security actually invalidates the session.
+// A plain GET to /logout only shows a confirmation page when CSRF is enabled.
 async function logout() {
     try {
         await fetch("/logout", {
@@ -89,9 +81,7 @@ async function renderNavbar() {
 
     const fullName =
         currentUser?.fullName ||
-        (currentUser?.firstName || currentUser?.lastName
-            ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim()
-            : "Användare");
+        (currentUser?.firstName || currentUser?.lastName ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim() : "Användare");
 
     const profileImage = safeImageUrl(currentUser?.profilePictureUrl);
     const status = currentUser?.status || "ONLINE";
@@ -104,29 +94,20 @@ async function renderNavbar() {
             </a>
 
             <nav class="sidebar-nav">
-                <a href="/pages/dashboard.html" class="sidebar-link ${path.includes("dashboard") ? "active" : ""}">
+                <a href="/pages/dashboard.html" class="sidebar-link ${path.includes('dashboard') ? 'active' : ''}">
                     Tickets
                 </a>
-                <a href="/pages/create-ticket.html" class="sidebar-link ${path.includes("create-ticket") ? "active" : ""}">
+                <a href="/pages/create-ticket.html" class="sidebar-link ${path.includes('create-ticket') ? 'active' : ''}">
                     Ny Ticket
                 </a>
-                <a href="/pages/employment.html" class="sidebar-link ${path.includes("employment") ? "active" : ""}">
+                <a href="/pages/employment.html" class="sidebar-link ${path.includes('employment') ? 'active' : ''}">
                     Anställda
                 </a>
+                ${role === 'ADMIN' ? `
+                <a href="/pages/logs.html" class="sidebar-link ${path.includes('logs') ? 'active' : ''}">
+                    🔍 Systemloggar
+                </a>` : ''}
             </nav>
-
-            <div class="sidebar-online-wrapper">
-                <button type="button" class="sidebar-online-box sidebar-online-button" id="onlineStaffToggle">
-                    <div>
-                        <div class="sidebar-online-title">Online just nu</div>
-                        <div class="sidebar-online-count" id="onlineStaffCount">0</div>
-                        <div class="sidebar-online-text">Klicka för att visa vilka</div>
-                    </div>
-                    <div class="sidebar-online-arrow" id="onlineStaffArrow">▾</div>
-                </button>
-
-                <div class="online-staff-list" id="onlineStaffList"></div>
-            </div>
 
             <div class="sidebar-profile">
                 <img src="${escapeHtml(profileImage)}" alt="Profilbild" class="sidebar-profile-img">
@@ -134,10 +115,10 @@ async function renderNavbar() {
                     <div class="sidebar-profile-name">${escapeHtml(fullName)}</div>
                     <div class="sidebar-profile-role">${escapeHtml(role)}</div>
                     <select id="statusSelect" class="sidebar-status-select">
-                        <option value="ONLINE" ${status === "ONLINE" ? "selected" : ""}>Online</option>
-                        <option value="BUSY" ${status === "BUSY" ? "selected" : ""}>Upptagen</option>
-                        <option value="AWAY" ${status === "AWAY" ? "selected" : ""}>Borta</option>
-                        <option value="OFFLINE" ${status === "OFFLINE" ? "selected" : ""}>Offline</option>
+                        <option value="ONLINE" ${status === 'ONLINE' ? 'selected' : ''}>Online</option>
+                        <option value="BUSY" ${status === 'BUSY' ? 'selected' : ''}>Upptagen</option>
+                        <option value="AWAY" ${status === 'AWAY' ? 'selected' : ''}>Borta</option>
+                        <option value="OFFLINE" ${status === 'OFFLINE' ? 'selected' : ''}>Offline</option>
                     </select>
                 </div>
             </div>
@@ -153,7 +134,6 @@ async function renderNavbar() {
 
         statusSelect.addEventListener("change", async (e) => {
             const nextStatus = e.target.value;
-
             try {
                 const res = await apiFetch(`/staff/me/status?status=${encodeURIComponent(nextStatus)}`, {
                     method: "PATCH"
@@ -166,10 +146,6 @@ async function renderNavbar() {
                 }
 
                 previousStatus = nextStatus;
-
-                if (typeof refreshOnlineStaffWidget === "function") {
-                    await refreshOnlineStaffWidget();
-                }
             } catch (err) {
                 e.target.value = previousStatus;
                 console.error(err);
@@ -177,37 +153,30 @@ async function renderNavbar() {
             }
         });
     }
-
-    if (typeof initOnlineStaffWidget === "function") {
-        initOnlineStaffWidget();
-    }
 }
 
 async function loadStaffList(selectId, selectedIds = []) {
     const select = document.getElementById(selectId);
     if (!select) return;
-
     try {
         const res = await apiFetch("/staff");
         if (!res.ok) return;
-
         const staff = await res.json();
 
         const firstOption = select.querySelector('option[value=""]');
-        const existingDefault = firstOption
-            ? firstOption.outerHTML
-            : '<option value="">Välj...</option>';
+        const existingDefault = firstOption ? firstOption.outerHTML : '<option value="">Välj...</option>';
 
+        // FIX 1 (Major): Normalize all IDs to strings so includes() matches reliably
+        // regardless of whether the API returns numbers and the caller passes strings (or vice versa).
         const selectedIdSet = new Set(selectedIds.map(String));
 
-        const staffOptions = staff.map(s => {
+        let staffOptions = staff.map(s => {
             const staffId = String(s.id);
             const isAssigned = selectedIdSet.has(staffId);
-            const className = isAssigned ? 'class="badge-assigned"' : "";
-            const selectedAttr = isAssigned ? "selected" : "";
-
+            const className = isAssigned ? 'class="badge-assigned"' : '';
+            const selectedAttr = isAssigned ? 'selected' : '';
             return `<option value="${escapeHtml(staffId)}" ${className} ${selectedAttr}>${escapeHtml(s.fullName)} (${escapeHtml(s.email)})</option>`;
-        }).join("");
+        }).join('');
 
         select.innerHTML = existingDefault + staffOptions;
     } catch (e) {

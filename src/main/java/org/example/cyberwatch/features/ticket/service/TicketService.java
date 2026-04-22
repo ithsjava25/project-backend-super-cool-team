@@ -10,6 +10,8 @@ import org.example.cyberwatch.features.ticket.repository.TicketAttachmentReposit
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.example.cyberwatch.shared.model.enums.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,8 @@ import java.util.*;
 @Service
 @Transactional
 public class TicketService {
+
+    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
     private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
             "image/jpeg",
@@ -93,6 +97,8 @@ public class TicketService {
 
         activityLogService.logAssignmentChange(savedTicket, creator, assignedStaff);
 
+        log.info("Ticket skapad: {} av staffId={}", savedTicket.getTicketCode(), creator.getId());
+
         return TicketResponseDTO.from(savedTicket);
     }
 
@@ -131,6 +137,9 @@ public class TicketService {
         ticket.advanceStatus();
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, saved.getStatus());
+
+        log.info("Ticket {} status avancerad: {} → {}", saved.getTicketCode(), oldStatus, saved.getStatus());
+
         return TicketResponseDTO.from(saved);
     }
 
@@ -142,6 +151,9 @@ public class TicketService {
         ticket.setStatus(newStatus);
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, newStatus);
+
+        log.info("Ticket {} status ändrad: {} → {}", saved.getTicketCode(), oldStatus, newStatus);
+
         return TicketResponseDTO.from(saved);
     }
 
@@ -152,6 +164,9 @@ public class TicketService {
         ticket.reopen();
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, Status.REOPENED);
+
+        log.info("Ticket {} återöppnad", saved.getTicketCode());
+
         return TicketResponseDTO.from(saved);
     }
 
@@ -163,6 +178,9 @@ public class TicketService {
         ticket.setAssignedStaff(staffList);
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logAssignmentChange(saved, assigner, staffList);
+
+        log.info("Ticket {} tilldelad till {} person(er)", saved.getTicketCode(), staffList.size());
+
         return TicketResponseDTO.from(saved);
     }
 
@@ -200,6 +218,9 @@ public class TicketService {
 
         activityLogService.logFileUpload(ticket, uploader, originalFileName);
 
+        // Loggar attachmentId istället för filnamnet för att undvika att läcka användardata i loggar
+        log.info("Fil uppladdad till ticket {}: attachmentId={}", ticket.getTicketCode(), saved.getId());
+
         return Map.of(
                 "message", "Filen laddades upp.",
                 "fileName", saved.getFileName(),
@@ -210,7 +231,10 @@ public class TicketService {
 
     public void deleteTicket(Long id) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
+        String ticketCode = ticket.getTicketCode();
         ticketRepository.delete(ticket);
+        // Loggar efter delete så att koden bara körs om raderingen lyckades
+        log.info("Ticket {} raderad", ticketCode);
     }
 
     private void validateStatusTransition(Status current, Status next) {
