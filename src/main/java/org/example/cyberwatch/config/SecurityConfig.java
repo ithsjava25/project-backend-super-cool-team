@@ -48,7 +48,7 @@ public class SecurityConfig {
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         // Systemloggsidan ska endast vara synlig för ADMIN
-                        // — måste stå INNAN /pages/** wildcarden nedan, annars träffar wildcarden först
+                        // — måste stå INNAN /pages/** wildcarden nedan
                         .requestMatchers("/pages/logs.html").hasRole("ADMIN")
                         // Statiska filer och frontend-sidor
                         .requestMatchers(
@@ -62,6 +62,11 @@ public class SecurityConfig {
                         ).permitAll()
                         // Actuator-endpoints – endast ADMIN får se systemloggar
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
+                        // Alla inloggade får hämta sin egen profil
+                        .requestMatchers(HttpMethod.GET, "/api/staff/me").authenticated()
+                        // Alla inloggade får uppdatera sin egen status (online/borta/offline)
+                        // — måste stå INNAN den generella /api/staff/** regeln nedan
+                        .requestMatchers(HttpMethod.PATCH, "/api/staff/me/status").authenticated()
                         // Alla inloggade får läsa staff (behövs för ticket-dropdowns)
                         .requestMatchers(HttpMethod.GET, "/api/staff/**").authenticated()
                         // Endast HR, CEO, CTO & ADMIN får skriva/ändra staff
