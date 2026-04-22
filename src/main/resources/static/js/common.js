@@ -27,16 +27,6 @@ function safeImageUrl(url) {
     }
 }
 
-function safeHttpUrl(url) {
-    if (!url) return "#";
-    try {
-        const parsed = new URL(url, window.location.origin);
-        return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "#";
-    } catch {
-        return "#";
-    }
-}
-
 function getHeaders() {
     const headers = { "Content-Type": "application/json" };
     const csrf = getCsrfToken();
@@ -113,6 +103,10 @@ async function renderNavbar() {
                 <a href="/pages/employment.html" class="sidebar-link ${path.includes("employment") ? "active" : ""}">
                     Anställda
                 </a>
+                ${role === 'ADMIN' ? `
+                <a href="/pages/logs.html" class="sidebar-link ${path.includes('logs') ? 'active' : ''}">
+                    🔍 Systemloggar
+                </a>` : ''}
             </nav>
 
             <div class="sidebar-online-wrapper">
