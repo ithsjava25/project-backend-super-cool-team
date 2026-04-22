@@ -19,7 +19,13 @@ public class EncryptionService {
     }
 
     public String maskLastFour(String encrypted) {
+        if (encrypted == null || encrypted.isBlank()) {
+            return "****";
+        }
         String decrypted = textEncryptor.decrypt(encrypted);
+        if (decrypted.length() <= 4) {
+            return "****";
+        }
         return decrypted.substring(0, decrypted.length() - 4) + "****";
     }
 }

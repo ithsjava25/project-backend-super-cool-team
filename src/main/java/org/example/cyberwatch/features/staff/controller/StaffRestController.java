@@ -24,11 +24,12 @@ public class StaffRestController {
     }
 
     @GetMapping("/me")
+    //skapa en ny metod i service
     public ResponseEntity<StaffDTO> getCurrentUser(@AuthenticationPrincipal Staff staff) {
         if (staff == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(staffService.getStaffById(staff.getId()));
+        return ResponseEntity.ok(staffService.getUserStaff(staff.getId()));
     }
 
     @PatchMapping("/me/status")
@@ -48,7 +49,7 @@ public class StaffRestController {
     public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id,
                                                  @AuthenticationPrincipal Staff user) {
 
-        return ResponseEntity.ok(staffService.getStaffById(id, user.getRole()));
+        return ResponseEntity.ok(staffService.getStaffById(id, user));
 
     }
 

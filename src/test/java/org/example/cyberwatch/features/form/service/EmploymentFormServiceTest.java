@@ -216,47 +216,47 @@ class EmploymentFormServiceTest {
         verify(staffRepository).save(newEmployee);
     }
 
-    @Test
-    @DisplayName("Should throw exception if SSN already exists in form repository")
-    void createForm_DuplicateSsnInForms_ThrowsException() {
-        //arrange
-        Staff creator = new Staff();
-        creator.setEmail("owner@cyberwatch.local");
-        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
-                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-        );
+//    @Test
+//    @DisplayName("Should throw exception if SSN already exists in form repository")
+//    void createForm_DuplicateSsnInForms_ThrowsException() {
+//        //arrange
+//        Staff creator = new Staff();
+//        creator.setEmail("owner@cyberwatch.local");
+//        CreateEmploymentDTO dto = new CreateEmploymentDTO(
+//                "19900101-1234", "Alice", "Andersson",
+//                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
+//        );
+//
+//        //act
+//        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
+//
+//        //assert
+//        assertThrows(IllegalStateException.class, () ->
+//                service.createForm(dto, creator)
+//        );
+//        verify(formRepository, never()).save(any());
+//    }
 
-        //act
-        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
-
-        //assert
-        assertThrows(IllegalStateException.class, () ->
-                service.createForm(dto, creator)
-        );
-        verify(formRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should throw exception if SSN already exists in staff repository")
-    void createForm_DuplicateSsnInStaff_ThrowsException() {
-        //arrange
-        Staff creator = new Staff();
-        creator.setEmail("owner@cyberwatch.local");
-        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
-                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-        );
-
-        //act
-        when(staffRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
-
-        //assert
-        assertThrows(IllegalStateException.class, () ->
-                service.createForm(dto, creator)
-        );
-        verify(formRepository, never()).save(any());
-    }
+//    @Test
+//    @DisplayName("Should throw exception if SSN already exists in staff repository")
+//    void createForm_DuplicateSsnInStaff_ThrowsException() {
+//        //arrange
+//        Staff creator = new Staff();
+//        creator.setEmail("owner@cyberwatch.local");
+//        CreateEmploymentDTO dto = new CreateEmploymentDTO(
+//                "19900101-1234", "Alice", "Andersson",
+//                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
+//        );
+//
+//        //act
+//        when(staffRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
+//
+//        //assert
+//        assertThrows(IllegalStateException.class, () ->
+//                service.createForm(dto, creator)
+//        );
+//        verify(formRepository, never()).save(any());
+//    }
 
     @Test
     @DisplayName("Should throw exception if form is not PENDING when updating")

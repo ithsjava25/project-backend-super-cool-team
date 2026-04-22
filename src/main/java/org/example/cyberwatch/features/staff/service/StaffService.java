@@ -36,7 +36,7 @@ public class StaffService {
         this.encryptionService = encryptionService;
     }
 
-    public StaffDTO getStaffById(Long id, Role requesterRole) {
+    public StaffDTO getStaffById(Long id, Staff requester) {
         if (id == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
         }
@@ -46,13 +46,23 @@ public class StaffService {
         StaffDTO dto = staffMapper.toDto(staff);
 
         //Avgör vad av personnumret som får visas för användaren
-        if (requesterRole == Role.ADMIN) {
+        if (requester.getRole() == Role.CTO) {
             dto.setSocialSecurityNumber(encryptionService.decrypt(staff.getSocialSecurityNumber()));
         } else {
             dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
         }
 
         return dto;
+    }
+
+    public StaffDTO getUserStaff(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Staff ID cannot be null");
+        }
+        Staff staff = staffRepository.findById(id)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id));
+
+        return staffMapper.toDto(staff);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
@@ -104,7 +114,7 @@ public class StaffService {
         return staffList.stream()
                 .map(s -> {
                     StaffDTO dto = staffMapper.toDto(s);
-                    if (requesterRole == Role.ADMIN) {
+                    if (requesterRole == Role.CTO) {
                         dto.setSocialSecurityNumber(encryptionService.decrypt(s.getSocialSecurityNumber()));
                     } else {
                         dto.setSocialSecurityNumber(encryptionService.maskLastFour(s.getSocialSecurityNumber()));

@@ -85,15 +85,11 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should return masked SSN for non-admin")
     void getStaffById_NonAdmin_ReturnsMaskedSsn() {
-        when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
-        when(encryptionService.maskLastFour("krypterat-ssn")).thenReturn("19900101-****");
-    @DisplayName("Should return DTO when staff exists")
-    void getStaffByIdStaffExists() {
         when(staffRepository.findById(1L)).thenReturn(Optional.of(newStaff));
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
+        when(encryptionService.maskLastFour("krypterat-ssn")).thenReturn("19900101-****");
 
-        StaffDTO result = staffService.getStaffById(1L, Role.HR);
+        StaffDTO result = staffService.getStaffById(1L, newStaff);
 
         assertThat(result.getSocialSecurityNumber()).isEqualTo("19900101-****");
         verify(encryptionService).maskLastFour("krypterat-ssn");
@@ -103,11 +99,12 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should return decrypted SSN for admin")
     void getStaffById_Admin_ReturnsDecryptedSsn() {
-        when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        newStaff.setRole(Role.ADMIN);
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
 
-        StaffDTO result = staffService.getStaffById(1L, Role.ADMIN);
+        StaffDTO result = staffService.getStaffById(1L, newStaff);
 
         assertThat(result.getSocialSecurityNumber()).isEqualTo("19900101-1234");
         verify(encryptionService).decrypt("krypterat-ssn");
@@ -119,14 +116,14 @@ class StaffServiceTest {
     void getStaffById_NotFound() {
         when(staffRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> staffService.getStaffById(99L, Role.HR))
+        assertThatThrownBy(() -> staffService.getStaffById(99L, newStaff))
                 .isInstanceOf(StaffNotFoundException.class);
     }
 
     @Test
     @DisplayName("Should throw IllegalArgumentException when id is null")
     void getStaffById_NullId() {
-        assertThatThrownBy(() -> staffService.getStaffById(null, Role.HR))
+        assertThatThrownBy(() -> staffService.getStaffById(null, newStaff))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -178,8 +175,8 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should filter by role and mask SSN for non-admin")
     void getStaffByRoleOrDepartment_FilterByRole_MaskedSsn() {
-        when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.maskLastFour("krypterat-ssn")).thenReturn("19900101-****");
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null, Role.HR);
@@ -192,8 +189,8 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should filter by role and decrypt SSN for admin")
     void getStaffByRoleOrDepartment_FilterByRole_DecryptedSsn() {
-        when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null, Role.ADMIN);
@@ -205,8 +202,8 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should filter by department")
     void getStaffByRoleOrDepartment_FilterByDepartment() {
-        when(staffRepository.findByDepartment(Department.BACKEND)).thenReturn(List.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findByDepartment(Department.BACKEND)).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.maskLastFour(any())).thenReturn("19900101-****");
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, Department.BACKEND, Role.HR);
@@ -218,8 +215,8 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should return all staff when no filter")
     void getStaffByRoleOrDepartment_NoFilter() {
-        when(staffRepository.findAll()).thenReturn(List.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findAll()).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.maskLastFour(any())).thenReturn("19900101-****");
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, null, Role.HR);
