@@ -4,6 +4,10 @@ async function initTicketDetail() {
     setupCommentForm();
     setupUploadForm();
     setupAssignmentUI();
+
+    // Starta polling för aktivitetslogg
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (id) subscribeToActivityUpdates(id);
 }
 
 async function loadTicketDetail() {
@@ -150,4 +154,45 @@ function setupAssignmentUI() {
             alert("Kunde inte uppdatera tilldelning: " + (err.message || res.statusText));
         }
     });
+}
+
+// Realtidsuppdatering av aktivitetslogg via polling
+function subscribeToActivityUpdates(ticketId) {
+    // Hämta aktivitetslogg var 5:e sekund - samma intervall som systemloggen
+    const activityInterval = setInterval(async () => {
+        try {
+            const res = await apiFetch(`/tickets/${ticketId}/logs`);
+            if (res.ok) {
+                const logs = await res.json();
+                updateActivityLog(logs);
+            }
+        } catch (e) {
+            console.error("Could not update activity log", e);
+        }
+    }, 5000);
+
+    // Stoppa polling när sidan lämnas
+    window.addEventListener('beforeunload', () => clearInterval(activityInterval));
+}
+
+// Uppdatera aktivitetsloggen i DOM
+function updateActivityLog(logs) {
+    const container = document.getElementById("activityLog");
+    if (!container) return;
+
+    if (!logs || logs.length === 0) {
+        container.innerHTML = "<p class=\"muted\">Ingen aktivitet än.</p>";
+        return;
+    }
+
+    container.innerHTML = logs.map(log => `
+        <div class="activity-item" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+            <div>
+                <strong>${escapeHtml(log.activityType.replace(/_/g, ' '))}</strong>
+                <p class="muted" style="margin: 0.25rem 0; font-size: 0.9rem;">${escapeHtml(log.details || '')}</p>
+                <small class="muted">Av ${escapeHtml(log.performedBy || 'Okänd')}</small>
+            </div>
+            <small class="muted">${new Date(log.timestamp).toLocaleString('sv-SE')}</small>
+        </div>
+    `).join('');
 }
