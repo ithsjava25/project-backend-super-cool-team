@@ -34,7 +34,6 @@ public class ActivityLogService {
         activityLogRepository.save(log);
     }
 
-    //TicketDTO instead of Ticket-entity
     public void logComment(Ticket ticket, Staff performedBy, String commentText) {
         ActivityLog log = new ActivityLog(ticket, performedBy, ActivityType.COMMENT_ADDED, commentText);
         activityLogRepository.save(log);
