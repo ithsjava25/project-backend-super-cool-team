@@ -65,7 +65,8 @@ async function loadDashboardTickets() {
          tabindex="0"
          aria-label="Ticket ${t.id}: ${escapeHtml(t.title)}"
          onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'"
-         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">                    <div class="ticket-header">
+         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">                    
+                        <div class="ticket-header">
                         <span class="badge badge-${t.status}">${t.status}</span>
                         <span class="ticket-title">${escapeHtml(t.title)}</span>
                     </div>
@@ -77,7 +78,7 @@ async function loadDashboardTickets() {
                 </div>
                 <div class="ticket-actions">
                     <select class="dashboard-assignment-select" data-id="${t.id}" style="max-width: 150px;">
-                        <option value="">Tilldela...</option>
+                        <option value="" disabled>Tilldela...</option>
                         ${allStaff.map(staff => {
                 const isAssigned = assignedIds.includes(staff.id);
                 return `<option value="${staff.id}" ${isAssigned ? 'selected' : ''}>
@@ -98,12 +99,14 @@ async function loadDashboardTickets() {
         document.querySelectorAll('.dashboard-assignment-select').forEach(select => {
             select.addEventListener('change', async (e) => {
                 const ticketId = e.target.dataset.id;
-                const staffId = parseInt(e.target.value);
-                if (!staffId) return;
+                const staffIds = Array.from(e.target.selectedOptions)
+                    .map(o => Number.parseInt(o.value, 10))
+                    .filter(Number.isFinite);
+                if (staffIds.length === 0) return;
 
                 const res = await apiFetch(`/tickets/${ticketId}/assign`, {
                     method: "PUT",
-                    body: JSON.stringify({staffIds: [staffId]})
+                    body: JSON.stringify({staffIds})
                 });
 
                 if (res.ok) loadDashboardTickets();
