@@ -158,8 +158,12 @@ function setupAssignmentUI() {
 
 // Realtidsuppdatering av aktivitetslogg via polling
 function subscribeToActivityUpdates(ticketId) {
-    // Hämta aktivitetslogg var 5:e sekund - samma intervall som systemloggen
-    const activityInterval = setInterval(async () => {
+
+    let stopped = false;
+    let activityTimeout;
+
+    // Hämta aktivitetslogg var 5:e sekund efter att föregående hämtning är klar
+    const pollActivityLog = async () => {
         try {
             const res = await apiFetch(`/tickets/${ticketId}/logs`);
             if (res.ok) {
@@ -168,18 +172,40 @@ function subscribeToActivityUpdates(ticketId) {
             }
         } catch (e) {
             console.error("Could not update activity log", e);
+        } finally {
+            if (!stopped) {
+                activityTimeout = setTimeout(pollActivityLog, 5000);
+            }
         }
-    }, 5000);
+    };
+
+    pollActivityLog();
 
     // Stoppa polling när sidan lämnas
-    window.addEventListener('beforeunload', () => clearInterval(activityInterval));
+    window.addEventListener('beforeunload', () => {
+        stopped = true;
+        clearTimeout(activityTimeout);
+    }, {once: true});
 }
+
+let lastActivityLogSignature = "";
 
 // Uppdatera aktivitetsloggen i DOM
 function updateActivityLog(logs) {
     const container = document.getElementById("activityLog");
     if (!container) return;
 
+    const nextSignature = JSON.stringify((logs || []).map(log => ({
+        id: log.id,
+        activityType: log.activityType,
+        details: log.details,
+        performedBy: log.performedBy,
+        timestamp: log.timestamp
+    })));
+    if (nextSignature === lastActivityLogSignature) return;
+    lastActivityLogSignature = nextSignature;
+
+    const previousScrollTop = container.scrollTop;
     if (!logs || logs.length === 0) {
         container.innerHTML = "<p class=\"muted\">Ingen aktivitet än.</p>";
         return;
@@ -195,4 +221,7 @@ function updateActivityLog(logs) {
             <small class="muted">${new Date(log.timestamp).toLocaleString('sv-SE')}</small>
         </div>
     `).join('');
+
+    container.scrollTop = previousScrollTop;
+
 }
