@@ -23,6 +23,27 @@ public class StaffRestController {
         this.staffService = staffService;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<StaffDTO> getCurrentUser(@AuthenticationPrincipal Staff staff) {
+        if (staff == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(staffService.getStaffById(staff.getId()));
+    }
+
+    @PatchMapping("/me/status")
+    public ResponseEntity<StaffDTO> updateMyStatus(@AuthenticationPrincipal Staff staff,
+                                                   @RequestParam String status) {
+        if (staff == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        if (!List.of("ONLINE", "BUSY", "AWAY", "OFFLINE").contains(status)) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id,
                                                  @AuthenticationPrincipal Staff user) {
@@ -49,11 +70,4 @@ public class StaffRestController {
             @AuthenticationPrincipal Staff user) {
         return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department, user.getRole()));
     }
-
-   /* @GetMapping
-    public ResponseEntity<List<StaffDTO>> getAllStaff() {
-        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(null, null));
-    }
-
-    */
 }

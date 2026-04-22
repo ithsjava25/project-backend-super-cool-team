@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/",
                                 "/index.html",
+                                "/login",
+                                "/dashboard",
                                 "/pages/**",
                                 "/css/**",
                                 "/js/**"
@@ -83,6 +85,11 @@ public class SecurityConfig {
                                 response.sendRedirect("/pages/login.html");
                             }
                         })
+                )
+
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/pages/login.html")
+                        .permitAll()
                 )
 
                 .build();

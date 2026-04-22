@@ -16,16 +16,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class StaffService {
 
     private static final Logger logger = LoggerFactory.getLogger(StaffService.class);
 
+    private static final Set<String> ALLOWED_STATUSES =
+            Set.of("ONLINE", "OFFLINE", "AWAY", "BUSY");
+
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
     private final EncryptionService encryptionService;
-
 
     public StaffService(StaffRepository staffRepository, StaffMapper staffMapper, EncryptionService encryptionService) {
         this.staffRepository = staffRepository;
@@ -42,6 +45,7 @@ public class StaffService {
 
         StaffDTO dto = staffMapper.toDto(staff);
 
+        //Avgör vad av personnumret som får visas för användaren
         if (requesterRole == Role.ADMIN) {
             dto.setSocialSecurityNumber(encryptionService.decrypt(staff.getSocialSecurityNumber()));
         } else {
@@ -84,7 +88,6 @@ public class StaffService {
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
         staffRepository.delete(existingStaff);
         logger.info("Staff {} deleted", staffId);
-
     }
 
     public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department, Role requesterRole) {
@@ -109,5 +112,23 @@ public class StaffService {
                     return dto;
                 })
                 .toList();
+    }
+
+    public StaffDTO updateStatus(Long staffId, String status) {
+        if (staffId == null) {
+            throw new IllegalArgumentException("Staff ID cannot be null");
+        }
+
+        if (status == null || status.isBlank() || !ALLOWED_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
+
+        staff.setStatus(status);
+        logger.info("Staff {} status updated to {}", staffId, status);
+
+        return staffMapper.toDto(staffRepository.save(staff));
     }
 }

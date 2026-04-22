@@ -78,6 +78,7 @@ class EmploymentFormServiceTest {
         when(formRepository.save(any())).thenReturn(entity);
         when(mapper.toDTO(entity)).thenReturn(expectedDto);
 
+        // Act
         EmploymentFormDTO result = service.createForm(dto, hrStaff);
 
         assertNotNull(result);
@@ -149,8 +150,8 @@ class EmploymentFormServiceTest {
     void updateForm_UnauthorizedUser_ThrowsException() {
         Long formId = 1L;
         Staff creator = new Staff();
-        creator.setEmail("owner@cyberwatch.local");
         creator.setId(1L);
+        creator.setEmail("owner@cyberwatch.local");
 
         Staff otherHr = new Staff();
         otherHr.setEmail("other@cyberwatch.local");
@@ -181,7 +182,7 @@ class EmploymentFormServiceTest {
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
         when(mapper.toDTO(form)).thenReturn(new EmploymentFormDTO());
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
-
+        // Act
         service.rejectForm(id, cto);
 
         assertEquals(ApprovalStatus.REJECTED, form.getStatus());
@@ -206,12 +207,76 @@ class EmploymentFormServiceTest {
         when(mapper.toDTO(form)).thenReturn(new EmploymentFormDTO());
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
+        // Act
         String result = service.approveAndFinalizeEmployment(id, cto);
 
         assertTrue(result.contains("Employment has been approved"));
         assertEquals(ApprovalStatus.APPROVED, form.getStatus());
         verify(s3Service).uploadJsonData(anyString(), anyString());
         verify(staffRepository).save(newEmployee);
+    }
+
+    @Test
+    @DisplayName("Should throw exception if SSN already exists in form repository")
+    void createForm_DuplicateSsnInForms_ThrowsException() {
+        //arrange
+        Staff creator = new Staff();
+        creator.setEmail("owner@cyberwatch.local");
+        CreateEmploymentDTO dto = new CreateEmploymentDTO(
+                "19900101-1234", "Alice", "Andersson",
+                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
+        );
+
+        //act
+        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
+
+        //assert
+        assertThrows(IllegalStateException.class, () ->
+                service.createForm(dto, creator)
+        );
+        verify(formRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception if SSN already exists in staff repository")
+    void createForm_DuplicateSsnInStaff_ThrowsException() {
+        //arrange
+        Staff creator = new Staff();
+        creator.setEmail("owner@cyberwatch.local");
+        CreateEmploymentDTO dto = new CreateEmploymentDTO(
+                "19900101-1234", "Alice", "Andersson",
+                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
+        );
+
+        //act
+        when(staffRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
+
+        //assert
+        assertThrows(IllegalStateException.class, () ->
+                service.createForm(dto, creator)
+        );
+        verify(formRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception if form is not PENDING when updating")
+    void updateForm_NotPendingStatus_ThrowsException() {
+        //arrange
+        Staff updater = new Staff();
+        updater.setEmail("owner@cyberwatch.local");
+        Long formId = 1L;
+        UpdateEmploymentDTO updateDto = new UpdateEmploymentDTO();
+        EmploymentForm existingForm = new EmploymentForm();
+        existingForm.setStatus(ApprovalStatus.APPROVED);
+
+        //act
+        when(formRepository.findById(formId)).thenReturn(Optional.of(existingForm));
+
+        //assert
+        assertThrows(IllegalStateException.class, () ->
+                service.updateFormBeforeApproval(formId, updateDto, updater)
+        );
+        verify(formRepository, never()).save(any());
     }
 
     @Test
@@ -251,6 +316,8 @@ class EmploymentFormServiceTest {
         Staff cto = new Staff();
         cto.setRole(Role.CTO);
 
+
+        //act
         when(formRepository.findById(formId)).thenReturn(Optional.of(form));
 
         assertThrows(IllegalStateException.class, () ->
@@ -260,7 +327,7 @@ class EmploymentFormServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception if approver is not CEO or CTO")
+    @DisplayName("Should throw exception if approver is not CEO, CTO or ADMIN")
     void approveAndFinalize_WrongRole_ThrowsException() {
         Long formId = 1L;
         EmploymentForm form = new EmploymentForm();

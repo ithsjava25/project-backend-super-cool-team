@@ -67,3 +67,108 @@ input, select, textarea { width: 100%; padding: 0.6rem; border: 1px solid var(--
 .comment-item { padding: 0.75rem; background: #f8fafc; border-radius: 0.4rem; margin-bottom: 0.5rem; border: 1px solid var(--border); }
 .login-body { background: #064e3b; height: 100vh; display: flex; align-items: center; justify-content: center; }
 .login-card { background: white; padding: 3rem; border-radius: 1rem; width: 400px; text-align: center; }
+
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: auto;
+}
+
+.sidebar-profile-img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+}
+
+.sidebar-profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-profile-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-profile-role {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-weight: 500;
+}
+
+.sidebar-status-select {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.15);
+    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.4rem;
+    width: 100%;
+}
+
+.sidebar-status-select option {
+    color: black;
+}
+
+.employment-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.employment-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+    background: var(--surface, #fff);
+}
+
+.employment-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.employment-card-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.employment-card-body p {
+    margin: 0.45rem 0;
+}
+
+.employment-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.employment-form input,
+.employment-form select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-top: 0.35rem;
+}
+
+.employment-top-card {
+    margin-bottom: 1.5rem;
+}

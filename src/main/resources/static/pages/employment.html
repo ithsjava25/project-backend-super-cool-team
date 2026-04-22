@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Anställda - Cyber Watch</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+</head>
+<body>
+<div id="navbar"></div>
+
+<main class="main-content">
+  <section class="page-header">
+    <div>
+      <h1>Anställda</h1>
+      <p class="muted">Hantera anställda och nya staff-ärenden</p>
+    </div>
+    <button id="openCreateEmploymentBtn" class="btn btn-primary" style="display:none;">
+      + Lägg till staff
+    </button>
+  </section>
+
+  <section class="card employment-top-card">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="employmentSearch">Sök anställd</label>
+        <input type="text" id="employmentSearch" placeholder="Sök namn eller email..."/>
+      </div>
+
+      <div class="filter-group">
+        <label for="employmentRoleFilter">Roll</label>
+        <select id="employmentRoleFilter">
+          <option value="">Alla roller</option>
+          <option value="CEO">CEO</option>
+          <option value="CTO">CTO</option>
+          <option value="CONSULTANT">CONSULTANT</option>
+          <option value="HR">HR</option>
+          <option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
+          <option value="ADMIN">ADMIN</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="employmentDepartmentFilter">Department</label>
+        <select id="employmentDepartmentFilter">
+          <option value="">Alla departments</option>
+          <option value="HR">HR</option>
+          <option value="MANAGEMENT">MANAGEMENT</option>
+          <option value="DEVOPS">DEVOPS</option>
+          <option value="BACKEND">BACKEND</option>
+          <option value="FRONTEND">FRONTEND</option>
+        </select>
+      </div>
+
+      <button id="clearEmploymentFiltersBtn" class="btn btn-secondary">Rensa</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin-bottom: 1rem;">Alla anställda</h2>
+    <div id="staffList" class="employment-list"></div>
+  </section>
+
+  <section class="card" id="pendingFormsSection" style="display:none; margin-top: 1.5rem;">
+    <h2 style="margin-bottom: 1rem;">Pending approvals</h2>
+    <div id="pendingFormsList" class="employment-list"></div>
+  </section>
+
+  <section class="card" id="createEmploymentSection" style="display:none; margin-top: 1.5rem;">
+    <h2 style="margin-bottom: 1rem;">Ny staff</h2>
+
+    <form id="createEmploymentForm" class="employment-form">
+      <div class="employment-form-grid">
+        <div>
+          <label for="socialSecurityNumber">Personnummer</label>
+          <input type="text" id="socialSecurityNumber" placeholder="YYYYMMDD-NNNN" required>
+        </div>
+
+        <div>
+          <label for="firstName">Förnamn</label>
+          <input type="text" id="firstName" required>
+        </div>
+
+        <div>
+          <label for="lastName">Efternamn</label>
+          <input type="text" id="lastName" required>
+        </div>
+
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" required>
+        </div>
+
+        <div>
+          <label for="phoneNumber">Telefonnummer</label>
+          <input type="text" id="phoneNumber" required>
+        </div>
+
+        <div>
+          <label for="role">Roll</label>
+          <select id="role" required>
+            <option value="">Välj roll</option>
+            <option value="CEO">CEO</option>
+            <option value="CTO">CTO</option>
+            <option value="CONSULTANT">CONSULTANT</option>
+            <option value="HR">HR</option>
+            <option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="department">Department</label>
+          <select id="department" required>
+            <option value="">Välj department</option>
+            <option value="HR">HR</option>
+            <option value="MANAGEMENT">MANAGEMENT</option>
+            <option value="DEVOPS">DEVOPS</option>
+            <option value="BACKEND">BACKEND</option>
+            <option value="FRONTEND">FRONTEND</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top: 1rem; display:flex; gap:0.75rem;">
+        <button type="submit" class="btn btn-primary">Spara och skicka för approval</button>
+        <button type="button" id="cancelCreateEmploymentBtn" class="btn btn-secondary">Avbryt</button>
+      </div>
+
+      <p id="employmentMessage" class="muted" style="margin-top: 1rem;"></p>
+    </form>
+  </section>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/employment.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', initEmploymentPage);
+</script>
+</body>
+</html>
