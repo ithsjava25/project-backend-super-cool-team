@@ -1,12 +1,28 @@
+let cachedAllStaff = null;
+
+async function getStaffList() {
+    if (cachedAllStaff) return cachedAllStaff;
+    const staffRes = await apiFetch("/staff");
+    cachedAllStaff = staffRes.ok ? await staffRes.json() : [];
+    return cachedAllStaff;
+}
+
+let searchDebounceTimer = null;
+
 async function initDashboard() {
     await renderNavbar();
+    cachedAllStaff = null;
+    await getStaffList(); // pre-populate cache
     await loadDashboardTickets();
     await loadStaffList("staffFilter");
 
     document.getElementById("statusFilter")?.addEventListener("change", loadDashboardTickets);
     document.getElementById("priorityFilter")?.addEventListener("change", loadDashboardTickets);
     document.getElementById("staffFilter")?.addEventListener("change", loadDashboardTickets);
-    document.getElementById("searchInput")?.addEventListener("input", loadDashboardTickets);
+    document.getElementById("searchInput")?.addEventListener("input", () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(loadDashboardTickets, 275);
+    });
 }
 
 async function loadDashboardTickets() {
@@ -47,8 +63,7 @@ async function loadDashboardTickets() {
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
 
-        const staffRes = await apiFetch("/staff");
-        const allStaff = staffRes.ok ? await staffRes.json() : [];
+        const allStaff = await getStaffList();
 
         list.innerHTML = "";
 
@@ -65,8 +80,7 @@ async function loadDashboardTickets() {
          tabindex="0"
          aria-label="Ticket ${t.id}: ${escapeHtml(t.title)}"
          onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'"
-         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">                    
-                        <div class="ticket-header">
+         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">                    <div class="ticket-header">
                         <span class="badge badge-${t.status}">${t.status}</span>
                         <span class="ticket-title">${escapeHtml(t.title)}</span>
                     </div>
@@ -78,7 +92,7 @@ async function loadDashboardTickets() {
                 </div>
                 <div class="ticket-actions">
                     <select class="dashboard-assignment-select" data-id="${t.id}" style="max-width: 150px;">
-                        <option value="" disabled>Tilldela...</option>
+                        <option value="">Tilldela...</option>
                         ${allStaff.map(staff => {
                 const isAssigned = assignedIds.includes(staff.id);
                 return `<option value="${staff.id}" ${isAssigned ? 'selected' : ''}>
@@ -99,14 +113,12 @@ async function loadDashboardTickets() {
         document.querySelectorAll('.dashboard-assignment-select').forEach(select => {
             select.addEventListener('change', async (e) => {
                 const ticketId = e.target.dataset.id;
-                const staffIds = Array.from(e.target.selectedOptions)
-                    .map(o => Number.parseInt(o.value, 10))
-                    .filter(Number.isFinite);
-                if (staffIds.length === 0) return;
+                const staffId = parseInt(e.target.value);
+                if (!staffId) return;
 
                 const res = await apiFetch(`/tickets/${ticketId}/assign`, {
                     method: "PUT",
-                    body: JSON.stringify({staffIds})
+                    body: JSON.stringify({staffIds: [staffId]})
                 });
 
                 if (res.ok) loadDashboardTickets();
