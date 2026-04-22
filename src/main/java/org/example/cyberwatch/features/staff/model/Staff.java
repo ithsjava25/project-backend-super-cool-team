@@ -57,4 +57,10 @@ public class Staff {
 
     @Column(name = "employed_s3_key")
     private String employedS3Key;
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
+    @Column(name = "status")
+    private String status;
 }

@@ -15,15 +15,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class StaffService {
 
     private static final Logger logger = LoggerFactory.getLogger(StaffService.class);
 
+    private static final Set<String> ALLOWED_STATUSES =
+            Set.of("ONLINE", "OFFLINE", "AWAY", "BUSY");
+
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
-
 
     public StaffService(StaffRepository staffRepository, StaffMapper staffMapper) {
         this.staffRepository = staffRepository;
@@ -34,7 +37,10 @@ public class StaffService {
         if (id == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
         }
-        return staffMapper.toDto(staffRepository.findById(id).orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id)));
+        return staffMapper.toDto(
+                staffRepository.findById(id)
+                        .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id))
+        );
     }
 
     private List<StaffDTO> getAllStaff() {
@@ -74,17 +80,38 @@ public class StaffService {
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
         staffRepository.delete(existingStaff);
         logger.info("Staff {} deleted", staffId);
-
     }
 
     public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department) {
         if (role != null) {
             return staffRepository.findByRole(role)
-                    .stream().map(staffMapper::toDto).toList();
+                    .stream()
+                    .map(staffMapper::toDto)
+                    .toList();
         } else if (department != null) {
             return staffRepository.findByDepartment(department)
-                    .stream().map(staffMapper::toDto).toList();
+                    .stream()
+                    .map(staffMapper::toDto)
+                    .toList();
         }
         return getAllStaff();
+    }
+
+    public StaffDTO updateStatus(Long staffId, String status) {
+        if (staffId == null) {
+            throw new IllegalArgumentException("Staff ID cannot be null");
+        }
+
+        if (status == null || status.isBlank() || !ALLOWED_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
+
+        staff.setStatus(status);
+        logger.info("Staff {} status updated to {}", staffId, status);
+
+        return staffMapper.toDto(staffRepository.save(staff));
     }
 }

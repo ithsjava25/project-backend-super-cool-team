@@ -61,22 +61,10 @@
     <div id="ticketList" class="ticket-list"></div>
 </main>
 
-<script src="/js/app.js"></script>
-<script>
-    renderNavbar();
-    loadDashboardTickets();
-    loadStaffList("staffFilter");
-
-    ['filterBtn', 'statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => {
-        document.getElementById(id).addEventListener('change', loadDashboardTickets);
-    });
-    document.getElementById('filterBtn').onclick = loadDashboardTickets;
-    document.getElementById('clearFiltersBtn').onclick = () => {
-        ['statusFilter', 'priorityFilter', 'staffFilter'].forEach(id => document.getElementById(id).value = "");
-        document.getElementById('searchInput').value = "";
-        loadDashboardTickets();
-    };
-    document.getElementById('searchInput').oninput = loadDashboardTickets;
-</script>
+    <script src="/js/common.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
 </body>
 </html>

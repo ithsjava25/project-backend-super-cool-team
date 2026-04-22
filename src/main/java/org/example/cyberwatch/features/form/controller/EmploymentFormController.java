@@ -8,6 +8,7 @@ import org.example.cyberwatch.features.form.service.EmploymentFormService;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/forms")
 public class EmploymentFormController {
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(EmploymentFormController.class);
 
     private final EmploymentFormService employmentFormService;
 
@@ -26,8 +29,12 @@ public class EmploymentFormController {
     @PostMapping("/employment")
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
                                                                   Authentication authentication) {
-        String loggedInHr = authentication.getName(); // Assuming this returns the HR staff's identifier
-        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, loggedInHr);
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new AccessDeniedException("Principal must be a Staff object");
+        }
+        logger.info("Creating employment form for HR staff: {}", staff.getEmail());
+        EmploymentFormDTO createdForm = employmentFormService.createForm(dto, staff);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
 
@@ -35,8 +42,13 @@ public class EmploymentFormController {
     @PostMapping("/{id}/approve")
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new AccessDeniedException("Principal must be a Staff object");
+        }
+        logger.info("Creating employment form with approval from staff: {}", staff.getEmail());
         return ResponseEntity.ok(
-                employmentFormService.approveAndFinalizeEmployment(id, authentication.getName()));
+                employmentFormService.approveAndFinalizeEmployment(id, staff));
     }
 
     @PutMapping("/{id}")
@@ -44,8 +56,11 @@ public class EmploymentFormController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateEmploymentDTO dto,
             Authentication auth) {
-
-        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, auth.getName());
+        Object principal = auth.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new AccessDeniedException("Principal must be a Staff object");
+        }
+        EmploymentFormDTO updatedForm = employmentFormService.updateFormBeforeApproval(id, dto, staff);
         return ResponseEntity.ok(updatedForm);
     }
 
@@ -67,7 +82,12 @@ public class EmploymentFormController {
             @PathVariable Long id,
             Authentication authentication) {
 
-        String message = employmentFormService.rejectForm(id, authentication.getName());
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new AccessDeniedException("Principal must be a Staff object");
+        }
+
+        String message = employmentFormService.rejectForm(id, staff);
         return ResponseEntity.ok(message);
     }
 
@@ -76,8 +96,11 @@ public class EmploymentFormController {
     public ResponseEntity<Void> deleteForm(
             @PathVariable Long id,
             Authentication authentication) {
-
-        employmentFormService.deleteForm(id, authentication.getName());
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+            throw new AccessDeniedException("Principal must be a Staff object");
+        }
+        employmentFormService.deleteForm(id, staff);
         return ResponseEntity.noContent().build();
     }
 

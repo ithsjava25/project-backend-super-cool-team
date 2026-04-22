@@ -45,6 +45,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
+        String picture = oAuth2User.getAttribute("picture");
 
         if (email == null) {
             response.sendRedirect(request.getContextPath() + ERROR_PATH);
@@ -60,6 +61,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Byt ut OAuth2User mot Staff som principal så att alla efterföljande
         // anrop till authentication.getPrincipal() får ett Staff-objekt
         Staff staff = staffOpt.get();
+
+        if (picture != null && !picture.isBlank()) {
+            staff.setProfilePictureUrl(picture);
+        }
+
+        if (staff.getStatus() == null || staff.getStatus().isBlank()) {
+            staff.setStatus("ONLINE");
+        }
+
+        staffRepository.save(staff);
+
         var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + staff.getRole().name()));
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 staff, null, authorities

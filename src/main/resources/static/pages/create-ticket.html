@@ -72,45 +72,47 @@
     </section>
 </main>
 
-<script src="/js/app.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/create-ticket.js"></script>
 <script>
-    renderNavbar();
-    loadStaffList("assignedStaff");
-    setupCreateTicketForm();
+    document.addEventListener('DOMContentLoaded', async () => {
+        await initCreateTicket();
 
-    // Hantera val av personal via dropdown
-    const staffSelect = document.getElementById('assignedStaff');
-    const selectedStaffIds = new Set();
-    const badgeContainer = document.getElementById('selectedStaffBadges');
+        const staffSelect = document.getElementById('assignedStaff');
+        const selectedStaffIds = new Set();
+        const badgeContainer = document.getElementById('selectedStaffBadges');
 
-    staffSelect.addEventListener('change', (e) => {
-        const staffId = parseInt(e.target.value);
-        if (!staffId || selectedStaffIds.has(staffId)) return;
+        staffSelect.addEventListener('change', (e) => {
+            const staffId = parseInt(e.target.value);
+            if (!staffId || selectedStaffIds.has(staffId)) return;
 
-        const staffName = e.target.options[e.target.selectedIndex].text;
-        selectedStaffIds.add(staffId);
+            const staffName = e.target.options[e.target.selectedIndex].text;
+            selectedStaffIds.add(staffId);
 
-        const badge = document.createElement('span');
-        badge.className = 'badge badge-assigned';
-        badge.innerHTML = `${staffName} <span style="cursor:pointer; margin-left:5px;">&times;</span>`;
-        badge.onclick = () => {
-            selectedStaffIds.delete(staffId);
-            badge.remove();
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-assigned';
+            badge.append(document.createTextNode(`${staffName} `));
+            const removeIcon = document.createElement('span');
+            removeIcon.style.cursor = 'pointer';
+            removeIcon.style.marginLeft = '5px';
+            removeIcon.textContent = '×';
+            badge.appendChild(removeIcon);
+            badge.onclick = () => {
+                selectedStaffIds.delete(staffId);
+                badge.remove();
+                updateRequiredStatus();
+            };
+            badgeContainer.appendChild(badge);
+            staffSelect.value = "";
             updateRequiredStatus();
-        };
-        badgeContainer.appendChild(badge);
-        staffSelect.value = ""; // Återställ dropdown
-        updateRequiredStatus();
-    });
+        });
 
-    function updateRequiredStatus() {
-        // Om vi har valt minst en person behöver dropdownen inte vara 'required' i sig för HTML5-validering 
-        // eftersom vi kollar detta i JS vid submit, men vi kan styra det för att trigga webbläsarens inbyggda meddelande.
-        staffSelect.required = selectedStaffIds.size === 0;
-    }
-    
-    // Vi behöver skicka med dessa IDs vid submit
-    window.getSelectedStaffIds = () => Array.from(selectedStaffIds);
+        function updateRequiredStatus() {
+            staffSelect.required = selectedStaffIds.size === 0;
+        }
+
+        window.getSelectedStaffIds = () => Array.from(selectedStaffIds);
+    });
 </script>
 </body>
 </html>

@@ -21,10 +21,13 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StaffServiceTest {
+
 
     @Mock
     private StaffRepository staffRepository;
@@ -34,28 +37,52 @@ class StaffServiceTest {
     @InjectMocks
     private StaffService staffService;
 
-    private Staff staff;
-    private StaffDTO staffDTO;
+    private Staff newStaff;
+    private StaffDTO newStaffDTO;
+
 
     @BeforeEach
     void setUp() {
-        staff = new Staff();
-        staff.setId(1L);
-        staff.setFirstName("Anna");
-        staff.setLastName("Svensson");
-        staff.setEmail("anna@cyberwatch.se");
-        staff.setRole(Role.HR);
-        staff.setDepartment(Department.BACKEND);
+        newStaff = new Staff();
+        newStaff.setId(1L);
+        newStaff.setFirstName("Anna");
+        newStaff.setLastName("Svensson");
+        newStaff.setEmail("anna@cyberwatch.se");
+        newStaff.setRole(Role.HR);
+        newStaff.setDepartment(Department.BACKEND);
 
-        staffDTO = new StaffDTO(1L, null, "Anna", "Svensson",
-                "anna@cyberwatch.se", null, Role.HR, Department.BACKEND);
+        newStaffDTO = new StaffDTO(1L, null, "Anna", "Svensson",
+                "anna@cyberwatch.se", null, Role.HR, Department.BACKEND, "profil.png", "ONLINE");
+    }
+
+
+    @Test
+    void updateStatus_ShouldUpdateAndReturnStaffDTO() {
+        Long staffId = 1L;
+        String status = "BUSY";
+        Staff staff = new Staff();
+        staff.setId(staffId);
+        staff.setStatus("ONLINE");
+
+        StaffDTO staffDTO = new StaffDTO();
+        staffDTO.setId(staffId);
+        staffDTO.setStatus(status);
+
+        when(staffRepository.findById(staffId)).thenReturn(Optional.of(staff));
+        when(staffRepository.save(any(Staff.class))).thenReturn(staff);
+        when(staffMapper.toDto(any(Staff.class))).thenReturn(staffDTO);
+
+        StaffDTO result = staffService.updateStatus(staffId, status);
+
+        assertEquals(status, result.getStatus());
+        assertEquals(status, staff.getStatus());
     }
 
     @Test
     @DisplayName("Should return DTO when staff exists")
     void getStaffByIdStaffExists() {
-        when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
 
         StaffDTO result = staffService.getStaffById(1L);
 
@@ -85,14 +112,14 @@ class StaffServiceTest {
         UpdateStaffDTO dto = new UpdateStaffDTO("Anna", "Nilsson",
                 "anna@cyberwatch.se", "0701234567", Role.HR, Department.BACKEND);
 
-        when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
-        when(staffRepository.save(staff)).thenReturn(staff);
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(newStaff));
+        when(staffRepository.save(newStaff)).thenReturn(newStaff);
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
 
         StaffDTO result = staffService.updateStaff(1L, dto);
 
-        verify(staffMapper).updateEntity(dto, staff);
-        verify(staffRepository).save(staff);
+        verify(staffMapper).updateEntity(dto, newStaff);
+        verify(staffRepository).save(newStaff);
         assertThat(result).isNotNull();
     }
 
@@ -109,11 +136,11 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should delete staff when exists")
     void deleteStaffExists() {
-        when(staffRepository.findById(1L)).thenReturn(Optional.of(staff));
+        when(staffRepository.findById(1L)).thenReturn(Optional.of(newStaff));
 
         staffService.deleteStaff(1L);
 
-        verify(staffRepository).delete(staff);
+        verify(staffRepository).delete(newStaff);
     }
 
     @Test
@@ -128,21 +155,21 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should filter by role when role is provided")
     void getStaffByRoleOrDepartmentFilteredByRole() {
-        when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null);
 
         assertThat(result).hasSize(1);
-        verify(staffRepository).findByRole(Role.HR);
+        verify(staffRepository, times(1)).findByRole(Role.HR);
         verify(staffRepository, never()).findByDepartment(any());
     }
 
     @Test
     @DisplayName("Should filter by department when department is provided")
     void getStaffByRoleOrDepartmentFilteredByDepartment() {
-        when(staffRepository.findByDepartment(Department.BACKEND)).thenReturn(List.of(staff));
-        when(staffMapper.toDto(staff)).thenReturn(staffDTO);
+        when(staffRepository.findByDepartment(Department.BACKEND)).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, Department.BACKEND);
 
@@ -153,8 +180,8 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should return all staff when no filter is provided")
     void getStaffByRoleOrDepartment() {
-        when(staffRepository.findAll()).thenReturn(List.of(staff));
-        when(staffMapper.toDTOList(any())).thenReturn(List.of(staffDTO));
+        when(staffRepository.findAll()).thenReturn(List.of(newStaff));
+        when(staffMapper.toDTOList(any())).thenReturn(List.of(newStaffDTO));
 
         List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, null);
 
