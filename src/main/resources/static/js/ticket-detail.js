@@ -66,15 +66,20 @@ async function loadTicketDetail() {
 async function loadComments(id) {
     const list = document.getElementById("commentsList");
     if (!list) return;
-    const res = await apiFetch(`/tickets/${id}/comments`);
-    if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta kommentarer.</p>";
-    const comments = await res.json();
-    list.innerHTML = comments.length ? comments.map(c => `
+    try {
+        const res = await apiFetch(`/tickets/${id}/comments`);
+        if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta kommentarer.</p>";
+        const comments = await res.json();
+        list.innerHTML = comments.length ? comments.map(c => `
     <div class="comment-item">
         <div class="comment-header"><span>${escapeHtml(c.authorName || c.authorEmail || 'Användare')}</span>
                     <span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
         <div class="comment-text">${escapeHtml(c.text || c.content || c.commentText || "...")}</div>
     </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
+    } catch (e) {
+        console.error("Error loading comments", e);
+        list.innerHTML = "<p>Något gick fel när kommentarer skulle hämtas.</p>";
+    }
 }
 
 function setupCommentForm() {
@@ -89,7 +94,7 @@ function setupCommentForm() {
         });
         if (res.ok) {
             form.reset();
-            loadComments(id);
+            await loadComments(id);
         } else {
             alert("Kunde inte skicka meddelande.");
         }
