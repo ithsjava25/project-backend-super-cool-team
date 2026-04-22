@@ -22,7 +22,7 @@ async function loadTicketDetail() {
                 <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
                     ${t.attachments.map(a => `
                         <li style="margin-bottom: 0.4rem;">
-                            <a href="${escapeHtml(a.downloadUrl)}" target="_blank" rel="noopener noreferrer">
+                            <a href="${escapeHtml(safeHttpUrl(a.downloadUrl))}" target="_blank" rel="noopener noreferrer">
                                 ${escapeHtml(a.fileName)}
                             </a>
                         </li>

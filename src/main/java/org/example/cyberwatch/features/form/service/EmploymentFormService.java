@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -106,7 +107,7 @@ public class EmploymentFormService {
 
         boolean isAdmin = loggedInHr.getRole() == Role.ADMIN;
         boolean isCreator = existingForm.getCreatedBy() != null
-                && existingForm.getCreatedBy().getId().equals(loggedInHr.getId());
+                && Objects.equals(existingForm.getCreatedBy().getId(), loggedInHr.getId());
 
         if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or an admin can update it");
@@ -165,7 +166,8 @@ public class EmploymentFormService {
         }
 
         boolean isAdmin = loggedInDeleter.getRole() == Role.ADMIN;
-        boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getId().equals(loggedInDeleter.getId());
+        boolean isCreator = form.getCreatedBy() != null
+                && Objects.equals(form.getCreatedBy().getId(), loggedInDeleter.getId());
         if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or admin can delete it");
         }
