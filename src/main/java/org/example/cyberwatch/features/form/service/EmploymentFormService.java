@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -58,7 +59,7 @@ public class EmploymentFormService {
         formEntity.setCreatedBy(hrStaff);
 
         EmploymentFormDTO savedForm = employmentMapper.toDTO(employmentFormRepository.save(formEntity));
-        logger.info("New employment form created with ID: {} by HR: {}", savedForm.getId(), hrStaff.getEmail());
+        logger.info("New employment form created with ID: {} by HR staffId={}", savedForm.getId(), hrStaff.getId());
 
         return savedForm;
     }
@@ -106,7 +107,7 @@ public class EmploymentFormService {
 
         boolean isAdmin = loggedInHr.getRole() == Role.ADMIN;
         boolean isCreator = existingForm.getCreatedBy() != null
-                && existingForm.getCreatedBy().getId().equals(loggedInHr.getId());
+                && Objects.equals(existingForm.getCreatedBy().getId(), loggedInHr.getId());
 
         if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or an admin can update it");
@@ -119,7 +120,7 @@ public class EmploymentFormService {
 
         employmentMapper.updateEntity(updatedForm, existingForm);
 
-        logger.info("Form {} updated by HR {}", formId, loggedInHr.getEmail());
+        logger.info("Form {} updated by staffId={}", formId, loggedInHr.getId());
         return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
     }
 
@@ -150,7 +151,7 @@ public class EmploymentFormService {
         }
         employmentFormRepository.save(form);
 
-        logger.info("Form {} rejected by {}", formId, loggedInRejecter.getEmail());
+        logger.info("Form {} rejected by staffId={}", formId, loggedInRejecter.getId());
         return "Employment form has been rejected";
     }
 
@@ -165,13 +166,14 @@ public class EmploymentFormService {
         }
 
         boolean isAdmin = loggedInDeleter.getRole() == Role.ADMIN;
-        boolean isCreator = form.getCreatedBy() != null && form.getCreatedBy().getId().equals(loggedInDeleter.getId());
+        boolean isCreator = form.getCreatedBy() != null
+                && Objects.equals(form.getCreatedBy().getId(), loggedInDeleter.getId());
         if (!isAdmin && !isCreator) {
             throw new IllegalStateException("Only the HR staff who created this form or admin can delete it");
         }
 
         employmentFormRepository.deleteById(formId);
-        logger.info("Form {} deleted by {}", formId, loggedInDeleter);
+        logger.info("Form {} deleted by staffId={}", formId, loggedInDeleter.getId());
     }
 
     // When approved by management, archive to S3 and add the employee to staff
@@ -206,7 +208,7 @@ public class EmploymentFormService {
         staffRepository.save(newStaff);
         employmentFormRepository.save(form);
 
-        logger.info("Form {} approved by {}", formId, loggedInManagement);
+        logger.info("Form {} approved by staffId={}", formId, loggedInManagement.getId());
         //No need to worry, this will be replaced with an email service
         return "Employment has been approved, generated password for new employee: " + rawPassword;
 
