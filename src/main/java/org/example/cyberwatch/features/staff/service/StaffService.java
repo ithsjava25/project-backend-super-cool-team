@@ -55,14 +55,13 @@ public class StaffService {
         return dto;
     }
 
-    public StaffDTO getUserStaff(Long id) {
-        if (id == null) {
+    public StaffDTO getUserStaff(Staff user) {
+        if (user == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
         }
-        Staff staff = staffRepository.findById(id)
-                .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id));
-
-        return staffMapper.toDto(staff);
+        StaffDTO dto = staffMapper.toDto(user);
+        dto.setSocialSecurityNumber(encryptionService.maskLastFour(user.getSocialSecurityNumber()));
+        return dto;
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")

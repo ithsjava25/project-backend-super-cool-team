@@ -29,7 +29,7 @@ public class StaffRestController {
         if (staff == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(staffService.getUserStaff(staff.getId()));
+        return ResponseEntity.ok(staffService.getUserStaff(staff));
     }
 
     @PatchMapping("/me/status")

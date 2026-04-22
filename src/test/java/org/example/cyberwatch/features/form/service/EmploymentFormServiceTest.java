@@ -24,6 +24,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,94 +61,43 @@ class EmploymentFormServiceTest {
     }
 
     @Test
-    @DisplayName("Should successfully create an employment form")
+    @DisplayName("Should successfully create form and ensure SSN is encrypted before saving")
     void createForm_Success() {
+        // Arrange
+        String rawSsn = "19900101-1234";
+        String encryptedSsn = "krypterat-ssn";
+
         CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
+                rawSsn, "Alice", "Andersson",
                 "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
         );
         Staff hrStaff = createHrStaff();
         EmploymentForm entity = new EmploymentForm();
-        EmploymentFormDTO expectedDto = new EmploymentFormDTO();
-        expectedDto.setSocialSecurityNumber("19900101-1234");
 
-        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(false);
-        when(staffRepository.existsBySocialSecurityNumber(anyString())).thenReturn(false);
-        when(encryptionService.encrypt("19900101-1234")).thenReturn("krypterat-ssn");
+        when(formRepository.findAll()).thenReturn(List.of());
+        when(staffRepository.findAll()).thenReturn(List.of());
+        when(encryptionService.encrypt(rawSsn)).thenReturn(encryptedSsn);
         when(mapper.toEntity(dto)).thenReturn(entity);
-        when(formRepository.save(any())).thenReturn(entity);
-        when(mapper.toDTO(entity)).thenReturn(expectedDto);
+        when(formRepository.save(any(EmploymentForm.class))).thenReturn(entity);
+        when(mapper.toDTO(entity)).thenReturn(new EmploymentFormDTO());
 
         // Act
         EmploymentFormDTO result = service.createForm(dto, hrStaff);
 
+        // Assert
         assertNotNull(result);
-        assertEquals("19900101-1234", result.getSocialSecurityNumber());
-        verify(encryptionService, times(2)).encrypt("19900101-1234");// verifiera att kryptering sker
-        verify(formRepository).save(any());
+        verify(encryptionService).encrypt(rawSsn);
+        assertEquals(encryptedSsn, entity.getSocialSecurityNumber(),
+                "The entity should hold the encrypted SSN when saved");
+
+        verify(formRepository).save(entity);
     }
 
-    @Test
-    @DisplayName("Should encrypt SSN before saving")
-    void createForm_SsnIsEncrypted() {
-        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
-                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-        );
-        Staff hrStaff = createHrStaff();
-        EmploymentForm entity = new EmploymentForm();
-
-        when(formRepository.existsBySocialSecurityNumber(anyString())).thenReturn(false);
-        when(staffRepository.existsBySocialSecurityNumber(anyString())).thenReturn(false);
-        when(encryptionService.encrypt("19900101-1234")).thenReturn("krypterat-ssn");
-        when(mapper.toEntity(dto)).thenReturn(entity);
-        when(formRepository.save(any())).thenReturn(entity);
-        when(mapper.toDTO(entity)).thenReturn(new EmploymentFormDTO());
-
-        service.createForm(dto, hrStaff);
-
-        // Verifiera att SSN sattes som krypterat värde på entiteten
-        assertEquals("krypterat-ssn", entity.getSocialSecurityNumber());
-    }
-
-    @Test
-    @DisplayName("Should throw exception if SSN already exists in form repository")
-    void createForm_DuplicateSsnInForms_ThrowsException() {
-        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
-                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-        );
-
-        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
-
-        assertThrows(IllegalStateException.class, () ->
-                service.createForm(dto, createHrStaff())
-        );
-        verify(formRepository, never()).save(any());
-        verify(encryptionService, never()).encrypt(any()); // ska inte ens kryptera
-    }
-
-    @Test
-    @DisplayName("Should throw exception if SSN already exists in staff repository")
-    void createForm_DuplicateSsnInStaff_ThrowsException() {
-        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
-                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-        );
-
-        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(false);
-        when(encryptionService.encrypt("19900101-1234")).thenReturn("krypterat-ssn");
-        when(staffRepository.existsBySocialSecurityNumber("krypterat-ssn")).thenReturn(true);
-
-        assertThrows(IllegalStateException.class, () ->
-                service.createForm(dto, createHrStaff())
-        );
-        verify(formRepository, never()).save(any());
-    }
 
     @Test
     @DisplayName("Should throw exception if user is not creator or admin")
     void updateForm_UnauthorizedUser_ThrowsException() {
+        // Arrange
         Long formId = 1L;
         Staff creator = new Staff();
         creator.setId(1L);
@@ -164,6 +114,7 @@ class EmploymentFormServiceTest {
 
         when(formRepository.findById(formId)).thenReturn(Optional.of(existingForm));
 
+        // Act & Assert
         assertThrows(AccessDeniedException.class, () ->
                 service.updateFormBeforeApproval(formId, new UpdateEmploymentDTO(), otherHr)
         );
@@ -173,6 +124,7 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should change status to REJECTED and set rejector")
     void rejectForm_Success() {
+        // Arrange
         Long id = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.PENDING);
@@ -182,9 +134,11 @@ class EmploymentFormServiceTest {
         when(formRepository.findById(id)).thenReturn(Optional.of(form));
         when(mapper.toDTO(form)).thenReturn(new EmploymentFormDTO());
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
         // Act
         service.rejectForm(id, cto);
 
+        // Assert
         assertEquals(ApprovalStatus.REJECTED, form.getStatus());
         verify(formRepository).save(form);
     }
@@ -192,6 +146,7 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should approve, archive to S3 and create new Staff member")
     void approveAndFinalize_Success() throws Exception {
+        // Arrange
         Long id = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setSocialSecurityNumber("krypterat-ssn");
@@ -210,58 +165,67 @@ class EmploymentFormServiceTest {
         // Act
         String result = service.approveAndFinalizeEmployment(id, cto);
 
+        // Assert
         assertTrue(result.contains("Employment has been approved"));
         assertEquals(ApprovalStatus.APPROVED, form.getStatus());
         verify(s3Service).uploadJsonData(anyString(), anyString());
         verify(staffRepository).save(newEmployee);
     }
 
-//    @Test
-//    @DisplayName("Should throw exception if SSN already exists in form repository")
-//    void createForm_DuplicateSsnInForms_ThrowsException() {
-//        //arrange
-//        Staff creator = new Staff();
-//        creator.setEmail("owner@cyberwatch.local");
-//        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-//                "19900101-1234", "Alice", "Andersson",
-//                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-//        );
-//
-//        //act
-//        when(formRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
-//
-//        //assert
-//        assertThrows(IllegalStateException.class, () ->
-//                service.createForm(dto, creator)
-//        );
-//        verify(formRepository, never()).save(any());
-//    }
+    @Test
+    @DisplayName("Should throw exception if SSN already exists in form repository")
+    void createForm_DuplicateSsnInForms_ThrowsException() {
+        // Arrange
+        Staff creator = new Staff();
+        creator.setEmail("owner@cyberwatch.local");
+        CreateEmploymentDTO dto = new CreateEmploymentDTO(
+                "19900101-1234", "Alice", "Andersson",
+                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
+        );
+        EmploymentForm existing = new EmploymentForm();
+        existing.setSocialSecurityNumber("krypterat-ssn");
 
-//    @Test
-//    @DisplayName("Should throw exception if SSN already exists in staff repository")
-//    void createForm_DuplicateSsnInStaff_ThrowsException() {
-//        //arrange
-//        Staff creator = new Staff();
-//        creator.setEmail("owner@cyberwatch.local");
-//        CreateEmploymentDTO dto = new CreateEmploymentDTO(
-//                "19900101-1234", "Alice", "Andersson",
-//                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
-//        );
-//
-//        //act
-//        when(staffRepository.existsBySocialSecurityNumber("19900101-1234")).thenReturn(true);
-//
-//        //assert
-//        assertThrows(IllegalStateException.class, () ->
-//                service.createForm(dto, creator)
-//        );
-//        verify(formRepository, never()).save(any());
-//    }
+        when(formRepository.findAll()).thenReturn(List.of(existing));
+        when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
+
+        // Act & Assert
+        assertThrows(IllegalStateException.class, () ->
+                service.createForm(dto, creator)
+        );
+        verify(formRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception if SSN already exists in staff repository")
+    void createForm_DuplicateSsnInStaff_ThrowsException() {
+        // Arrange
+        Staff creator = new Staff();
+        String rawSsn = "19900101-1234";
+
+        CreateEmploymentDTO dto = new CreateEmploymentDTO(
+                rawSsn, "Alice", "Andersson",
+                "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
+        );
+
+        Staff existingStaff = new Staff();
+        existingStaff.setSocialSecurityNumber("krypterat-ssn");
+
+        when(formRepository.findAll()).thenReturn(List.of());//no match
+        when(staffRepository.findAll()).thenReturn(List.of(existingStaff));
+        when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
+
+        // Act & Assert
+        assertThrows(IllegalStateException.class, () ->
+                service.createForm(dto, creator)
+        );
+
+        verify(formRepository, never()).save(any());
+    }
 
     @Test
     @DisplayName("Should throw exception if form is not PENDING when updating")
     void updateForm_NotPendingStatus_ThrowsException() {
-        //arrange
+        // Arrange
         Staff updater = new Staff();
         updater.setEmail("owner@cyberwatch.local");
         Long formId = 1L;
@@ -269,10 +233,9 @@ class EmploymentFormServiceTest {
         EmploymentForm existingForm = new EmploymentForm();
         existingForm.setStatus(ApprovalStatus.APPROVED);
 
-        //act
         when(formRepository.findById(formId)).thenReturn(Optional.of(existingForm));
 
-        //assert
+        // Act & Assert
         assertThrows(IllegalStateException.class, () ->
                 service.updateFormBeforeApproval(formId, updateDto, updater)
         );
@@ -282,6 +245,7 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should throw exception if form is not PENDING when rejecting")
     void rejectForm_NotPendingStatus_ThrowsException() {
+        // Arrange
         Long formId = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.APPROVED);
@@ -290,6 +254,7 @@ class EmploymentFormServiceTest {
 
         when(formRepository.findById(formId)).thenReturn(Optional.of(form));
 
+        // Act & Assert
         assertThrows(IllegalStateException.class, () ->
                 service.rejectForm(formId, cto)
         );
@@ -299,9 +264,11 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should throw exception if form not found")
     void rejectForm_FormNotFound_ThrowsException() {
+        // Arrange
         Staff cto = new Staff();
         cto.setRole(Role.CTO);
 
+        // Act & Assert
         assertThrows(EmploymentFormNotFound.class, () ->
                 service.rejectForm(99L, cto)
         );
@@ -310,16 +277,16 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should throw exception if form is not PENDING when approving")
     void approveAndFinalize_NotPendingStatus_ThrowsException() {
+        // Arrange
         Long formId = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.APPROVED);
         Staff cto = new Staff();
         cto.setRole(Role.CTO);
 
-
-        //act
         when(formRepository.findById(formId)).thenReturn(Optional.of(form));
 
+        // Act & Assert
         assertThrows(IllegalStateException.class, () ->
                 service.approveAndFinalizeEmployment(formId, cto)
         );
@@ -329,6 +296,7 @@ class EmploymentFormServiceTest {
     @Test
     @DisplayName("Should throw exception if approver is not CEO, CTO or ADMIN")
     void approveAndFinalize_WrongRole_ThrowsException() {
+        // Arrange
         Long formId = 1L;
         EmploymentForm form = new EmploymentForm();
         form.setStatus(ApprovalStatus.PENDING);
@@ -337,6 +305,7 @@ class EmploymentFormServiceTest {
 
         when(formRepository.findById(formId)).thenReturn(Optional.of(form));
 
+        // Act & Assert
         assertThrows(IllegalStateException.class, () ->
                 service.approveAndFinalizeEmployment(formId, hr)
         );

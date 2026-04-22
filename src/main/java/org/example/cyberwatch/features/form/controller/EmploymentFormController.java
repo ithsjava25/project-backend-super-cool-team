@@ -5,13 +5,11 @@ import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
-import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,7 +33,7 @@ public class EmploymentFormController {
         if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
             throw new AccessDeniedException("Principal must be a Staff object");
         }
-        logger.info("Creating employment form for HR staff: {}", staff.getEmail());
+        logger.info("Creating employment form by HR staff: {}", staff.getEmail());
         EmploymentFormDTO createdForm = employmentFormService.createForm(dto, staff);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdForm);
     }
