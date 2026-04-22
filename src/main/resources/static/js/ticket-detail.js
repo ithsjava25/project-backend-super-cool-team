@@ -14,7 +14,8 @@ async function loadTicketDetail() {
         const res = await apiFetch(`/tickets/${id}`);
         if (!res.ok) return container.innerHTML = "<p>Kunde inte hämta ticket.</p>";
         const t = await res.json();
-        document.getElementById("editTicketLink").href = `/pages/edit-ticket.html?id=${t.id}`;
+        const editLink = document.getElementById("editTicketLink");
+        if (editLink) editLink.href = `/pages/edit-ticket.html?id=${encodeURIComponent(t.id)}`;
 
         const attachmentsHtml = t.attachments && t.attachments.length > 0
             ? `<div style="margin-top: 1rem;">
@@ -22,7 +23,7 @@ async function loadTicketDetail() {
                 <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
                     ${t.attachments.map(a => `
                         <li style="margin-bottom: 0.4rem;">
-                            <a href="${escapeHtml(a.downloadUrl)}" target="_blank" rel="noopener noreferrer">
+                            <a href="${escapeHtml(safeHttpUrl(a.downloadUrl))}" target="_blank" rel="noopener noreferrer">
                                 ${escapeHtml(a.fileName)}
                             </a>
                         </li>
@@ -66,20 +67,15 @@ async function loadTicketDetail() {
 async function loadComments(id) {
     const list = document.getElementById("commentsList");
     if (!list) return;
-    try {
-        const res = await apiFetch(`/tickets/${id}/comments`);
-        if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta kommentarer.</p>";
-        const comments = await res.json();
-        list.innerHTML = comments.length ? comments.map(c => `
+    const res = await apiFetch(`/tickets/${id}/comments`);
+    if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta kommentarer.</p>";
+    const comments = await res.json();
+    list.innerHTML = comments.length ? comments.map(c => `
     <div class="comment-item">
         <div class="comment-header"><span>${escapeHtml(c.authorName || c.authorEmail || 'Användare')}</span>
                     <span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
         <div class="comment-text">${escapeHtml(c.text || c.content || c.commentText || "...")}</div>
     </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
-    } catch (e) {
-        console.error("Error loading comments", e);
-        list.innerHTML = "<p>Något gick fel när kommentarer skulle hämtas.</p>";
-    }
 }
 
 function setupCommentForm() {
@@ -94,7 +90,7 @@ function setupCommentForm() {
         });
         if (res.ok) {
             form.reset();
-            await loadComments(id);
+            loadComments(id);
         } else {
             alert("Kunde inte skicka meddelande.");
         }
