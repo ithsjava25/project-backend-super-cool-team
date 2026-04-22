@@ -84,7 +84,8 @@ class StaffServiceTest {
 
     @Test
     @DisplayName("Should return masked SSN for non-admin")
-    void getStaffById_NonAdmin_ReturnsMaskedSsn() {
+    void getStaffById_NonAdminOrHr_ReturnsMaskedSsn() {
+        newStaff.setRole(Role.CONSULTANT);
         when(staffRepository.findById(1L)).thenReturn(Optional.of(newStaff));
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.maskLastFour("krypterat-ssn")).thenReturn("19900101-****");
@@ -173,13 +174,14 @@ class StaffServiceTest {
     }
 
     @Test
-    @DisplayName("Should filter by role and mask SSN for non-admin")
+    @DisplayName("Should filter by role and mask SSN for non-admin or hr")
     void getStaffByRoleOrDepartment_FilterByRole_MaskedSsn() {
+        newStaff.setRole(Role.CEO);
         when(staffRepository.findByRole(Role.HR)).thenReturn(List.of(newStaff));
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.maskLastFour("krypterat-ssn")).thenReturn("19900101-****");
 
-        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null, Role.HR);
+        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null, newStaff);
 
         assertThat(result).hasSize(1);
         verify(staffRepository, times(1)).findByRole(Role.HR);
@@ -193,7 +195,7 @@ class StaffServiceTest {
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
         when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
 
-        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null, Role.ADMIN);
+        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(Role.HR, null, newStaff);
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().getSocialSecurityNumber()).isEqualTo("19900101-1234");
@@ -204,9 +206,7 @@ class StaffServiceTest {
     void getStaffByRoleOrDepartment_FilterByDepartment() {
         when(staffRepository.findByDepartment(Department.BACKEND)).thenReturn(List.of(newStaff));
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
-        when(encryptionService.maskLastFour(any())).thenReturn("19900101-****");
-
-        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, Department.BACKEND, Role.HR);
+        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, Department.BACKEND, newStaff);
 
         assertThat(result).hasSize(1);
         verify(staffRepository).findByDepartment(Department.BACKEND);
@@ -217,9 +217,21 @@ class StaffServiceTest {
     void getStaffByRoleOrDepartment_NoFilter() {
         when(staffRepository.findAll()).thenReturn(List.of(newStaff));
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
-        when(encryptionService.maskLastFour(any())).thenReturn("19900101-****");
 
-        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, null, Role.HR);
+        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, null, newStaff);
+
+        assertThat(result).hasSize(1);
+        verify(staffRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("Should return all staff when no filter with masked last four")
+    void getStaffByRoleOrDepartment_NoFilter_MaskedFour() {
+        newStaff.setRole(Role.PROJECT_MANAGER);
+        when(staffRepository.findAll()).thenReturn(List.of(newStaff));
+        when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
+        when(encryptionService.maskLastFour("krypterat-ssn")).thenReturn("19900101-****");
+        List<StaffDTO> result = staffService.getStaffByRoleOrDepartment(null, null, newStaff);
 
         assertThat(result).hasSize(1);
         verify(staffRepository).findAll();

@@ -69,6 +69,6 @@ public class StaffRestController {
             @RequestParam(required = false) Role role,
             @RequestParam(required = false) Department department,
             @AuthenticationPrincipal Staff user) {
-        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department, user.getRole()));
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department, user));
     }
 }

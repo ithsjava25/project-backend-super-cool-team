@@ -46,7 +46,7 @@ public class StaffService {
         StaffDTO dto = staffMapper.toDto(staff);
 
         //Avgör vad av personnumret som får visas för användaren
-        if (requester.getRole() == Role.CTO) {
+        if (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR) {
             dto.setSocialSecurityNumber(encryptionService.decrypt(staff.getSocialSecurityNumber()));
         } else {
             dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
@@ -100,7 +100,7 @@ public class StaffService {
         logger.info("Staff {} deleted", staffId);
     }
 
-    public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department, Role requesterRole) {
+    public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department, Staff requester) {
 
         List<Staff> staffList;
         if (role != null) {
@@ -114,7 +114,7 @@ public class StaffService {
         return staffList.stream()
                 .map(s -> {
                     StaffDTO dto = staffMapper.toDto(s);
-                    if (requesterRole == Role.CTO) {
+                    if (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR) {
                         dto.setSocialSecurityNumber(encryptionService.decrypt(s.getSocialSecurityNumber()));
                     } else {
                         dto.setSocialSecurityNumber(encryptionService.maskLastFour(s.getSocialSecurityNumber()));
