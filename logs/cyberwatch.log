@@ -5026,3 +5026,314 @@ software.amazon.awssdk.services.s3.model.S3Exception: A header you provided impl
 2026-04-22T14:13:23.813+02:00  INFO 48239 --- [CyberWatch] [http-nio-8080-exec-2] o.e.c.f.ticket.service.TicketService     : Ticket TICKET-1014 tilldelad till 1 person(er)
 2026-04-22T14:13:31.124+02:00  INFO 48239 --- [CyberWatch] [http-nio-8080-exec-5] o.e.c.f.ticket.service.TicketService     : Ticket TICKET-1014 tilldelad till 1 person(er)
 2026-04-22T14:13:40.815+02:00  INFO 48239 --- [CyberWatch] [http-nio-8080-exec-2] o.e.c.f.ticket.service.TicketService     : Fil uppladdad till ticket TICKET-1014: attachmentId=19
+2026-04-22T20:15:12.824+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.e.cyberwatch.CyberWatchApplication     : Starting CyberWatchApplication using Java 25.0.2 with PID 26264 (/Users/ericthilen/Desktop/project-backend-super-cool-team/target/classes started by ericthilen in /Users/ericthilen/Desktop/project-backend-super-cool-team)
+2026-04-22T20:15:12.826+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.e.cyberwatch.CyberWatchApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-04-22T20:15:12.847+02:00  INFO 26264 --- [CyberWatch] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-04-22T20:15:12.848+02:00  INFO 26264 --- [CyberWatch] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-04-22T20:15:12.853+02:00  INFO 26264 --- [CyberWatch] [restartedMain] .s.b.d.c.l.DockerComposeLifecycleManager : Using Docker Compose file /Users/ericthilen/Desktop/project-backend-super-cool-team/compose.yaml
+2026-04-22T20:15:13.463+02:00  INFO 26264 --- [CyberWatch] [restartedMain] .s.b.d.c.l.DockerComposeLifecycleManager : There are already Docker Compose services running, skipping startup
+2026-04-22T20:15:13.908+02:00  INFO 26264 --- [CyberWatch] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-22T20:15:13.936+02:00  INFO 26264 --- [CyberWatch] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 6 JPA repository interfaces.
+2026-04-22T20:15:14.305+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-04-22T20:15:14.312+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-22T20:15:14.312+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-04-22T20:15:14.329+02:00  INFO 26264 --- [CyberWatch] [restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 862 ms
+2026-04-22T20:15:14.408+02:00  WARN 26264 --- [CyberWatch] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Cannot deserialize session attribute [SPRING_SECURITY_CONTEXT] for session [3CFE5CC176FC7E5FDE0BDBE77BB25C2F]
+2026-04-22T20:15:14.761+02:00  INFO 26264 --- [CyberWatch] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5433/mydatabase?ApplicationName=CyberWatch (PostgreSQL 18.3)
+2026-04-22T20:15:14.826+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 11 migrations (execution time 00:00.028s)
+2026-04-22T20:15:14.855+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 10
+2026-04-22T20:15:14.863+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "11 - set default status for staff"
+2026-04-22T20:15:14.888+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v11 (execution time 00:00.016s)
+2026-04-22T20:15:14.944+02:00  INFO 26264 --- [CyberWatch] [restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-22T20:15:14.976+02:00  INFO 26264 --- [CyberWatch] [restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.7.Final
+2026-04-22T20:15:15.173+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-22T20:15:15.195+02:00  INFO 26264 --- [CyberWatch] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-22T20:15:15.219+02:00  INFO 26264 --- [CyberWatch] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@44d75f5e
+2026-04-22T20:15:15.220+02:00  INFO 26264 --- [CyberWatch] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-22T20:15:15.260+02:00  INFO 26264 --- [CyberWatch] [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://127.0.0.1:5433/mydatabase?ApplicationName=CyberWatch]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.3
+	Default catalog/schema: mydatabase/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-22T20:15:15.777+02:00  INFO 26264 --- [CyberWatch] [restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-22T20:15:15.780+02:00  INFO 26264 --- [CyberWatch] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-22T20:15:15.834+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-22T20:15:17.106+02:00 ERROR 26264 --- [CyberWatch] [restartedMain] o.e.c.features.ticket.service.S3Service  : Misslyckades konfigurera CORS för bucket 'ticket-files': A header you provided implies functionality that is not implemented (Service: S3, Status Code: 501, Request ID: 18A8C063868658A2, Extended Request ID: dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8)
+
+software.amazon.awssdk.services.s3.model.S3Exception: A header you provided implies functionality that is not implemented (Service: S3, Status Code: 501, Request ID: 18A8C063868658A2, Extended Request ID: dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8)
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handleErrorResponse(AwsXmlPredicatedResponseHandler.java:156) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handleResponse(AwsXmlPredicatedResponseHandler.java:108) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handle(AwsXmlPredicatedResponseHandler.java:85) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handle(AwsXmlPredicatedResponseHandler.java:43) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler$Crc32ValidationResponseHandler.handle(AwsSyncClientHandler.java:93) ~[aws-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseClientHandler.lambda$successTransformationResponseHandler$7(BaseClientHandler.java:279) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage.execute(HandleResponseStage.java:50) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage.execute(HandleResponseStage.java:38) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage.execute(ApiCallAttemptTimeoutTrackingStage.java:72) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage.execute(ApiCallAttemptTimeoutTrackingStage.java:42) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage.execute(TimeoutExceptionHandlingStage.java:78) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage.execute(TimeoutExceptionHandlingStage.java:40) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage.execute(ApiCallAttemptMetricCollectionStage.java:55) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage.execute(ApiCallAttemptMetricCollectionStage.java:39) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage.execute(RetryableStage.java:81) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage.execute(RetryableStage.java:36) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.StreamManagingStage.execute(StreamManagingStage.java:56) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.StreamManagingStage.execute(StreamManagingStage.java:36) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage.executeWithTimer(ApiCallTimeoutTrackingStage.java:80) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage.execute(ApiCallTimeoutTrackingStage.java:60) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage.execute(ApiCallTimeoutTrackingStage.java:42) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage.execute(ApiCallMetricCollectionStage.java:50) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage.execute(ApiCallMetricCollectionStage.java:32) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage.execute(ExecutionFailureExceptionReportingStage.java:37) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage.execute(ExecutionFailureExceptionReportingStage.java:26) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient$RequestExecutionBuilderImpl.execute(AmazonSyncHttpClient.java:224) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.invoke(BaseSyncClientHandler.java:103) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.doExecute(BaseSyncClientHandler.java:173) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.lambda$execute$1(BaseSyncClientHandler.java:80) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.measureApiCallSuccess(BaseSyncClientHandler.java:182) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.execute(BaseSyncClientHandler.java:74) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.client.handler.SdkSyncClientHandler.execute(SdkSyncClientHandler.java:45) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler.execute(AwsSyncClientHandler.java:53) ~[aws-core-2.25.53.jar:na]
+	at software.amazon.awssdk.services.s3.DefaultS3Client.putBucketCors(DefaultS3Client.java:8209) ~[s3-2.25.53.jar:na]
+	at software.amazon.awssdk.services.s3.S3Client.putBucketCors(S3Client.java:16007) ~[s3-2.25.53.jar:na]
+	at org.example.cyberwatch.features.ticket.service.S3Service.configureCors(S3Service.java:111) ~[classes/:na]
+	at org.example.cyberwatch.features.ticket.service.S3Service.init(S3Service.java:46) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod.invoke(InitDestroyAnnotationBeanPostProcessor.java:453) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:397) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:217) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:426) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1809) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:603) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1704) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1651) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1382) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1221) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1704) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1651) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1382) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1221) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1218) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1184) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994) ~[spring-context-7.0.6.jar:7.0.6]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621) ~[spring-context-7.0.6.jar:7.0.6]
+	at org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:143) ~[spring-boot-web-server-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:756) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:445) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:321) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.example.cyberwatch.CyberWatchApplication.main(CyberWatchApplication.java:10) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:52) ~[spring-boot-devtools-4.0.4.jar:4.0.4]
+
+2026-04-22T20:15:17.271+02:00  WARN 26264 --- [CyberWatch] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-22T20:15:17.524+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.s.b.w.a.WelcomePageHandlerMapping      : Adding welcome page: class path resource [static/index.html]
+2026-04-22T20:15:17.650+02:00  WARN 26264 --- [CyberWatch] [restartedMain] ion$DefaultTemplateResolverConfiguration : Cannot find template location: classpath:/templates/ (please add some templates, check your Thymeleaf configuration, or set spring.thymeleaf.check-template-location=false)
+2026-04-22T20:15:17.964+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-04-22T20:15:18.053+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-04-22T20:15:18.061+02:00  INFO 26264 --- [CyberWatch] [restartedMain] o.e.cyberwatch.CyberWatchApplication     : Started CyberWatchApplication in 5.478 seconds (process running for 6.168)
+2026-04-22T20:15:18.575+02:00  INFO 26264 --- [CyberWatch] [RMI TCP Connection(1)-127.0.0.1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-22T20:15:18.576+02:00  INFO 26264 --- [CyberWatch] [RMI TCP Connection(1)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-22T20:15:18.577+02:00  INFO 26264 --- [CyberWatch] [RMI TCP Connection(1)-127.0.0.1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-04-22T20:16:14.062+02:00  INFO 26264 --- [CyberWatch] [SpringApplicationShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-22T20:16:14.076+02:00  INFO 26264 --- [CyberWatch] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-04-22T20:16:14.095+02:00  INFO 26264 --- [CyberWatch] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-04-22T20:16:14.106+02:00  INFO 26264 --- [CyberWatch] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-04-22T20:16:14.109+02:00  INFO 26264 --- [CyberWatch] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-04-22T20:16:40.298+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.e.cyberwatch.CyberWatchApplication     : Starting CyberWatchApplication using Java 25.0.2 with PID 26375 (/Users/ericthilen/Desktop/project-backend-super-cool-team/target/classes started by ericthilen in /Users/ericthilen/Desktop/project-backend-super-cool-team)
+2026-04-22T20:16:40.300+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.e.cyberwatch.CyberWatchApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-04-22T20:16:40.393+02:00  INFO 26375 --- [CyberWatch] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-04-22T20:16:40.393+02:00  INFO 26375 --- [CyberWatch] [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-04-22T20:16:40.400+02:00  INFO 26375 --- [CyberWatch] [restartedMain] .s.b.d.c.l.DockerComposeLifecycleManager : Using Docker Compose file /Users/ericthilen/Desktop/project-backend-super-cool-team/compose.yaml
+2026-04-22T20:16:40.969+02:00  INFO 26375 --- [CyberWatch] [restartedMain] .s.b.d.c.l.DockerComposeLifecycleManager : There are already Docker Compose services running, skipping startup
+2026-04-22T20:16:41.422+02:00  INFO 26375 --- [CyberWatch] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-22T20:16:41.450+02:00  INFO 26375 --- [CyberWatch] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 6 JPA repository interfaces.
+2026-04-22T20:16:41.798+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-04-22T20:16:41.805+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-22T20:16:41.805+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-04-22T20:16:41.822+02:00  INFO 26375 --- [CyberWatch] [restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 849 ms
+2026-04-22T20:16:41.898+02:00  WARN 26375 --- [CyberWatch] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Cannot deserialize session attribute [SPRING_SECURITY_CONTEXT] for session [D1C4B8320B453638D4B298D32A627E41]
+2026-04-22T20:16:42.200+02:00  INFO 26375 --- [CyberWatch] [restartedMain] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://127.0.0.1:5433/mydatabase?ApplicationName=CyberWatch (PostgreSQL 18.3)
+2026-04-22T20:16:42.237+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbValidate     : Successfully validated 11 migrations (execution time 00:00.018s)
+2026-04-22T20:16:42.268+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 11
+2026-04-22T20:16:42.270+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-04-22T20:16:42.323+02:00  INFO 26375 --- [CyberWatch] [restartedMain] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-04-22T20:16:42.350+02:00  INFO 26375 --- [CyberWatch] [restartedMain] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.2.7.Final
+2026-04-22T20:16:42.546+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-22T20:16:42.561+02:00  INFO 26375 --- [CyberWatch] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-22T20:16:42.585+02:00  INFO 26375 --- [CyberWatch] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@ae46c3f
+2026-04-22T20:16:42.586+02:00  INFO 26375 --- [CyberWatch] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-22T20:16:42.624+02:00  INFO 26375 --- [CyberWatch] [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://127.0.0.1:5433/mydatabase?ApplicationName=CyberWatch]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 18.3
+	Default catalog/schema: mydatabase/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-22T20:16:43.118+02:00  INFO 26375 --- [CyberWatch] [restartedMain] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-22T20:16:43.121+02:00  INFO 26375 --- [CyberWatch] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-22T20:16:43.179+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-22T20:16:44.381+02:00 ERROR 26375 --- [CyberWatch] [restartedMain] o.e.c.features.ticket.service.S3Service  : Misslyckades konfigurera CORS för bucket 'ticket-files': A header you provided implies functionality that is not implemented (Service: S3, Status Code: 501, Request ID: 18A8C09635C8FAD4, Extended Request ID: dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8)
+
+software.amazon.awssdk.services.s3.model.S3Exception: A header you provided implies functionality that is not implemented (Service: S3, Status Code: 501, Request ID: 18A8C09635C8FAD4, Extended Request ID: dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8)
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handleErrorResponse(AwsXmlPredicatedResponseHandler.java:156) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handleResponse(AwsXmlPredicatedResponseHandler.java:108) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handle(AwsXmlPredicatedResponseHandler.java:85) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.protocols.xml.internal.unmarshall.AwsXmlPredicatedResponseHandler.handle(AwsXmlPredicatedResponseHandler.java:43) ~[aws-xml-protocol-2.25.53.jar:na]
+	at software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler$Crc32ValidationResponseHandler.handle(AwsSyncClientHandler.java:93) ~[aws-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseClientHandler.lambda$successTransformationResponseHandler$7(BaseClientHandler.java:279) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage.execute(HandleResponseStage.java:50) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage.execute(HandleResponseStage.java:38) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage.execute(ApiCallAttemptTimeoutTrackingStage.java:72) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage.execute(ApiCallAttemptTimeoutTrackingStage.java:42) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage.execute(TimeoutExceptionHandlingStage.java:78) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage.execute(TimeoutExceptionHandlingStage.java:40) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage.execute(ApiCallAttemptMetricCollectionStage.java:55) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage.execute(ApiCallAttemptMetricCollectionStage.java:39) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage.execute(RetryableStage.java:81) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage.execute(RetryableStage.java:36) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.StreamManagingStage.execute(StreamManagingStage.java:56) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.StreamManagingStage.execute(StreamManagingStage.java:36) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage.executeWithTimer(ApiCallTimeoutTrackingStage.java:80) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage.execute(ApiCallTimeoutTrackingStage.java:60) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage.execute(ApiCallTimeoutTrackingStage.java:42) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage.execute(ApiCallMetricCollectionStage.java:50) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage.execute(ApiCallMetricCollectionStage.java:32) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder$ComposingRequestPipelineStage.execute(RequestPipelineBuilder.java:206) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage.execute(ExecutionFailureExceptionReportingStage.java:37) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage.execute(ExecutionFailureExceptionReportingStage.java:26) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient$RequestExecutionBuilderImpl.execute(AmazonSyncHttpClient.java:224) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.invoke(BaseSyncClientHandler.java:103) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.doExecute(BaseSyncClientHandler.java:173) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.lambda$execute$1(BaseSyncClientHandler.java:80) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.measureApiCallSuccess(BaseSyncClientHandler.java:182) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.internal.handler.BaseSyncClientHandler.execute(BaseSyncClientHandler.java:74) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.core.client.handler.SdkSyncClientHandler.execute(SdkSyncClientHandler.java:45) ~[sdk-core-2.25.53.jar:na]
+	at software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler.execute(AwsSyncClientHandler.java:53) ~[aws-core-2.25.53.jar:na]
+	at software.amazon.awssdk.services.s3.DefaultS3Client.putBucketCors(DefaultS3Client.java:8209) ~[s3-2.25.53.jar:na]
+	at software.amazon.awssdk.services.s3.S3Client.putBucketCors(S3Client.java:16007) ~[s3-2.25.53.jar:na]
+	at org.example.cyberwatch.features.ticket.service.S3Service.configureCors(S3Service.java:111) ~[classes/:na]
+	at org.example.cyberwatch.features.ticket.service.S3Service.init(S3Service.java:46) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod.invoke(InitDestroyAnnotationBeanPostProcessor.java:453) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:397) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:217) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:426) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1809) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:603) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1704) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1651) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1382) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1221) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:201) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:1225) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1704) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1651) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:912) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:240) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1382) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1221) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:565) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:525) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:333) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:371) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:331) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:196) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.instantiateSingleton(DefaultListableBeanFactory.java:1218) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingleton(DefaultListableBeanFactory.java:1184) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:1121) ~[spring-beans-7.0.6.jar:7.0.6]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:994) ~[spring-context-7.0.6.jar:7.0.6]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:621) ~[spring-context-7.0.6.jar:7.0.6]
+	at org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:143) ~[spring-boot-web-server-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:756) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:445) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:321) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1365) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-4.0.4.jar:4.0.4]
+	at org.example.cyberwatch.CyberWatchApplication.main(CyberWatchApplication.java:10) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:52) ~[spring-boot-devtools-4.0.4.jar:4.0.4]
+
+2026-04-22T20:16:44.533+02:00  WARN 26375 --- [CyberWatch] [restartedMain] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-22T20:16:44.739+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.s.b.w.a.WelcomePageHandlerMapping      : Adding welcome page: class path resource [static/index.html]
+2026-04-22T20:16:44.858+02:00  WARN 26375 --- [CyberWatch] [restartedMain] ion$DefaultTemplateResolverConfiguration : Cannot find template location: classpath:/templates/ (please add some templates, check your Thymeleaf configuration, or set spring.thymeleaf.check-template-location=false)
+2026-04-22T20:16:45.254+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-04-22T20:16:45.312+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+2026-04-22T20:16:45.317+02:00  INFO 26375 --- [CyberWatch] [restartedMain] o.e.cyberwatch.CyberWatchApplication     : Started CyberWatchApplication in 5.247 seconds (process running for 5.871)
+2026-04-22T20:16:45.505+02:00  INFO 26375 --- [CyberWatch] [http-nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-22T20:16:45.506+02:00  INFO 26375 --- [CyberWatch] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-22T20:16:45.507+02:00  INFO 26375 --- [CyberWatch] [http-nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-04-22T20:17:10.826+02:00  INFO 26375 --- [CyberWatch] [http-nio-8080-exec-8] o.e.c.f.staff.service.StaffService       : Staff 1 status updated to OFFLINE
+2026-04-22T20:17:16.798+02:00  INFO 26375 --- [CyberWatch] [http-nio-8080-exec-9] o.e.c.f.staff.service.StaffService       : Staff 1 status updated to BUSY
+2026-04-22T20:17:21.703+02:00  INFO 26375 --- [CyberWatch] [http-nio-8080-exec-3] o.e.c.f.staff.service.StaffService       : Staff 1 status updated to ONLINE
+2026-04-22T20:17:51.469+02:00  WARN 26375 --- [CyberWatch] [http-nio-8080-exec-6] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<org.example.cyberwatch.features.form.dto.EmploymentFormDTO> org.example.cyberwatch.features.form.controller.EmploymentFormController.createEmploymentForm(org.example.cyberwatch.features.form.dto.CreateEmploymentDTO,org.springframework.security.core.Authentication): [Field error in object 'createEmploymentDTO' on field 'socialSecurityNumber': rejected value [199102042020]; codes [Pattern.createEmploymentDTO.socialSecurityNumber,Pattern.socialSecurityNumber,Pattern.java.lang.String,Pattern]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [createEmploymentDTO.socialSecurityNumber,socialSecurityNumber]; arguments []; default message [socialSecurityNumber],[Ljakarta.validation.constraints.Pattern$Flag;@31b72bce,\d{6}-\d{4}|\d{8}-\d{4}]; default message [Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN]] ]
+2026-04-22T20:20:00.583+02:00  INFO 26375 --- [CyberWatch] [SpringApplicationShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-22T20:20:00.597+02:00  INFO 26375 --- [CyberWatch] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-04-22T20:20:00.613+02:00  INFO 26375 --- [CyberWatch] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-04-22T20:20:00.625+02:00  INFO 26375 --- [CyberWatch] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-04-22T20:20:00.677+02:00  INFO 26375 --- [CyberWatch] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
