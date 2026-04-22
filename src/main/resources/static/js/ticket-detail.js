@@ -77,7 +77,7 @@ async function loadComments(id) {
     list.innerHTML = comments.length ? comments.map(c => `
     <div class="comment-item">
         <div class="comment-header"><span>${escapeHtml(c.authorName || c.authorEmail || 'Användare')}</span>
-                    <span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
+                    <span class="muted">${new Date(c.createdAt).toLocaleString('sv-SE')}</span></div>
         <div class="comment-text">${escapeHtml(c.text || c.content || c.commentText || "...")}</div>
     </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
 }
