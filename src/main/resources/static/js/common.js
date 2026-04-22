@@ -12,7 +12,7 @@ function escapeHtml(text) {
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
-        .replaceAll('\'', '&#39;');
+        .replaceAll("'", '&#39;');
 }
 
 function safeImageUrl(url) {
@@ -24,16 +24,6 @@ function safeImageUrl(url) {
         return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : fallback;
     } catch {
         return fallback;
-    }
-}
-
-function safeHttpUrl(url) {
-    if (!url) return "#";
-    try {
-        const parsed = new URL(url, window.location.origin);
-        return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "#";
-    } catch {
-        return "#";
     }
 }
 
@@ -113,6 +103,10 @@ async function renderNavbar() {
                 <a href="/pages/employment.html" class="sidebar-link ${path.includes('employment') ? 'active' : ''}">
                     Anställda
                 </a>
+                ${role === 'ADMIN' ? `
+                <a href="/pages/logs.html" class="sidebar-link ${path.includes('logs') ? 'active' : ''}">
+                    🔍 Systemloggar
+                </a>` : ''}
             </nav>
 
             <div class="sidebar-profile">
