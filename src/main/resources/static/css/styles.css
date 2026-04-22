@@ -10,7 +10,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: Inter, sans-serif;
     background: var(--bg);
     color: var(--text);
 }
@@ -382,6 +382,8 @@ input, select, textarea {
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 10px;
     padding: 6px;
+    max-height: min(40vh, 320px);
+    overflow-y: auto;
 }
 
 .online-staff-list.show { display: block; }

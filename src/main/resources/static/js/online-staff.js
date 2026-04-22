@@ -88,6 +88,7 @@ async function renderOnlineStaffList() {
 async function toggleOnlineStaffList() {
     const listElement = document.getElementById("onlineStaffList");
     const arrowElement = document.getElementById("onlineStaffArrow");
+    const toggleButton = document.getElementById("onlineStaffToggle");
 
     if (!listElement) return;
 
@@ -95,6 +96,9 @@ async function toggleOnlineStaffList() {
 
     if (isOpen) {
         listElement.classList.remove("show");
+        if (toggleButton) {
+            toggleButton.setAttribute("aria-expanded", "false");
+        }
         if (arrowElement) {
             arrowElement.textContent = "▾";
         }
@@ -102,6 +106,9 @@ async function toggleOnlineStaffList() {
     }
 
     listElement.classList.add("show");
+    if (toggleButton) {
+        toggleButton.setAttribute("aria-expanded", "true");
+    }
     if (arrowElement) {
         arrowElement.textContent = "▴";
     }
@@ -117,11 +124,21 @@ async function refreshOnlineStaffWidget() {
         await renderOnlineStaffList();
     }
 }
-
+let onlineStaffRefreshTimer = null;
 function initOnlineStaffWidget() {
     const toggleButton = document.getElementById("onlineStaffToggle");
     if (!toggleButton) return;
 
     toggleButton.addEventListener("click", toggleOnlineStaffList);
     refreshOnlineStaffWidget();
+
+    if (!onlineStaffRefreshTimer) {
+        onlineStaffRefreshTimer = window.setInterval(refreshOnlineStaffWidget, 30000);
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            refreshOnlineStaffWidget();
+        }
+    });
 }

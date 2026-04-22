@@ -110,7 +110,7 @@ async function renderNavbar() {
             </nav>
 
             <div class="sidebar-online-wrapper">
-                <button type="button" class="sidebar-online-box sidebar-online-button" id="onlineStaffToggle">
+                <button type="button" class="sidebar-online-box sidebar-online-button" id="onlineStaffToggle" aria-expanded="false" aria-controls="onlineStaffList">
                     <div>
                         <div class="sidebar-online-title">Online just nu</div>
                         <div class="sidebar-online-count" id="onlineStaffCount">0</div>
@@ -119,7 +119,7 @@ async function renderNavbar() {
                     <div class="sidebar-online-arrow" id="onlineStaffArrow">▾</div>
                 </button>
 
-                <div class="online-staff-list" id="onlineStaffList"></div>
+                <div class="online-staff-list" id="onlineStaffList" aria-live="polite"></div>
             </div>
 
             <div class="sidebar-profile">
