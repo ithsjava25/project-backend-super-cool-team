@@ -47,6 +47,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Google OAuth2-flödets endpoints måste vara öppna
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                        // Systemloggsidan ska endast vara synlig för ADMIN
+                        // — måste stå INNAN /pages/** wildcarden nedan, annars träffar wildcarden först
+                        .requestMatchers("/pages/logs.html").hasRole("ADMIN")
                         // Statiska filer och frontend-sidor
                         .requestMatchers(
                                 "/",

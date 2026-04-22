@@ -97,7 +97,7 @@ public class TicketService {
 
         activityLogService.logAssignmentChange(savedTicket, creator, assignedStaff);
 
-        log.info("Ticket skapad: {} av staffId={} ({})", savedTicket.getTicketCode(), creator.getId(), creator.getEmail());
+        log.info("Ticket skapad: {} av staffId={}", savedTicket.getTicketCode(), creator.getId());
 
         return TicketResponseDTO.from(savedTicket);
     }
@@ -138,7 +138,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, saved.getStatus());
 
-        log.info("Ticket {} status avancerad: {} → {} av staffId={}", saved.getTicketCode(), oldStatus, saved.getStatus(), performedById);
+        log.info("Ticket {} status avancerad: {} → {}", saved.getTicketCode(), oldStatus, saved.getStatus());
 
         return TicketResponseDTO.from(saved);
     }
@@ -152,7 +152,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, newStatus);
 
-        log.info("Ticket {} status ändrad: {} → {} av staffId={}", saved.getTicketCode(), oldStatus, newStatus, performedById);
+        log.info("Ticket {} status ändrad: {} → {}", saved.getTicketCode(), oldStatus, newStatus);
 
         return TicketResponseDTO.from(saved);
     }
@@ -165,7 +165,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, Status.REOPENED);
 
-        log.info("Ticket {} återöppnad av staffId={}", saved.getTicketCode(), performedById);
+        log.info("Ticket {} återöppnad", saved.getTicketCode());
 
         return TicketResponseDTO.from(saved);
     }
@@ -179,7 +179,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logAssignmentChange(saved, assigner, staffList);
 
-        log.info("Ticket {} tilldelad till {} person(er) av staffId={}", saved.getTicketCode(), staffList.size(), assignedById);
+        log.info("Ticket {} tilldelad till {} person(er)", saved.getTicketCode(), staffList.size());
 
         return TicketResponseDTO.from(saved);
     }
@@ -218,7 +218,8 @@ public class TicketService {
 
         activityLogService.logFileUpload(ticket, uploader, originalFileName);
 
-        log.info("Fil uppladdad till ticket {}: '{}' av staffId={}", ticket.getTicketCode(), originalFileName, uploadedById);
+        // Loggar attachmentId istället för filnamnet för att undvika att läcka användardata i loggar
+        log.info("Fil uppladdad till ticket {}: attachmentId={}", ticket.getTicketCode(), saved.getId());
 
         return Map.of(
                 "message", "Filen laddades upp.",
@@ -230,8 +231,10 @@ public class TicketService {
 
     public void deleteTicket(Long id) {
         Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
-        log.info("Ticket {} raderad ({})", ticket.getTicketCode(), ticket.getTitle());
+        String ticketCode = ticket.getTicketCode();
         ticketRepository.delete(ticket);
+        // Loggar efter delete så att koden bara körs om raderingen lyckades
+        log.info("Ticket {} raderad", ticketCode);
     }
 
     private void validateStatusTransition(Status current, Status next) {

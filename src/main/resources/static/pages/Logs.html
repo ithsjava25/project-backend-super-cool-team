@@ -96,6 +96,7 @@
         .level-badge-WARN   { background: #fffbeb; color: #d97706; border-color: #fcd34d; }
         .level-badge-INFO   { background: #f0fdf4; color: #16a34a; border-color: #86efac; }
         .level-badge-DEBUG  { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
+        .level-badge-TRACE  { background: #f5f3ff; color: #7c3aed; border-color: #c4b5fd; }
 
         #emptyState   { text-align: center; padding: 3rem; color: #64748b; }
         #loadingState { text-align: center; padding: 3rem; color: #64748b; }
@@ -151,6 +152,7 @@
             <span class="level-badge level-badge-WARN  active" data-level="WARN">WARN</span>
             <span class="level-badge level-badge-INFO  active" data-level="INFO">INFO</span>
             <span class="level-badge level-badge-DEBUG active" data-level="DEBUG">DEBUG</span>
+            <span class="level-badge level-badge-TRACE active" data-level="TRACE">TRACE</span>
 
             <button id="scrollBottomBtn" class="btn btn-secondary" style="margin-left:auto;">↓ Scrolla ner</button>
             <button id="downloadBtn" class="btn btn-secondary">⬇ Ladda ner</button>
@@ -173,11 +175,14 @@
 <script src="/js/common.js"></script>
 <script>
     let rawLogLines  = [];
-    let activeLevels = new Set(['ERROR', 'WARN', 'INFO', 'DEBUG']);
+    // TRACE inkluderat — annars är TRACE-rader dolda utan möjlighet att aktivera dem
+    let activeLevels = new Set(['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE']);
     let searchTerm   = '';
     let liveInterval = null;
     let isLive       = true;
-    const INTERVAL_MS = 5000;
+    const INTERVAL_MS       = 5000;
+    // Rendera max 2000 rader för att undvika DOM-bloat när loggfilen växer
+    const MAX_RENDERED_LINES = 2000;
 
     const logContainer  = document.getElementById('logContainer');
     const loadingState  = document.getElementById('loadingState');
@@ -192,6 +197,7 @@
     const toggleLiveBtn = document.getElementById('toggleLiveBtn');
     const refreshBtn    = document.getElementById('refreshBtn');
 
+    // Returnerar true om polling ska fortsätta, false om den ska stoppas
     async function fetchLogs() {
         try {
             const response = await fetch('/actuator/logfile', {
@@ -202,24 +208,31 @@
             if (response.status === 403) {
                 showError('Du har inte behörighet att se loggar (kräver ADMIN-roll).');
                 stopLive();
-                return;
+                return false;
             }
             if (response.status === 401) {
                 window.location.href = '/pages/login.html';
-                return;
+                return false;
             }
             if (!response.ok) {
                 showError(`Kunde inte hämta loggar (HTTP ${response.status}). Kontrollera att logging.file.name är konfigurerat i application.properties.`);
-                return;
+                return false;
             }
 
-            const text  = await response.text();
-            rawLogLines = text.split('\n').filter(l => l.trim().length > 0);
+            const text = await response.text();
+            // Slice de sista MAX_RENDERED_LINES raderna för att hålla DOM-storleken hanterbar
+            rawLogLines = text
+                .split('\n')
+                .filter(l => l.trim().length > 0)
+                .slice(-MAX_RENDERED_LINES);
+
             renderLogs();
             updateMeta();
             lastUpdatedEl.textContent = 'Uppdaterad ' + new Date().toLocaleTimeString('sv-SE');
+            return true;
         } catch (err) {
             showError('Nätverksfel: ' + err.message);
+            return false;
         }
     }
 
@@ -339,8 +352,10 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         await renderNavbar();
-        await fetchLogs();
-        startLive();
+        // Starta live-polling bara om första hämtningen lyckas
+        // — förhindrar att icke-ADMIN användare fortsätter polla efter 403
+        const canPoll = await fetchLogs();
+        if (canPoll) startLive();
     });
 </script>
 </body>
