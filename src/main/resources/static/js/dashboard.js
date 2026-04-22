@@ -36,7 +36,14 @@ async function loadDashboardTickets() {
             console.error("Stats error", e);
         }
 
-        const res = await apiFetch(`/tickets?status=${s}&priority=${p}&search=${q}&assignedStaffId=${staffId}`);
+        const params = new URLSearchParams({
+            status: s,
+            priority: p,
+            search: q,
+            assignedStaffId: staffId
+        });
+        const res = await apiFetch(`/tickets?${params.toString()}`);
+
         if (!res.ok) return list.innerHTML = "<p>Kunde inte hämta tickets.</p>";
         const tickets = await res.json();
 
@@ -53,8 +60,12 @@ async function loadDashboardTickets() {
             const assignedIds = t.assignedStaff?.map(s => s.id) || [];
 
             item.innerHTML = `
-                <div class="ticket-main" onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'">
-                    <div class="ticket-header">
+    <div class="ticket-main"
+         role="link"
+         tabindex="0"
+         aria-label="Ticket ${t.id}: ${escapeHtml(t.title)}"
+         onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'"
+         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">                    <div class="ticket-header">
                         <span class="badge badge-${t.status}">${t.status}</span>
                         <span class="ticket-title">${escapeHtml(t.title)}</span>
                     </div>

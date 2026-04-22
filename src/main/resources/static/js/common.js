@@ -12,6 +12,18 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function safeImageUrl(url) {
+    const fallback = "https://via.placeholder.com/40";
+    if (!url) return fallback;
+
+    try {
+        const parsed = new URL(url, window.location.origin);
+        return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 function getHeaders() {
     const headers = {"Content-Type": "application/json"};
     const csrf = getCsrfToken();
@@ -53,7 +65,7 @@ async function renderNavbar() {
         currentUser?.fullName ||
         (currentUser?.firstName || currentUser?.lastName ? `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim() : "Användare");
 
-    const profileImage = currentUser?.profilePictureUrl || "https://via.placeholder.com/40";
+    const profileImage = safeImageUrl(currentUser?.profilePictureUrl);
     const status = currentUser?.status || "ONLINE";
     const role = currentUser?.role || "";
 
@@ -76,7 +88,7 @@ async function renderNavbar() {
             </nav>
 
             <div class="sidebar-profile">
-                <img src="${profileImage}" alt="Profilbild" class="sidebar-profile-img">
+                <img src="${escapeHtml(profileImage)}" alt="Profilbild" class="sidebar-profile-img">
                 <div class="sidebar-profile-info">
                     <div class="sidebar-profile-name">${escapeHtml(fullName)}</div>
                     <div class="sidebar-profile-role">${escapeHtml(role)}</div>
