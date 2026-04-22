@@ -138,7 +138,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, saved.getStatus());
 
-        log.info("Ticket {} status avancerad: {} → {}", saved.getTicketCode(), oldStatus, saved.getStatus());
+        log.info("Ticket {} status avancerad: {} → {} av staffId={}", saved.getTicketCode(), oldStatus, saved.getStatus(), performedById);
 
         return TicketResponseDTO.from(saved);
     }
@@ -152,7 +152,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, newStatus);
 
-        log.info("Ticket {} status ändrad: {} → {}", saved.getTicketCode(), oldStatus, newStatus);
+        log.info("Ticket {} status ändrad: {} → {} av staffId={}", saved.getTicketCode(), oldStatus, newStatus, performedById);
 
         return TicketResponseDTO.from(saved);
     }
@@ -165,7 +165,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logStatusChange(saved, performer, oldStatus, Status.REOPENED);
 
-        log.info("Ticket {} återöppnad", saved.getTicketCode());
+        log.info("Ticket {} återöppnad av staffId={}", saved.getTicketCode(), performedById);
 
         return TicketResponseDTO.from(saved);
     }
@@ -179,7 +179,7 @@ public class TicketService {
         Ticket saved = ticketRepository.save(ticket);
         activityLogService.logAssignmentChange(saved, assigner, staffList);
 
-        log.info("Ticket {} tilldelad till {} person(er)", saved.getTicketCode(), staffList.size());
+        log.info("Ticket {} tilldelad till {} person(er) av staffId={}", saved.getTicketCode(), staffList.size(), assignedById);
 
         return TicketResponseDTO.from(saved);
     }
@@ -218,8 +218,7 @@ public class TicketService {
 
         activityLogService.logFileUpload(ticket, uploader, originalFileName);
 
-        // Loggar attachmentId istället för filnamnet för att undvika att läcka användardata i loggar
-        log.info("Fil uppladdad till ticket {}: attachmentId={}", ticket.getTicketCode(), saved.getId());
+        log.info("Fil uppladdad till ticket {}: attachmentId={} av staffId={}", ticket.getTicketCode(), saved.getId(), uploadedById);
 
         return Map.of(
                 "message", "Filen laddades upp.",
@@ -233,7 +232,6 @@ public class TicketService {
         Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
         String ticketCode = ticket.getTicketCode();
         ticketRepository.delete(ticket);
-        // Loggar efter delete så att koden bara körs om raderingen lyckades
         log.info("Ticket {} raderad", ticketCode);
     }
 

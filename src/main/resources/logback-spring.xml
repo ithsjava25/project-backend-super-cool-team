@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Konsolloggning (behålls för lokal utveckling / Docker-loggar) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Filloggning med automatisk rotation -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- Aktiv loggfil — samma sökväg som logging.file.name i application.properties -->
+        <file>logs/cyberwatch.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- Rullas vid midnatt eller när filen når maxFileSize -->
+            <!-- %i är ett löpnummer om flera filer skapas samma dag -->
+            <fileNamePattern>logs/cyberwatch.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- Max storlek per fil innan rotation -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- Antal dagar att behålla gamla loggfiler -->
+            <maxHistory>30</maxHistory>
+            <!-- Totalt diskutrymme för alla loggfiler tillsammans -->
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Minska brus från Spring/Hibernate i produktion -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate"       level="WARN"/>
+
+    <!-- Er applikationskod loggar på INFO -->
+    <logger name="org.example.cyberwatch" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
