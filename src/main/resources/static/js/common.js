@@ -41,8 +41,18 @@ async function apiFetch(endpoint, options = {}) {
     return response;
 }
 
-function logout() {
-    window.location.href = "/logout";
+// FIX 3 (Major): Use POST so Spring Security actually invalidates the session.
+// A plain GET to /logout only shows a confirmation page when CSRF is enabled.
+async function logout() {
+    try {
+        await fetch("/logout", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: getHeaders()
+        });
+    } finally {
+        window.location.href = "/pages/login.html";
+    }
 }
 
 async function renderNavbar() {
@@ -108,16 +118,24 @@ async function renderNavbar() {
 
     const statusSelect = document.getElementById("statusSelect");
     if (statusSelect) {
+        let previousStatus = statusSelect.value;
+
         statusSelect.addEventListener("change", async (e) => {
+            const nextStatus = e.target.value;
             try {
-                const res = await apiFetch(`/staff/me/status?status=${encodeURIComponent(e.target.value)}`, {
+                const res = await apiFetch(`/staff/me/status?status=${encodeURIComponent(nextStatus)}`, {
                     method: "PATCH"
                 });
 
                 if (!res.ok) {
+                    e.target.value = previousStatus;
                     alert("Kunde inte uppdatera status.");
+                    return;
                 }
+
+                previousStatus = nextStatus;
             } catch (err) {
+                e.target.value = previousStatus;
                 console.error(err);
                 alert("Något gick fel när status skulle sparas.");
             }
@@ -136,10 +154,16 @@ async function loadStaffList(selectId, selectedIds = []) {
         const firstOption = select.querySelector('option[value=""]');
         const existingDefault = firstOption ? firstOption.outerHTML : '<option value="">Välj...</option>';
 
+        // FIX 1 (Major): Normalize all IDs to strings so includes() matches reliably
+        // regardless of whether the API returns numbers and the caller passes strings (or vice versa).
+        const selectedIdSet = new Set(selectedIds.map(String));
+
         let staffOptions = staff.map(s => {
-            const isAssigned = selectedIds.includes(s.id);
+            const staffId = String(s.id);
+            const isAssigned = selectedIdSet.has(staffId);
             const className = isAssigned ? 'class="badge-assigned"' : '';
-            return `<option value="${s.id}" ${className}>${escapeHtml(s.fullName)} (${escapeHtml(s.email)})</option>`;
+            const selectedAttr = isAssigned ? 'selected' : '';
+            return `<option value="${escapeHtml(staffId)}" ${className} ${selectedAttr}>${escapeHtml(s.fullName)} (${escapeHtml(s.email)})</option>`;
         }).join('');
 
         select.innerHTML = existingDefault + staffOptions;
