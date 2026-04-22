@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Systemloggar - CyberWatch</title>
+    <link rel="stylesheet" href="/css/styles.css"/>
+    <style>
+        .log-toolbar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .log-toolbar input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #logContainer {
+            background: #0f172a;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            max-height: 65vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid #1e293b;
+        }
+
+        .log-ERROR { color: #f87171; font-weight: 700; }
+        .log-WARN  { color: #fbbf24; font-weight: 600; }
+        .log-INFO  { color: #34d399; }
+        .log-DEBUG { color: #60a5fa; }
+        .log-TRACE { color: #a78bfa; }
+
+        .log-line { display: block; padding: 1px 0; }
+        .log-line:hover { background: rgba(255,255,255,0.04); border-radius: 3px; }
+
+        .log-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #34d399;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            animation: pulse 1.5s infinite;
+        }
+
+        .live-dot.paused {
+            background: #64748b;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.15s;
+            opacity: 0.4;
+            user-select: none;
+        }
+
+        .level-badge.active { opacity: 1; }
+        .level-badge-ERROR  { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+        .level-badge-WARN   { background: #fffbeb; color: #d97706; border-color: #fcd34d; }
+        .level-badge-INFO   { background: #f0fdf4; color: #16a34a; border-color: #86efac; }
+        .level-badge-DEBUG  { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
+
+        #emptyState   { text-align: center; padding: 3rem; color: #64748b; }
+        #loadingState { text-align: center; padding: 3rem; color: #64748b; }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-box {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<main class="main-content">
+    <section class="page-header">
+        <div>
+            <h1>Systemloggar</h1>
+            <p class="muted">Realtidsloggning — endast ADMIN</p>
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+            <span class="live-indicator" id="liveIndicator">
+                <span class="live-dot" id="liveDot"></span>
+                <span id="liveLabel">Live</span>
+            </span>
+            <button id="toggleLiveBtn" class="btn btn-secondary">Pausa</button>
+            <button id="refreshBtn" class="btn btn-primary">↻ Uppdatera</button>
+        </div>
+    </section>
+
+    <div class="card">
+        <div class="log-toolbar">
+            <input type="text" id="searchLog" placeholder="Sök i loggen..."/>
+
+            <span class="level-badge level-badge-ERROR active" data-level="ERROR">ERROR</span>
+            <span class="level-badge level-badge-WARN  active" data-level="WARN">WARN</span>
+            <span class="level-badge level-badge-INFO  active" data-level="INFO">INFO</span>
+            <span class="level-badge level-badge-DEBUG active" data-level="DEBUG">DEBUG</span>
+
+            <button id="scrollBottomBtn" class="btn btn-secondary" style="margin-left:auto;">↓ Scrolla ner</button>
+            <button id="downloadBtn" class="btn btn-secondary">⬇ Ladda ner</button>
+        </div>
+
+        <div class="log-meta">
+            <span id="lineCount">0 rader</span>
+            <span id="errorCount" style="color:#f87171;">0 fel</span>
+            <span id="warnCount"  style="color:#fbbf24;">0 varningar</span>
+            <span id="lastUpdated">Aldrig uppdaterad</span>
+        </div>
+
+        <div id="loadingState"><span class="spinner"></span> Laddar loggar...</div>
+        <div id="emptyState"   style="display:none;">Inga loggar hittades.</div>
+        <div id="errorState"   style="display:none;"></div>
+        <div id="logContainer" style="display:none;"></div>
+    </div>
+</main>
+
+<script src="/js/common.js"></script>
+<script>
+    let rawLogLines  = [];
+    let activeLevels = new Set(['ERROR', 'WARN', 'INFO', 'DEBUG']);
+    let searchTerm   = '';
+    let liveInterval = null;
+    let isLive       = true;
+    const INTERVAL_MS = 5000;
+
+    const logContainer  = document.getElementById('logContainer');
+    const loadingState  = document.getElementById('loadingState');
+    const emptyState    = document.getElementById('emptyState');
+    const errorState    = document.getElementById('errorState');
+    const lineCountEl   = document.getElementById('lineCount');
+    const errorCountEl  = document.getElementById('errorCount');
+    const warnCountEl   = document.getElementById('warnCount');
+    const lastUpdatedEl = document.getElementById('lastUpdated');
+    const liveDot       = document.getElementById('liveDot');
+    const liveLabel     = document.getElementById('liveLabel');
+    const toggleLiveBtn = document.getElementById('toggleLiveBtn');
+    const refreshBtn    = document.getElementById('refreshBtn');
+
+    async function fetchLogs() {
+        try {
+            const response = await fetch('/actuator/logfile', {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'text/plain' }
+            });
+
+            if (response.status === 403) {
+                showError('Du har inte behörighet att se loggar (kräver ADMIN-roll).');
+                stopLive();
+                return;
+            }
+            if (response.status === 401) {
+                window.location.href = '/pages/login.html';
+                return;
+            }
+            if (!response.ok) {
+                showError(`Kunde inte hämta loggar (HTTP ${response.status}). Kontrollera att logging.file.name är konfigurerat i application.properties.`);
+                return;
+            }
+
+            const text  = await response.text();
+            rawLogLines = text.split('\n').filter(l => l.trim().length > 0);
+            renderLogs();
+            updateMeta();
+            lastUpdatedEl.textContent = 'Uppdaterad ' + new Date().toLocaleTimeString('sv-SE');
+        } catch (err) {
+            showError('Nätverksfel: ' + err.message);
+        }
+    }
+
+    function renderLogs() {
+        const filtered = rawLogLines.filter(line => {
+            const level = detectLevel(line);
+            if (!activeLevels.has(level)) return false;
+            if (searchTerm && !line.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+            return true;
+        });
+
+        loadingState.style.display = 'none';
+        errorState.style.display   = 'none';
+
+        if (filtered.length === 0) {
+            logContainer.style.display = 'none';
+            emptyState.style.display   = 'block';
+            return;
+        }
+
+        emptyState.style.display   = 'none';
+        logContainer.style.display = 'block';
+
+        const wasAtBottom = isScrolledToBottom();
+
+        logContainer.innerHTML = filtered
+            .map(line => {
+                const level = detectLevel(line);
+                const cls   = level ? `log-${level}` : '';
+                return `<span class="log-line ${cls}">${escapeHtml(line)}</span>`;
+            })
+            .join('\n');
+
+        if (wasAtBottom) scrollToBottom();
+    }
+
+    function detectLevel(line) {
+        if (/\bERROR\b/.test(line)) return 'ERROR';
+        if (/\bWARN\b/.test(line))  return 'WARN';
+        if (/\bINFO\b/.test(line))  return 'INFO';
+        if (/\bDEBUG\b/.test(line)) return 'DEBUG';
+        if (/\bTRACE\b/.test(line)) return 'TRACE';
+        return 'INFO';
+    }
+
+    function updateMeta() {
+        lineCountEl.textContent  = rawLogLines.length.toLocaleString('sv-SE') + ' rader';
+        errorCountEl.textContent = rawLogLines.filter(l => /\bERROR\b/.test(l)).length + ' fel';
+        warnCountEl.textContent  = rawLogLines.filter(l => /\bWARN\b/.test(l)).length  + ' varningar';
+    }
+
+    function showError(msg) {
+        loadingState.style.display = 'none';
+        logContainer.style.display = 'none';
+        emptyState.style.display   = 'none';
+        errorState.style.display   = 'block';
+        errorState.innerHTML       = `<div class="error-box">⚠️ ${escapeHtml(msg)}</div>`;
+    }
+
+    function isScrolledToBottom() {
+        return logContainer.scrollHeight - logContainer.scrollTop - logContainer.clientHeight < 50;
+    }
+
+    function scrollToBottom() {
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function startLive() {
+        isLive = true;
+        liveDot.classList.remove('paused');
+        liveLabel.textContent     = 'Live';
+        toggleLiveBtn.textContent = 'Pausa';
+        liveInterval = setInterval(fetchLogs, INTERVAL_MS);
+    }
+
+    function stopLive() {
+        isLive = false;
+        clearInterval(liveInterval);
+        liveDot.classList.add('paused');
+        liveLabel.textContent     = 'Pausad';
+        toggleLiveBtn.textContent = 'Återuppta';
+    }
+
+    toggleLiveBtn.addEventListener('click', () => isLive ? stopLive() : startLive());
+    refreshBtn.addEventListener('click', fetchLogs);
+
+    document.getElementById('scrollBottomBtn').addEventListener('click', scrollToBottom);
+
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+        const blob = new Blob([rawLogLines.join('\n')], { type: 'text/plain' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `cyberwatch-${new Date().toISOString().slice(0, 10)}.log`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('searchLog').addEventListener('input', e => {
+        searchTerm = e.target.value;
+        renderLogs();
+    });
+
+    document.querySelectorAll('.level-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            const level = badge.dataset.level;
+            if (activeLevels.has(level)) {
+                activeLevels.delete(level);
+                badge.classList.remove('active');
+            } else {
+                activeLevels.add(level);
+                badge.classList.add('active');
+            }
+            renderLogs();
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await renderNavbar();
+        await fetchLogs();
+        startLive();
+    });
+</script>
+</body>
+</html>

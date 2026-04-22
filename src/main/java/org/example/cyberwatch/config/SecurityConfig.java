@@ -57,6 +57,8 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**"
                         ).permitAll()
+                        // Actuator-endpoints – endast ADMIN får se systemloggar
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         // Alla inloggade får läsa staff (behövs för ticket-dropdowns)
                         .requestMatchers(HttpMethod.GET, "/api/staff/**").authenticated()
                         // Endast HR, CEO, CTO & ADMIN får skriva/ändra staff
@@ -77,7 +79,8 @@ public class SecurityConfig {
                 // Redirect till login vid 401
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
-                            if (request.getRequestURI().startsWith("/api/")) {
+                            if (request.getRequestURI().startsWith("/api/")
+                                    || request.getRequestURI().startsWith("/actuator/")) {
                                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                                 response.setContentType("application/json");
                                 response.getWriter().write("{\"error\":\"unauthorized\"}");
