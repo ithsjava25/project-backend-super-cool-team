@@ -75,6 +75,21 @@ public class TicketSecurityService {
                 .orElse(false);
     }
 
+    /**
+     * Kontrollerar om den inloggade användaren är ADMIN.
+     * Loggar vem som nekades om de inte är det — till skillnad från
+     * hasRole('ADMIN') som kastar exception utan att logga staffId.
+     */
+    public boolean isAdmin(Authentication authentication) {
+        if (!(authentication.getPrincipal() instanceof Staff staff)) return false;
+        boolean admin = staff.getRole() == Role.ADMIN;
+        if (!admin) {
+            log.warn("Åtkomst nekad för staffId={} role={} — kräver ADMIN-roll",
+                    staff.getId(), staff.getRole());
+        }
+        return admin;
+    }
+
     private boolean hasAccess(Ticket ticket, Staff requester) {
         boolean isOwner = ticket.getCreatedBy() != null &&
                 ticket.getCreatedBy().getId().equals(requester.getId());
