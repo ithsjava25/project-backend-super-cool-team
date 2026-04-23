@@ -73,6 +73,7 @@ async function loadDashboardTickets() {
 
             const assignedStaffNames = t.assignedStaff?.map(s => escapeHtml(s.fullName)).join(', ') || 'Ingen';
             const assignedIds = t.assignedStaff?.map(s => s.id) || [];
+            const createdByName = escapeHtml(t.createdBy?.fullName || 'Okänd');
 
             item.innerHTML = `
     <div class="ticket-main"
@@ -80,7 +81,8 @@ async function loadDashboardTickets() {
          tabindex="0"
          aria-label="Ticket ${t.id}: ${escapeHtml(t.title)}"
          onclick="window.location.href='/pages/ticket-detail.html?id=${t.id}'"
-         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">                    <div class="ticket-header">
+         onkeydown="if(event.key==='Enter'||event.key===' ')window.location.href='/pages/ticket-detail.html?id=${t.id}'">
+                    <div class="ticket-header">
                         <span class="badge badge-${t.status}">${t.status}</span>
                         <span class="ticket-title">${escapeHtml(t.title)}</span>
                     </div>
@@ -91,6 +93,7 @@ async function loadDashboardTickets() {
                     </div>
                 </div>
                 <div class="ticket-actions">
+                    <span class="ticket-created-by">Skapad av: <strong>${createdByName}</strong></span>
                     <select class="dashboard-assignment-select" data-id="${t.id}" style="max-width: 150px;">
                         <option value="">Tilldela...</option>
                         ${allStaff.map(staff => {

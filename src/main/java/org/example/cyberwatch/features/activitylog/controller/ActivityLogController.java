@@ -3,7 +3,11 @@ package org.example.cyberwatch.features.activitylog.controller;
 import org.example.cyberwatch.features.activitylog.model.ActivityLogResponseDTO;
 import org.example.cyberwatch.features.activitylog.service.ActivityLogService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -17,6 +21,7 @@ public class ActivityLogController {
         this.activityLogService = activityLogService;
     }
 
+    @PreAuthorize("@ticketSecurity.canAccess(authentication, #ticketId)")
     @GetMapping
     public ResponseEntity<List<ActivityLogResponseDTO>> getLogs(@PathVariable Long ticketId) {
         return ResponseEntity.ok(activityLogService.getLogsForTicket(ticketId));

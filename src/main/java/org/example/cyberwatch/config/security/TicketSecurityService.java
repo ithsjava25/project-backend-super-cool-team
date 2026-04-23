@@ -4,6 +4,8 @@ import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.ticket.model.Ticket;
 import org.example.cyberwatch.features.ticket.repository.TicketRepository;
 import org.example.cyberwatch.shared.model.enums.Role;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,19 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * Förhöjda roller (ADMIN, CEO, CTO):
  *   – Ser och kan ändra ALLA ärenden oavsett tilldelning
- *   – CEO och CTO behöver ledningsöversikt över alla pågående ärenden
- *   – ADMIN har dessutom exklusiv rätt att tilldela och radera ärenden
  *
  * Standardroller (HR, PROJECT_MANAGER, CONSULTANT):
  *   – Ser och kan ändra BARA ärenden de skapat eller är tilldelade till
- *   – Principen om minsta möjliga åtkomst för att skydda sekretess
- *
- * @Transactional(readOnly = true) på publika metoder säkerställer att
- * lazy-laddade relationer (assignedStaff) kan nås utan LazyInitializationException,
- * oavsett om spring.jpa.open-in-view är aktiverat eller inte.
+ *   – Nekade åtkomstförsök loggas med staffId och roll
  */
 @Component("ticketSecurity")
 public class TicketSecurityService {
+
+    private static final Logger log = LoggerFactory.getLogger(TicketSecurityService.class);
 
     private final TicketRepository ticketRepository;
 
@@ -37,11 +35,7 @@ public class TicketSecurityService {
 
     /**
      * Kontrollerar om den inloggade användaren får se eller ändra ett specifikt ärende.
-     * Används av @PreAuthorize på endpoints som tar ticketId som path variable.
-     *
-     * @param authentication Spring Security-kontexten
-     * @param ticketId       ID på det ärende som ska nås
-     * @return true om åtkomst tillåts, false annars (→ 403)
+     * Nekade försök loggas med staffId, roll och ticketId.
      */
     @Transactional(readOnly = true)
     public boolean canAccess(Authentication authentication, Long ticketId) {
@@ -49,17 +43,20 @@ public class TicketSecurityService {
         if (isElevatedRole(requester.getRole())) return true;
 
         return ticketRepository.findById(ticketId)
-                .map(ticket -> hasAccess(ticket, requester))
+                .map(ticket -> {
+                    boolean access = hasAccess(ticket, requester);
+                    if (!access) {
+                        log.warn("Åtkomst nekad för staffId={} role={} — försökte nå ticketId={}",
+                                requester.getId(), requester.getRole(), ticketId);
+                    }
+                    return access;
+                })
                 .orElse(false);
     }
 
     /**
      * Samma behörighetskontroll som canAccess men för endpoints som
      * identifierar ärendet via ticketCode istället för ID.
-     *
-     * @param authentication Spring Security-kontexten
-     * @param ticketCode     ärendekoden, t.ex. "TICKET-1042"
-     * @return true om åtkomst tillåts, false annars (→ 403)
      */
     @Transactional(readOnly = true)
     public boolean canAccessByCode(Authentication authentication, String ticketCode) {
@@ -67,16 +64,32 @@ public class TicketSecurityService {
         if (isElevatedRole(requester.getRole())) return true;
 
         return ticketRepository.findByTicketCode(ticketCode)
-                .map(ticket -> hasAccess(ticket, requester))
+                .map(ticket -> {
+                    boolean access = hasAccess(ticket, requester);
+                    if (!access) {
+                        log.warn("Åtkomst nekad för staffId={} role={} — försökte nå ticketCode={}",
+                                requester.getId(), requester.getRole(), ticketCode);
+                    }
+                    return access;
+                })
                 .orElse(false);
     }
 
     /**
-     * Kontrollerar om en användare är skapare eller tilldelad handläggare på ett ärende.
-     *
-     * Privat hjälpmetod som eliminerar dupliceringen mellan canAccess och canAccessByCode.
-     * Anropas alltid inom en aktiv transaktion så att lazy-laddning av assignedStaff fungerar.
+     * Kontrollerar om den inloggade användaren är ADMIN.
+     * Loggar vem som nekades om de inte är det — till skillnad från
+     * hasRole('ADMIN') som kastar exception utan att logga staffId.
      */
+    public boolean isAdmin(Authentication authentication) {
+        if (!(authentication.getPrincipal() instanceof Staff staff)) return false;
+        boolean admin = staff.getRole() == Role.ADMIN;
+        if (!admin) {
+            log.warn("Åtkomst nekad för staffId={} role={} — kräver ADMIN-roll",
+                    staff.getId(), staff.getRole());
+        }
+        return admin;
+    }
+
     private boolean hasAccess(Ticket ticket, Staff requester) {
         boolean isOwner = ticket.getCreatedBy() != null &&
                 ticket.getCreatedBy().getId().equals(requester.getId());
@@ -85,12 +98,6 @@ public class TicketSecurityService {
         return isOwner || isAssigned;
     }
 
-    /**
-     * Förhöjda roller har bredare åtkomst än standardroller.
-     * ADMIN  – full systemkontroll
-     * CEO    – ledningsöversikt och eskalering
-     * CTO    – teknisk ledningsöversikt
-     */
     private boolean isElevatedRole(Role role) {
         return role == Role.ADMIN || role == Role.CEO || role == Role.CTO;
     }

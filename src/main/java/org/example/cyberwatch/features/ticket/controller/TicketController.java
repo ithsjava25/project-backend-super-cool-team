@@ -86,7 +86,8 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.reopenTicket(id, getAuthenticatedStaffId()));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // Ersatt hasRole('ADMIN') med isAdmin() så att nekade försök loggas med staffId
+    @PreAuthorize("@ticketSecurity.isAdmin(authentication)")
     @PutMapping("/{ticketId}/assign")
     public ResponseEntity<TicketResponseDTO> assignTicket(
             @PathVariable Long ticketId,
@@ -94,7 +95,8 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.assignTicket(ticketId, dto.getStaffIds(), getAuthenticatedStaffId()));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    // Ersatt hasRole('ADMIN') med isAdmin() så att nekade försök loggas med staffId
+    @PreAuthorize("@ticketSecurity.isAdmin(authentication)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);
@@ -111,10 +113,8 @@ public class TicketController {
         } catch (TicketNotFoundException e) {
             throw e;
         } catch (IllegalArgumentException e) {
-            // Här fångar vi valideringsfel och returnerar det specifika meddelandet
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            // Generellt fel för I/O eller S3-problem (500 Internal Server Error)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Uppladdning misslyckades på grund av ett tekniskt fel."));
         }
