@@ -47,6 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         staff.setPhoneNumber(phone);
         staff.setRole(role);
         staff.setDepartment(department);
+        staff.setStatus("OFFLINE");
         staff.setPassword(passwordEncoder.encode(rawPassword));
         return staff;
     }
