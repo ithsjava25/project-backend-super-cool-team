@@ -61,6 +61,6 @@ public class Staff {
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
 
-    @Column(name = "status")
-    private String status;
+    @Column(name = "status", nullable = false)
+    private String status = "OFFLINE";
 }

@@ -32,7 +32,7 @@
 
     <!-- Minska brus från Spring/Hibernate i produktion -->
     <logger name="org.springframework" level="WARN"/>
-    <logger name="org.hibernate"       level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
 
     <!-- Er applikationskod loggar på INFO -->
     <logger name="org.example.cyberwatch" level="INFO"/>

@@ -178,6 +178,13 @@ class StaffServiceTest {
     }
 
     @Test
+    @DisplayName("Should have OFFLINE as default status when creating new Staff entity")
+    void shouldHaveDefaultOfflineStatus() {
+        Staff staff = new Staff();
+        assertThat(staff.getStatus()).isEqualTo("OFFLINE");
+    }
+
+    @Test
     @DisplayName("Should return all staff when no filter is provided")
     void getStaffByRoleOrDepartment() {
         when(staffRepository.findAll()).thenReturn(List.of(newStaff));
