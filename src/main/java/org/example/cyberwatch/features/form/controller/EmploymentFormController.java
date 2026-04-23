@@ -5,6 +5,7 @@ import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
 import org.example.cyberwatch.features.form.service.EmploymentFormService;
+import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class EmploymentFormController {
     public ResponseEntity<EmploymentFormDTO> createEmploymentForm(@Valid @RequestBody CreateEmploymentDTO dto,
                                                                   Authentication authentication) {
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+        if (!(principal instanceof Staff staff)) {
             throw new AccessDeniedException("Principal must be a Staff object");
         }
         logger.info("Creating employment form by HR staff: {}", staff.getEmail());
@@ -43,7 +44,7 @@ public class EmploymentFormController {
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, Authentication authentication) {
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof org.example.cyberwatch.features.staff.model.Staff staff)) {
+        if (!(principal instanceof Staff staff)) {
             throw new AccessDeniedException("Principal must be a Staff object");
         }
         logger.info("Creating employment form with approval from staff: {}", staff.getEmail());
