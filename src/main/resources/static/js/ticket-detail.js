@@ -4,6 +4,10 @@ async function initTicketDetail() {
     setupCommentForm();
     setupUploadForm();
     setupAssignmentUI();
+
+    // Starta polling för aktivitetslogg
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (id) subscribeToActivityUpdates(id);
 }
 
 async function loadTicketDetail() {
@@ -73,7 +77,7 @@ async function loadComments(id) {
     list.innerHTML = comments.length ? comments.map(c => `
     <div class="comment-item">
         <div class="comment-header"><span>${escapeHtml(c.authorName || c.authorEmail || 'Användare')}</span>
-                    <span class="muted">${new Date(c.createdAt).toLocaleString()}</span></div>
+                    <span class="muted">${new Date(c.createdAt).toLocaleString('sv-SE')}</span></div>
         <div class="comment-text">${escapeHtml(c.text || c.content || c.commentText || "...")}</div>
     </div>`).join('') : "<p>Inga kommentarer ännu.</p>";
 }
@@ -150,4 +154,74 @@ function setupAssignmentUI() {
             alert("Kunde inte uppdatera tilldelning: " + (err.message || res.statusText));
         }
     });
+}
+
+// Realtidsuppdatering av aktivitetslogg via polling
+function subscribeToActivityUpdates(ticketId) {
+
+    let stopped = false;
+    let activityTimeout;
+
+    // Hämta aktivitetslogg var 5:e sekund efter att föregående hämtning är klar
+    const pollActivityLog = async () => {
+        try {
+            const res = await apiFetch(`/tickets/${ticketId}/logs`);
+            if (res.ok) {
+                const logs = await res.json();
+                updateActivityLog(logs);
+            }
+        } catch (e) {
+            console.error("Could not update activity log", e);
+        } finally {
+            if (!stopped) {
+                activityTimeout = setTimeout(pollActivityLog, 5000);
+            }
+        }
+    };
+
+    pollActivityLog();
+
+    // Stoppa polling när sidan lämnas
+    window.addEventListener('beforeunload', () => {
+        stopped = true;
+        clearTimeout(activityTimeout);
+    }, {once: true});
+}
+
+let lastActivityLogSignature = "";
+
+// Uppdatera aktivitetsloggen i DOM
+function updateActivityLog(logs) {
+    const container = document.getElementById("activityLog");
+    if (!container) return;
+
+    const nextSignature = JSON.stringify((logs || []).map(log => ({
+        id: log.id,
+        activityType: log.activityType,
+        details: log.details,
+        performedBy: log.performedBy,
+        timestamp: log.timestamp
+    })));
+    if (nextSignature === lastActivityLogSignature) return;
+    lastActivityLogSignature = nextSignature;
+
+    const previousScrollTop = container.scrollTop;
+    if (!logs || logs.length === 0) {
+        container.innerHTML = "<p class=\"muted\">Ingen aktivitet än.</p>";
+        return;
+    }
+
+    container.innerHTML = logs.map(log => `
+        <div class="activity-item" style="padding: 0.75rem 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+            <div>
+                <strong>${escapeHtml(log.activityType.replace(/_/g, ' '))}</strong>
+                <p class="muted" style="margin: 0.25rem 0; font-size: 0.9rem;">${escapeHtml(log.details || '')}</p>
+                <small class="muted">Av ${escapeHtml(log.performedBy || 'Okänd')}</small>
+            </div>
+            <small class="muted">${new Date(log.timestamp).toLocaleString('sv-SE')}</small>
+        </div>
+    `).join('');
+
+    container.scrollTop = previousScrollTop;
+
 }
