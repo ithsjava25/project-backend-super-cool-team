@@ -62,6 +62,7 @@ class StaffServiceTest {
 
     @Test
     void updateStatus_ShouldUpdateAndReturnStaffDTO() {
+        newStaff.setRole(Role.HR);
         Long staffId = 1L;
         String status = "BUSY";
         Staff staff = new Staff();
@@ -76,7 +77,7 @@ class StaffServiceTest {
         when(staffRepository.save(any(Staff.class))).thenReturn(staff);
         when(staffMapper.toDto(any(Staff.class))).thenReturn(staffDTO);
 
-        StaffDTO result = staffService.updateStatus(staffId, status);
+        StaffDTO result = staffService.updateStatus(staffId, status, newStaff);
 
         assertEquals(status, result.getStatus());
         assertEquals(status, staff.getStatus());
@@ -131,6 +132,7 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should update and return DTO when valid input")
     void updateStaff_Valid() {
+        newStaff.setRole(Role.ADMIN);
         UpdateStaffDTO dto = new UpdateStaffDTO("Anna", "Nilsson",
                 "anna@cyberwatch.se", "0701234567", Role.HR, Department.BACKEND);
 
@@ -138,7 +140,7 @@ class StaffServiceTest {
         when(staffRepository.save(newStaff)).thenReturn(newStaff);
         when(staffMapper.toDto(newStaff)).thenReturn(newStaffDTO);
 
-        StaffDTO result = staffService.updateStaff(1L, dto);
+        StaffDTO result = staffService.updateStaff(1L, dto, newStaff);
 
         verify(staffMapper).updateEntity(dto, newStaff);
         verify(staffRepository).save(newStaff);
@@ -148,9 +150,10 @@ class StaffServiceTest {
     @Test
     @DisplayName("Should throw StaffNotFoundException when updating non-existent staff")
     void updateStaff_NotFound() {
+        newStaff.setRole(Role.ADMIN);
         when(staffRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> staffService.updateStaff(99L, new UpdateStaffDTO()))
+        assertThatThrownBy(() -> staffService.updateStaff(99L, new UpdateStaffDTO(), newStaff))
                 .isInstanceOf(StaffNotFoundException.class);
     }
 

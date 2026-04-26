@@ -67,7 +67,7 @@ public class EmploymentFormService {
         EmploymentForm savedForm = employmentFormRepository.save(formEntity);
         logger.info("New employment form created with ID: {} by HR staffId={}", savedForm.getId(), hrStaff.getId());
 
-        return employmentMapper.toDTO(savedForm);
+        return toSafeDto(savedForm);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
@@ -90,7 +90,7 @@ public class EmploymentFormService {
     // Get a single form by ID
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public EmploymentFormDTO getFormById(Long formId) {
-        return employmentMapper.toDTO(findFormById(formId));
+        return toSafeDto(findFormById(formId));
     }
 
     // Update form before approval (only PENDING forms can be updated)
@@ -129,7 +129,7 @@ public class EmploymentFormService {
         employmentMapper.updateEntity(updatedForm, existingForm);
 
         logger.info("Form {} updated by staffId={}", formId, loggedInHr.getId());
-        return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
+        return toSafeDto(employmentFormRepository.save(existingForm));
     }
 
     // Reject a form (only PENDING forms can be rejected, and only by management)
@@ -255,6 +255,13 @@ public class EmploymentFormService {
                 throw new IllegalStateException("An employee with this SSN already exists.");
             }
         }
+    }
+
+    private EmploymentFormDTO toSafeDto(EmploymentForm form) {
+        EmploymentFormDTO dto = employmentMapper.toDTO(form);
+        encryptionService.decrypt(form.getSocialSecurityNumber());
+        dto.setSocialSecurityNumber(encryptionService.maskLastFour(form.getSocialSecurityNumber()));
+        return dto;
     }
 
     private void archiveToS3(EmploymentForm form) {

@@ -42,7 +42,7 @@ public class StaffRestController {
         if (!List.of("ONLINE", "BUSY", "AWAY", "OFFLINE").contains(status)) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status));
+        return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status, staff));
     }
 
     @GetMapping("/{id}")
@@ -54,8 +54,8 @@ public class StaffRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto) {
-        return ResponseEntity.ok(staffService.updateStaff(id, dto));
+    public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto, @AuthenticationPrincipal Staff staff) {
+        return ResponseEntity.ok(staffService.updateStaff(id, dto, staff));
     }
 
     @DeleteMapping("/{id}")

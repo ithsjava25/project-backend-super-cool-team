@@ -43,29 +43,18 @@ public class StaffService {
         Staff staff = staffRepository.findById(id)
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + id));
 
-        StaffDTO dto = staffMapper.toDto(staff);
-
-        //Avgör vad av personnumret som får visas för användaren
-        if (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR) {
-            dto.setSocialSecurityNumber(encryptionService.decrypt(staff.getSocialSecurityNumber()));
-        } else {
-            dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
-        }
-
-        return dto;
+        return toDtoWithSsnPolicy(staff, requester);
     }
 
     public StaffDTO getUserStaff(Staff user) {
         if (user == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
         }
-        StaffDTO dto = staffMapper.toDto(user);
-        dto.setSocialSecurityNumber(encryptionService.maskLastFour(user.getSocialSecurityNumber()));
-        return dto;
+        return toMaskedDto(user);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
-    public StaffDTO updateStaff(Long staffId, UpdateStaffDTO dto) {
+    public StaffDTO updateStaff(Long staffId, UpdateStaffDTO dto, Staff requester) {
         if (staffId == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
         }
@@ -83,9 +72,10 @@ public class StaffService {
         }
 
         staffMapper.updateEntity(dto, existingStaff);
+        Staff savedStaff = staffRepository.save(existingStaff);
 
         logger.info("Staff {} updated", staffId);
-        return staffMapper.toDto(staffRepository.save(existingStaff));
+        return toDtoWithSsnPolicy(savedStaff, requester); // Returnerar maskat SSN efter uppdatering
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
@@ -107,23 +97,15 @@ public class StaffService {
         } else if (department != null) {
             staffList = staffRepository.findByDepartment(department);
         } else {
-            staffList = staffRepository.findAll(); // ersätter getAllStaff()
+            staffList = staffRepository.findAll();
         }
 
         return staffList.stream()
-                .map(s -> {
-                    StaffDTO dto = staffMapper.toDto(s);
-                    if (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR) {
-                        dto.setSocialSecurityNumber(encryptionService.decrypt(s.getSocialSecurityNumber()));
-                    } else {
-                        dto.setSocialSecurityNumber(encryptionService.maskLastFour(s.getSocialSecurityNumber()));
-                    }
-                    return dto;
-                })
+                .map(s -> toDtoWithSsnPolicy(s, requester))
                 .toList();
     }
 
-    public StaffDTO updateStatus(Long staffId, String status) {
+    public StaffDTO updateStatus(Long staffId, String status, Staff requester) {
         if (staffId == null) {
             throw new IllegalArgumentException("Staff ID cannot be null");
         }
@@ -136,8 +118,29 @@ public class StaffService {
                 .orElseThrow(() -> new StaffNotFoundException("Staff not found with id: " + staffId));
 
         staff.setStatus(status);
+        Staff savedStaff = staffRepository.save(staff);
         logger.info("Staff {} status updated to {}", staffId, status);
 
-        return staffMapper.toDto(staffRepository.save(staff));
+        return toDtoWithSsnPolicy(savedStaff, requester); // Returnerar maskat SSN efter statusuppdatering
+    }
+
+
+    // ADMIN/HR får se hela, andra får se maskat.
+    private StaffDTO toDtoWithSsnPolicy(Staff staff, Staff requester) {
+        StaffDTO dto = staffMapper.toDto(staff);
+        String rawEncryptedSsn = staff.getSocialSecurityNumber();
+
+        if (requester != null && (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR)) {
+            dto.setSocialSecurityNumber(encryptionService.decrypt(rawEncryptedSsn));
+        } else {
+            dto.setSocialSecurityNumber(encryptionService.maskLastFour(rawEncryptedSsn));
+        }
+        return dto;
+    }
+
+    private StaffDTO toMaskedDto(Staff staff) {
+        StaffDTO dto = staffMapper.toDto(staff);
+        dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
+        return dto;
     }
 }
