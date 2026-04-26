@@ -39,7 +39,7 @@ public class EmploymentFormController {
     //Change returntype when emailservice is implemented
     public ResponseEntity<String> approveForm(@PathVariable Long id, @AuthenticationPrincipal Staff staff) {
 
-        logger.info("Creating employment form with approval from staff: {}", staff.getEmail());
+        logger.info("Approving employment form {} by staff: {}", id, staff.getId());
         return ResponseEntity.ok(
                 employmentFormService.approveAndFinalizeEmployment(id, staff));
     }

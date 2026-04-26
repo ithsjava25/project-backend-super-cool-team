@@ -259,7 +259,6 @@ public class EmploymentFormService {
 
     private EmploymentFormDTO toSafeDto(EmploymentForm form) {
         EmploymentFormDTO dto = employmentMapper.toDTO(form);
-        encryptionService.decrypt(form.getSocialSecurityNumber());
         dto.setSocialSecurityNumber(encryptionService.maskLastFour(form.getSocialSecurityNumber()));
         return dto;
     }
