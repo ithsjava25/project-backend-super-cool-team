@@ -52,7 +52,7 @@ class SecurityIntegrationTests {
         );
 
         mockMvc.perform(get("/api/staff")
-                        .with(authentication(auth))) // Här sker magin!
+                        .with(authentication(auth)))
                 .andExpect(status().isOk());
     }
 
@@ -86,11 +86,24 @@ class SecurityIntegrationTests {
     }
 
     @Test
-    @WithMockUser(roles = "HR")
     @DisplayName("HR should not be able to approve forms")
     void hrCannotApproveForm() throws Exception {
+        Staff hrUser = new Staff();
+        hrUser.setId(10L);
+        hrUser.setEmail("hr@cyberwatch.local");
+        hrUser.setRole(Role.HR);
+
+        //Skapa en Authentication-token där din Staff är "Principal"
+        var auth = new UsernamePasswordAuthenticationToken(
+                hrUser,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_HR"))
+        );
+
+        // 3. Skicka med denna auth i perform-anropet
         mockMvc.perform(post("/api/forms/1/approve")
-                        .with(csrf()))
+                        .with(csrf())
+                        .with(authentication(auth))) //Staff som principal
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
