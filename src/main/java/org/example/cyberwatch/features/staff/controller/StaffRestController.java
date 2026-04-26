@@ -24,11 +24,12 @@ public class StaffRestController {
     }
 
     @GetMapping("/me")
+    //skapa en ny metod i service
     public ResponseEntity<StaffDTO> getCurrentUser(@AuthenticationPrincipal Staff staff) {
         if (staff == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(staffService.getStaffById(staff.getId()));
+        return ResponseEntity.ok(staffService.getUserStaff(staff));
     }
 
     @PatchMapping("/me/status")
@@ -41,17 +42,20 @@ public class StaffRestController {
         if (!List.of("ONLINE", "BUSY", "AWAY", "OFFLINE").contains(status)) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status));
+        return ResponseEntity.ok(staffService.updateStatus(staff.getId(), status, staff));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaffById(id));
+    public ResponseEntity<StaffDTO> getStaffById(@PathVariable Long id,
+                                                 @AuthenticationPrincipal Staff user) {
+
+        return ResponseEntity.ok(staffService.getStaffById(id, user));
+
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto) {
-        return ResponseEntity.ok(staffService.updateStaff(id, dto));
+    public ResponseEntity<StaffDTO> updateStaff(@PathVariable Long id, @Valid @RequestBody UpdateStaffDTO dto, @AuthenticationPrincipal Staff staff) {
+        return ResponseEntity.ok(staffService.updateStaff(id, dto, staff));
     }
 
     @DeleteMapping("/{id}")
@@ -63,7 +67,8 @@ public class StaffRestController {
     @GetMapping
     public ResponseEntity<List<StaffDTO>> getStaffByRoleOrDepartment(
             @RequestParam(required = false) Role role,
-            @RequestParam(required = false) Department department) {
-        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department));
+            @RequestParam(required = false) Department department,
+            @AuthenticationPrincipal Staff user) {
+        return ResponseEntity.ok(staffService.getStaffByRoleOrDepartment(role, department, user));
     }
 }

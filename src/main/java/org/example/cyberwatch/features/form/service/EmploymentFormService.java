@@ -2,6 +2,7 @@ package org.example.cyberwatch.features.form.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.example.cyberwatch.config.security.EncryptionService;
 import org.example.cyberwatch.features.form.dto.CreateEmploymentDTO;
 import org.example.cyberwatch.features.form.dto.EmploymentFormDTO;
 import org.example.cyberwatch.features.form.dto.UpdateEmploymentDTO;
@@ -16,6 +17,7 @@ import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
 import org.example.cyberwatch.shared.model.enums.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ public class EmploymentFormService {
     private final S3Service s3Service;
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EncryptionService encryptionService;
 
     //Create employment form
     @Transactional
@@ -57,11 +60,14 @@ public class EmploymentFormService {
         // Set default status to PENDING
         formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
+        formEntity.setSocialSecurityNumber(
+                encryptionService.encrypt(form.getSocialSecurityNumber())
+        );
 
-        EmploymentFormDTO savedForm = employmentMapper.toDTO(employmentFormRepository.save(formEntity));
+        EmploymentForm savedForm = employmentFormRepository.save(formEntity);
         logger.info("New employment form created with ID: {} by HR staffId={}", savedForm.getId(), hrStaff.getId());
 
-        return savedForm;
+        return toSafeDto(savedForm);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
@@ -84,7 +90,7 @@ public class EmploymentFormService {
     // Get a single form by ID
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public EmploymentFormDTO getFormById(Long formId) {
-        return employmentMapper.toDTO(findFormById(formId));
+        return toSafeDto(findFormById(formId));
     }
 
     // Update form before approval (only PENDING forms can be updated)
@@ -110,18 +116,20 @@ public class EmploymentFormService {
                 && Objects.equals(existingForm.getCreatedBy().getId(), loggedInHr.getId());
 
         if (!isAdmin && !isCreator) {
-            throw new IllegalStateException("Only the HR staff who created this form or an admin can update it");
+            throw new AccessDeniedException("Only the HR staff who created this form or an admin can update it");
         }
-
+        String existingSsnPlain = encryptionService.decrypt(existingForm.getSocialSecurityNumber());
+        String newSsnPlain = updatedForm.getSocialSecurityNumber();
         // Check for duplicate SSN if it's changed
-        if (!existingForm.getSocialSecurityNumber().equals(updatedForm.getSocialSecurityNumber())) {
-            validateSsnNotExists(updatedForm.getSocialSecurityNumber());
+        if (!existingSsnPlain.equals(newSsnPlain)) {
+            validateSsnNotExists(newSsnPlain);
+            existingForm.setSocialSecurityNumber(encryptionService.encrypt(newSsnPlain));
         }
 
         employmentMapper.updateEntity(updatedForm, existingForm);
 
         logger.info("Form {} updated by staffId={}", formId, loggedInHr.getId());
-        return employmentMapper.toDTO(employmentFormRepository.save(existingForm));
+        return toSafeDto(employmentFormRepository.save(existingForm));
     }
 
     // Reject a form (only PENDING forms can be rejected, and only by management)
@@ -227,12 +235,32 @@ public class EmploymentFormService {
     }
 
     private void validateSsnNotExists(String ssn) {
-        if (employmentFormRepository.existsBySocialSecurityNumber(ssn)) {
-            throw new IllegalStateException("An application with this SSN already exists.");
+
+        // TODO: Replace with SSN hash lookup when database schema is updated
+        // Current workaround: encrypt before searching (requires double encryption in createForm which is costly)
+        // Check employment forms by decrypting and comparing
+        List<EmploymentForm> existingForms = employmentFormRepository.findAll();
+        for (EmploymentForm form : existingForms) {
+            String decryptedSsn = encryptionService.decrypt(form.getSocialSecurityNumber());
+            if (decryptedSsn.equals(ssn)) {
+                throw new IllegalStateException("An application with this SSN already exists.");
+            }
         }
-        if (staffRepository.existsBySocialSecurityNumber(ssn)) {
-            throw new IllegalStateException("An employee with this SSN already exists.");
+
+        // Check staff by decrypting and comparing
+        List<Staff> existingStaff = staffRepository.findAll();
+        for (Staff staff : existingStaff) {
+            String decryptedSsn = encryptionService.decrypt(staff.getSocialSecurityNumber());
+            if (decryptedSsn.equals(ssn)) {
+                throw new IllegalStateException("An employee with this SSN already exists.");
+            }
         }
+    }
+
+    private EmploymentFormDTO toSafeDto(EmploymentForm form) {
+        EmploymentFormDTO dto = employmentMapper.toDTO(form);
+        dto.setSocialSecurityNumber(encryptionService.maskLastFour(form.getSocialSecurityNumber()));
+        return dto;
     }
 
     private void archiveToS3(EmploymentForm form) {

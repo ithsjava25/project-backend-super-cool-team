@@ -29,7 +29,6 @@ public class EmploymentForm {
 
     @Column(name = "social_security_number", nullable = false, unique = true)
     @NotBlank(message = "Social security number cannot be blank")
-    @Pattern(regexp = "\\d{6}-\\d{4}|\\d{8}-\\d{4}", message = "Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN")
     private String socialSecurityNumber;
 
     @Column(name = "first_name")
