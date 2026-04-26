@@ -19,12 +19,15 @@ public class Staff {
     @Column(name = "employee_id")
     private Long id;
 
-    @Column(name = "social_security_number", nullable = false, unique = true)
+    @Column(name = "social_security_number", nullable = false)
     @NotBlank(message = "Social security number cannot be blank")
     private String socialSecurityNumber;
 
-    @Column(name = "ssn_hash", length = 64)
+    @Column(name = "ssn_hash", length = 64, unique = true)
     private String ssnHash;
+
+    @Column(name = "ssn_salt", length = 32)
+    private String ssnSalt;
 
     @Column(name = "first_name")
     @NotBlank(message = "First name cannot be blank")
