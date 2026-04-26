@@ -23,6 +23,9 @@ public class Staff {
     @NotBlank(message = "Social security number cannot be blank")
     private String socialSecurityNumber;
 
+    @Column(name = "ssn_hash", length = 64)
+    private String ssnHash;
+
     @Column(name = "first_name")
     @NotBlank(message = "First name cannot be blank")
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
