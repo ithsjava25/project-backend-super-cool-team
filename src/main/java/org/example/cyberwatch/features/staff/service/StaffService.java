@@ -48,7 +48,7 @@ public class StaffService {
 
     public StaffDTO getUserStaff(Staff user) {
         if (user == null) {
-            throw new IllegalArgumentException("Staff ID cannot be null");
+            throw new IllegalArgumentException("Staff cannot be null");
         }
         return toMaskedDto(user);
     }
