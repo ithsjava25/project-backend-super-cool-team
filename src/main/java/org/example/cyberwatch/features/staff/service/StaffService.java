@@ -50,7 +50,7 @@ public class StaffService {
         if (user == null) {
             throw new IllegalArgumentException("Staff cannot be null");
         }
-        return toMaskedDto(user);
+        return toDtoWithSsnPolicy(user, user);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
@@ -89,6 +89,7 @@ public class StaffService {
         logger.info("Staff {} deleted", staffId);
     }
 
+
     public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department, Staff requester) {
 
         List<Staff> staffList;
@@ -101,7 +102,12 @@ public class StaffService {
         }
 
         return staffList.stream()
-                .map(s -> toDtoWithSsnPolicy(s, requester))
+                .map(s -> {
+                    StaffDTO dto = staffMapper.toDto(s);
+                    // Vi skippar dekryptering helt för listor!
+                    dto.setSocialSecurityNumber("********-****");
+                    return dto;
+                })
                 .toList();
     }
 
@@ -130,17 +136,20 @@ public class StaffService {
         StaffDTO dto = staffMapper.toDto(staff);
         String rawEncryptedSsn = staff.getSocialSecurityNumber();
 
-        if (requester != null && (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR)) {
-            dto.setSocialSecurityNumber(encryptionService.decrypt(rawEncryptedSsn));
+        String plainText = encryptionService.decrypt(rawEncryptedSsn);
+
+        boolean isPrivileged = requester != null && (
+                requester.getRole() == Role.ADMIN ||
+                        requester.getRole() == Role.HR ||
+                        Objects.equals(requester.getId(), staff.getId())
+        );
+
+        if (isPrivileged) {
+            dto.setSocialSecurityNumber(plainText);
         } else {
-            dto.setSocialSecurityNumber(encryptionService.maskLastFour(rawEncryptedSsn));
+            dto.setSocialSecurityNumber(encryptionService.maskLastFour(plainText));
         }
         return dto;
     }
 
-    private StaffDTO toMaskedDto(Staff staff) {
-        StaffDTO dto = staffMapper.toDto(staff);
-        dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
-        return dto;
-    }
 }

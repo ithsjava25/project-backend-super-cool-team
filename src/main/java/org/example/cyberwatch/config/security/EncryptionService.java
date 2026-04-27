@@ -32,11 +32,11 @@ public class EncryptionService {
         return new HmacUtils(HmacAlgorithms.HMAC_SHA_256, hmacKey).hmacHex(data);
     }
 
-    public String maskLastFour(String encrypted) {
-        if (encrypted == null || encrypted.isBlank()) {
+    public String maskLastFour(String plainText) {
+        if (plainText == null || plainText.isBlank()) {
             return "****";
         }
-        String decrypted = textEncryptor.decrypt(encrypted);
+        String decrypted = textEncryptor.decrypt(plainText);
         if (decrypted.length() <= 4) {
             return "****";
         }
