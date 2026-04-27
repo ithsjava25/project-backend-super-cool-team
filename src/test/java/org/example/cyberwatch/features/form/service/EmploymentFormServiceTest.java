@@ -24,7 +24,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,6 +65,7 @@ class EmploymentFormServiceTest {
         // Arrange
         String rawSsn = "19900101-1234";
         String encryptedSsn = "krypterat-ssn";
+        String ssnHash = "abc-123-hash";
 
         CreateEmploymentDTO dto = new CreateEmploymentDTO(
                 rawSsn, "Alice", "Andersson",
@@ -73,9 +73,12 @@ class EmploymentFormServiceTest {
         );
         Staff hrStaff = createHrStaff();
         EmploymentForm entity = new EmploymentForm();
+        entity.setId(1L);
 
-        when(formRepository.findAll()).thenReturn(List.of());
-        when(staffRepository.findAll()).thenReturn(List.of());
+        when(encryptionService.hmac(rawSsn)).thenReturn(ssnHash);
+        when(formRepository.existsBySsnHash(ssnHash)).thenReturn(false);
+        when(staffRepository.existsBySsnHash(ssnHash)).thenReturn(false);
+
         when(encryptionService.encrypt(rawSsn)).thenReturn(encryptedSsn);
         when(mapper.toEntity(dto)).thenReturn(entity);
         when(formRepository.save(any(EmploymentForm.class))).thenReturn(entity);
@@ -176,22 +179,22 @@ class EmploymentFormServiceTest {
     @DisplayName("Should throw exception if SSN already exists in form repository")
     void createForm_DuplicateSsnInForms_ThrowsException() {
         // Arrange
-        Staff creator = new Staff();
-        creator.setEmail("owner@cyberwatch.local");
+        String rawSsn = "19900101-1234";
+        String ssnHash = "existing-staff-hash";
         CreateEmploymentDTO dto = new CreateEmploymentDTO(
-                "19900101-1234", "Alice", "Andersson",
+                rawSsn, "Alice", "Andersson",
                 "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
         );
-        EmploymentForm existing = new EmploymentForm();
-        existing.setSocialSecurityNumber("krypterat-ssn");
+        Staff creator = createHrStaff();
 
-        when(formRepository.findAll()).thenReturn(List.of(existing));
-        when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
+        when(encryptionService.hmac(rawSsn)).thenReturn(ssnHash);
+        when(formRepository.existsBySsnHash(ssnHash)).thenReturn(true); // Finns redan i forms
 
         // Act & Assert
         assertThrows(IllegalStateException.class, () ->
                 service.createForm(dto, creator)
         );
+
         verify(formRepository, never()).save(any());
     }
 
@@ -199,20 +202,17 @@ class EmploymentFormServiceTest {
     @DisplayName("Should throw exception if SSN already exists in staff repository")
     void createForm_DuplicateSsnInStaff_ThrowsException() {
         // Arrange
-        Staff creator = new Staff();
         String rawSsn = "19900101-1234";
-
+        String ssnHash = "existing-staff-hash";
         CreateEmploymentDTO dto = new CreateEmploymentDTO(
                 rawSsn, "Alice", "Andersson",
                 "alice@test.com", "070", Role.HR, Department.BACKEND, null, null, null
         );
+        Staff creator = createHrStaff();
 
-        Staff existingStaff = new Staff();
-        existingStaff.setSocialSecurityNumber("krypterat-ssn");
-
-        when(formRepository.findAll()).thenReturn(List.of());//no match
-        when(staffRepository.findAll()).thenReturn(List.of(existingStaff));
-        when(encryptionService.decrypt("krypterat-ssn")).thenReturn("19900101-1234");
+        when(encryptionService.hmac(rawSsn)).thenReturn(ssnHash);
+        when(formRepository.existsBySsnHash(ssnHash)).thenReturn(false); // Finns inte i forms
+        when(staffRepository.existsBySsnHash(ssnHash)).thenReturn(true);  // Finns i staff
 
         // Act & Assert
         assertThrows(IllegalStateException.class, () ->

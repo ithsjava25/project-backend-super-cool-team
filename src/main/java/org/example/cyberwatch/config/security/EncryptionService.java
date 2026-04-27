@@ -36,10 +36,9 @@ public class EncryptionService {
         if (plainText == null || plainText.isBlank()) {
             return "****";
         }
-        String decrypted = textEncryptor.decrypt(plainText);
-        if (decrypted.length() <= 4) {
+        if (plainText.length() <= 4) {
             return "****";
         }
-        return decrypted.substring(0, decrypted.length() - 4) + "****";
+        return plainText.substring(0, plainText.length() - 4) + "****";
     }
 }

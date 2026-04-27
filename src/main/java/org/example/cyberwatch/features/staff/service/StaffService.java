@@ -112,12 +112,7 @@ public class StaffService {
         }
 
         return staffList.stream()
-                .map(s -> {
-                    StaffDTO dto = staffMapper.toDto(s);
-                    // Vi skippar dekryptering helt för listor!
-                    dto.setSocialSecurityNumber("********-****");
-                    return dto;
-                })
+                .map(s -> toDtoWithSsnPolicy(s, requester))
                 .toList();
     }
 
