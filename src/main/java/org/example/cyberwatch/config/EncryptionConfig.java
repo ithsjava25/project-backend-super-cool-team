@@ -9,14 +9,16 @@ import org.springframework.security.crypto.encrypt.TextEncryptor;
 @Configuration
 public class EncryptionConfig {
 
-    @Value("${app.encryption.key}")
-    private String encryptionKey;
+    @Value("${app.encryption.password}")
+    private String encryptionPass;
 
-    @Value("${app.encryption.salt}")
-    private String salt;
+    @Value("${app.encryption.pepper}")
+    private String pepper;
 
+    //Skapar en AES-256 krypteringsnyckel, pass + pepper = key,
+    //delux lägger till ett randomiserat salt-värde(Nonce/IV) vid varje anrop av encrypt
     @Bean
     public TextEncryptor textEncryptor() {
-        return Encryptors.text(encryptionKey, salt);
+        return Encryptors.delux(encryptionPass, pepper);
     }
 }

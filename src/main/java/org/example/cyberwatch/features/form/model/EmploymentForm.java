@@ -31,9 +31,6 @@ public class EmploymentForm {
     @Column(name = "ssn_hash", length = 64, unique = true)
     private String ssnHash;
 
-    @Column(name = "ssn_salt", length = 32)
-    private String ssnSalt;
-
     @Column(name = "first_name")
     @NotBlank(message = "First name cannot be blank")
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
