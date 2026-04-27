@@ -65,11 +65,11 @@ public class EmploymentFormService {
         EmploymentForm savedForm = employmentFormRepository.save(formEntity);
         logger.info("New employment form created with ID: {} by HR staffId={}", savedForm.getId(), hrStaff.getId());
 
-        return applySsnPolicy(savedForm, hrStaff);
+        return applySsnPolicy(savedForm);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
-    public List<EmploymentFormDTO> getFormsByFilterApproval(ApprovalStatus status, Staff requester) {
+    public List<EmploymentFormDTO> getFormsByFilterApproval(ApprovalStatus status) {
         List<EmploymentForm> forms;
         if (status != null) {
             forms = employmentFormRepository.findByStatus(status);
@@ -79,15 +79,15 @@ public class EmploymentFormService {
 
         // Använd din nya policy-metod på varje element i listan!
         return forms.stream()
-                .map(form -> applySsnPolicy(form, requester))
+                .map(this::applySsnPolicy)
                 .toList();
     }
 
 
     // Get a single form by ID
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
-    public EmploymentFormDTO getFormById(Long formId, Staff requester) {
-        return applySsnPolicy(findFormById(formId), requester);
+    public EmploymentFormDTO getFormById(Long formId) {
+        return applySsnPolicy(findFormById(formId));
     }
 
     // Update form before approval (only PENDING forms can be updated)
@@ -127,7 +127,7 @@ public class EmploymentFormService {
         employmentMapper.updateEntity(updatedForm, existingForm);
 
         logger.info("Form {} updated by staffId={}", formId, loggedInHr.getId());
-        return applySsnPolicy(employmentFormRepository.save(existingForm), loggedInHr);
+        return applySsnPolicy(employmentFormRepository.save(existingForm));
     }
 
     // Reject a form (only PENDING forms can be rejected, and only by management)
@@ -246,17 +246,10 @@ public class EmploymentFormService {
         }
     }
 
-    private EmploymentFormDTO applySsnPolicy(EmploymentForm form, Staff requester) {
+    private EmploymentFormDTO applySsnPolicy(EmploymentForm form) {
         EmploymentFormDTO dto = employmentMapper.toDTO(form);
         String decrypted = encryptionService.decrypt(form.getSocialSecurityNumber());
-
-        // Om requester är ADMIN/HR/CEO/CTO -> visa allt, annars maskera
-        if (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR ||
-                requester.getRole() == Role.CEO || requester.getRole() == Role.CTO) {
-            dto.setSocialSecurityNumber(decrypted);
-        } else {
-            dto.setSocialSecurityNumber(encryptionService.maskLastFour(decrypted));
-        }
+        dto.setSocialSecurityNumber(decrypted);
         return dto;
     }
 

@@ -5,14 +5,13 @@ import org.example.cyberwatch.features.form.model.EmploymentForm;
 import org.example.cyberwatch.features.form.repository.EmploymentFormRepository;
 import org.example.cyberwatch.features.staff.model.Staff;
 import org.example.cyberwatch.features.staff.repository.StaffRepository;
-import org.example.cyberwatch.shared.model.enums.ApprovalStatus;
-import org.example.cyberwatch.shared.model.enums.Department;
-import org.example.cyberwatch.shared.model.enums.Role;
+import org.example.cyberwatch.features.ticket.model.Ticket;
+import org.example.cyberwatch.features.ticket.repository.TicketRepository;
+import org.example.cyberwatch.shared.model.enums.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -20,13 +19,15 @@ public class DataInitializer implements CommandLineRunner {
 
     private final StaffRepository staffRepository;
     private final EmploymentFormRepository employmentFormRepository;
+    private final TicketRepository ticketRepository;
     private final EncryptionService encryptionService;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(StaffRepository staffRepository, EmploymentFormRepository employmentFormRepository,
-                           EncryptionService encryptionService, PasswordEncoder passwordEncoder) {
+                           TicketRepository ticketRepository, EncryptionService encryptionService, PasswordEncoder passwordEncoder) {
         this.staffRepository = staffRepository;
         this.employmentFormRepository = employmentFormRepository;
+        this.ticketRepository = ticketRepository;
         this.encryptionService = encryptionService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -61,11 +62,26 @@ public class DataInitializer implements CommandLineRunner {
         ));
 
         // Skapa 3 pending employment forms
-        Staff hrStaff = admins.get(0); // Eric (Admin/HR)
+        Staff hrStaff = admins.getFirst(); // Eric (Admin)
         employmentFormRepository.saveAll(List.of(
                 createEmploymentForm("19800315-2525", "Peter", "Bergström", "peter.bergstrom@cyberwatch.se", "0715151515", Role.CONSULTANT, Department.BACKEND, hrStaff),
                 createEmploymentForm("19870723-3636", "Victoria", "Ström", "victoria.strom@cyberwatch.se", "0726262626", Role.PROJECT_MANAGER, Department.FRONTEND, hrStaff),
                 createEmploymentForm("19920411-4747", "Martin", "Nordin", "martin.nordin@cyberwatch.se", "0737373737", Role.CONSULTANT, Department.DEVOPS, hrStaff)
+        ));
+
+        // Skapa 10 tickets
+        List<Staff> allStaff = staffRepository.findAll();
+        ticketRepository.saveAll(List.of(
+                createTicket("TICKET-1001", "Fix login bug on mobile", "Login button not responding on iOS 17", Status.IN_PROGRESS, Priority.HIGH, IssueType.SOFTWARE, allStaff.get(4), List.of(allStaff.get(7))),
+                createTicket("TICKET-1002", "Add dark mode feature", "Implement dark theme for better accessibility", Status.SUBMITTED, Priority.MEDIUM, IssueType.SOFTWARE, allStaff.get(5), List.of(allStaff.get(9))),
+                createTicket("TICKET-1003", "Database optimization", "Query performance issues in staff list endpoint", Status.IN_PROGRESS, Priority.HIGH, IssueType.SOFTWARE, allStaff.get(6), List.of()),
+                createTicket("TICKET-1004", "Update API documentation", "Document new endpoints for ticket filtering", Status.SUBMITTED, Priority.LOW, IssueType.OTHER, allStaff.get(7), List.of()),
+                createTicket("TICKET-1005", "Memory leak in S3 upload", "Application consuming too much memory during large file uploads", Status.RESOLVED, Priority.HIGH, IssueType.SOFTWARE, allStaff.get(8), List.of(allStaff.get(5))),
+                createTicket("TICKET-1006", "Enhance error messages", "Make error messages more user-friendly", Status.SUBMITTED, Priority.MEDIUM, IssueType.SOFTWARE, allStaff.get(9), List.of(allStaff.get(8))),
+                createTicket("TICKET-1007", "SSL certificate expiring", "Renew SSL certificate before expiration", Status.IN_PROGRESS, Priority.CRITICAL, IssueType.SECURITY, allStaff.get(4), List.of(allStaff.get(6))),
+                createTicket("TICKET-1008", "Add password recovery", "Implement forgot password functionality", Status.SUBMITTED, Priority.MEDIUM, IssueType.SOFTWARE, allStaff.get(10), List.of(allStaff.get(7))),
+                createTicket("TICKET-1009", "Network latency issues", "Reported high latency in VPN connection", Status.CLOSED, Priority.LOW, IssueType.NETWORK, allStaff.get(5), List.of()),
+                createTicket("TICKET-1010", "Update security headers", "Add missing security headers to HTTP responses", Status.IN_PROGRESS, Priority.HIGH, IssueType.SECURITY, allStaff.get(6), List.of(allStaff.get(4)))
         ));
     }
 
@@ -97,9 +113,22 @@ public class DataInitializer implements CommandLineRunner {
         form.setRole(role);
         form.setDepartment(department);
         form.setStatus(ApprovalStatus.PENDING);
-        form.setCreatedDate(LocalDateTime.now());
         form.setCreatedBy(createdBy);
         return form;
+    }
+
+    private Ticket createTicket(String ticketCode, String title, String description, Status status, Priority priority, IssueType issueType,
+                                Staff createdBy, List<Staff> assignedStaff) {
+        Ticket ticket = new Ticket();
+        ticket.setTicketCode(ticketCode);
+        ticket.setTitle(title);
+        ticket.setDescription(description);
+        ticket.setStatus(status);
+        ticket.setPriority(priority);
+        ticket.setIssueType(issueType);
+        ticket.setCreatedBy(createdBy);
+        ticket.setAssignedStaff(assignedStaff);
+        return ticket;
     }
 }
 

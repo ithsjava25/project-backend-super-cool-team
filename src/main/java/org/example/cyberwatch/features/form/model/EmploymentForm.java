@@ -28,7 +28,8 @@ public class EmploymentForm {
     @NotBlank(message = "Social security number cannot be blank")
     private String socialSecurityNumber;
 
-    @Column(name = "ssn_hash", length = 64, unique = true)
+    @Column(name = "ssn_hash", length = 64, nullable = false, unique = true)
+    @NotBlank(message = "SSN hash cannot be blank")
     private String ssnHash;
 
     @Column(name = "first_name")

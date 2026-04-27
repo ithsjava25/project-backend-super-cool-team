@@ -18,7 +18,8 @@ import java.time.LocalDateTime;
 public class CreateEmploymentDTO {
 
     @NotBlank(message = "Social security number cannot be blank")
-    @Pattern(regexp = "\\d{6}-\\d{4}|\\d{8}-\\d{4}", message = "Social security number must be in format YYMMDD-NNNN or YYYYMMDD-NNNN")
+    @Pattern(regexp = "^(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])-\\d{4}$",
+            message = "Social security number must match format YYYYMMDD-NNNN")
     private String socialSecurityNumber;
 
     @NotBlank(message = "First name cannot be blank")
