@@ -3,6 +3,7 @@ ALTER TABLE staff
 ALTER TABLE employment_form
     ADD COLUMN ssn_hash VARCHAR(64) NOT NULL;
 
+--För att snabbt och enkelt kunna söka och jämföra i databasen
 CREATE UNIQUE INDEX idx_staff_ssn_hash ON staff (ssn_hash);
 CREATE UNIQUE INDEX idx_form_ssn_hash ON employment_form (ssn_hash);
 

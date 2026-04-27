@@ -15,16 +15,24 @@ public class EncryptionService {
     @Value("${app.encryption.hmac-key}") // En separat fast nyckel för sökning
     private String hmacKey;
 
+    /**
+     * Delegerar till delux som genererar ett unikt IV, krypterar med AES-256 nycken
+     * och returnerar IV + krypterad data som en enda sträng, det är denna som sedan lagras i databasen.
+     */
     public String encrypt(String data) {
         return textEncryptor.encrypt(data);
     }
 
+    /**
+     * Delegerar till delux som plockar ut IV från strängen och dekrypterar
+     * med AES-256 för att återge klartexten.
+     */
     public String decrypt(String data) {
         return textEncryptor.decrypt(data);
     }
 
     /**
-     * Skapar ett Blind Index (deterministisk hash).
+     * Skapar ett "Blind Index" (deterministisk hash, sökbar).
      * Används för att jämföra om personnummer redan finns i databasen.
      */
     public String hmac(String data) {
