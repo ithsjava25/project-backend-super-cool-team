@@ -215,6 +215,63 @@ input, select, textarea {
     border: 1px solid var(--border);
 }
 
+/* SSN style */
+.ssn-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 10px;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.ssn-display-row {
+    display: flex;
+    align-items: center; /* Centrerar "SSN:" vertikalt med boxen */
+    gap: 8px; /* Avståndet mellan texten och den grå boxen */
+    margin-top: 0.5rem;
+}
+
+.ssn-label {
+    font-weight: 700; /* Samma fetstil som "Status:" */
+    color: #1e293b;
+    min-width: 45px; /* Valfritt: ger alla etiketter samma startpunkt om du vill */
+}
+
+.ssn-placeholder {
+    color: #94a3b8;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.ssn-value {
+    font-family: 'Courier New', monospace;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.btn-ssn-action {
+    background: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn-ssn-action:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.btn-ssn-action.active {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
 /* Login */
 .login-body {
     background: radial-gradient(circle at center, #065f46, #042f24);

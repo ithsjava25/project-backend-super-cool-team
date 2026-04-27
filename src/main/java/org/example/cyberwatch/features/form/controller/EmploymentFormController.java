@@ -56,14 +56,15 @@ public class EmploymentFormController {
 
     //Show list of pending forms
     @GetMapping
-    public ResponseEntity<List<EmploymentFormDTO>> getForms(@RequestParam(required = false) ApprovalStatus status) {
-        return ResponseEntity.ok(employmentFormService.getFormsByFilterApproval(status));
+    public ResponseEntity<List<EmploymentFormDTO>> getForms(@RequestParam(required = false) ApprovalStatus status,
+                                                            @AuthenticationPrincipal Staff staff) {
+        return ResponseEntity.ok(employmentFormService.getFormsByFilterApproval(status, staff));
     }
 
     //Get a form by id
     @GetMapping("{id}")
-    public ResponseEntity<EmploymentFormDTO> getFormById(@PathVariable Long id) {
-        return ResponseEntity.ok(employmentFormService.getFormById(id));
+    public ResponseEntity<EmploymentFormDTO> getFormById(@PathVariable Long id, @AuthenticationPrincipal Staff staff) {
+        return ResponseEntity.ok(employmentFormService.getFormById(id, staff));
     }
 
     // Reject a form with a reason
