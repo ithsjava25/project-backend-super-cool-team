@@ -55,14 +55,12 @@ public class EmploymentFormService {
 
         validateSsnNotExists(form.getSocialSecurityNumber());
 
-        //NOTE: Set HR based on logged in HR-staff
         EmploymentForm formEntity = employmentMapper.toEntity(form);
-        // Set default status to PENDING
         formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
-        formEntity.setSocialSecurityNumber(
-                encryptionService.encrypt(form.getSocialSecurityNumber())
-        );
+        String encryptedSsn = encryptionService.encrypt(form.getSocialSecurityNumber());
+        formEntity.setSocialSecurityNumber(encryptedSsn);
+        formEntity.setSsnHash(encryptionService.hmac(form.getSocialSecurityNumber()));
 
         EmploymentForm savedForm = employmentFormRepository.save(formEntity);
         logger.info("New employment form created with ID: {} by HR staffId={}", savedForm.getId(), hrStaff.getId());
@@ -124,6 +122,7 @@ public class EmploymentFormService {
         if (!existingSsnPlain.equals(newSsnPlain)) {
             validateSsnNotExists(newSsnPlain);
             existingForm.setSocialSecurityNumber(encryptionService.encrypt(newSsnPlain));
+            existingForm.setSsnHash(encryptionService.hmac(newSsnPlain));
         }
 
         employmentMapper.updateEntity(updatedForm, existingForm);
@@ -235,31 +234,23 @@ public class EmploymentFormService {
     }
 
     private void validateSsnNotExists(String ssn) {
+        String ssnHash = encryptionService.hmac(ssn);
 
-        // TODO: Replace with SSN hash lookup when database schema is updated
-        // Current workaround: encrypt before searching (requires double encryption in createForm which is costly)
-        // Check employment forms by decrypting and comparing
-        List<EmploymentForm> existingForms = employmentFormRepository.findAll();
-        for (EmploymentForm form : existingForms) {
-            String decryptedSsn = encryptionService.decrypt(form.getSocialSecurityNumber());
-            if (decryptedSsn.equals(ssn)) {
-                throw new IllegalStateException("An application with this SSN already exists.");
-            }
+        // Kontrollera EmploymentForm
+        if (employmentFormRepository.existsBySsnHash(ssnHash)) {
+            throw new IllegalStateException("An application with this SSN already exists.");
         }
 
-        // Check staff by decrypting and comparing
-        List<Staff> existingStaff = staffRepository.findAll();
-        for (Staff staff : existingStaff) {
-            String decryptedSsn = encryptionService.decrypt(staff.getSocialSecurityNumber());
-            if (decryptedSsn.equals(ssn)) {
-                throw new IllegalStateException("An employee with this SSN already exists.");
-            }
+        // Kontrollera Staff
+        if (staffRepository.existsBySsnHash(ssnHash)) {
+            throw new IllegalStateException("An employee with this SSN already exists.");
         }
     }
 
     private EmploymentFormDTO toSafeDto(EmploymentForm form) {
         EmploymentFormDTO dto = employmentMapper.toDTO(form);
-        dto.setSocialSecurityNumber(encryptionService.maskLastFour(form.getSocialSecurityNumber()));
+        String decrypted = encryptionService.decrypt(form.getSocialSecurityNumber());
+        dto.setSocialSecurityNumber(encryptionService.maskLastFour(decrypted));
         return dto;
     }
 

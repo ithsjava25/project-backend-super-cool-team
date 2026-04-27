@@ -34,7 +34,7 @@ public class EmploymentMapper {
     public EmploymentForm toEntity(CreateEmploymentDTO dto) {
         if (dto == null) return null;
         EmploymentForm entity = new EmploymentForm();
-        entity.setSocialSecurityNumber(dto.getSocialSecurityNumber());
+        // Note: socialSecurityNumber and ssnHash are handled separately in service layer for encryption/hashing
         entity.setFirstName(dto.getFirstName());
         entity.setLastName(dto.getLastName());
         entity.setEmail(dto.getEmail());
@@ -49,7 +49,7 @@ public class EmploymentMapper {
     public void updateEntity(UpdateEmploymentDTO dto, EmploymentForm entity) {
         if (dto == null || entity == null) return;
 
-        entity.setSocialSecurityNumber(dto.getSocialSecurityNumber());
+        // Note: socialSecurityNumber and ssnHash are handled separately in service layer for encryption/hashing
         entity.setFirstName(dto.getFirstName());
         entity.setLastName(dto.getLastName());
         entity.setEmail(dto.getEmail());
@@ -61,7 +61,9 @@ public class EmploymentMapper {
     public Staff formToStaff(EmploymentForm form) {
         if (form == null) return null;
         Staff staff = new Staff();
+        // Copy already-encrypted SSN and its hash from approved form
         staff.setSocialSecurityNumber(form.getSocialSecurityNumber());
+        staff.setSsnHash(form.getSsnHash());
         staff.setFirstName(form.getFirstName());
         staff.setLastName(form.getLastName());
         staff.setEmail(form.getEmail());

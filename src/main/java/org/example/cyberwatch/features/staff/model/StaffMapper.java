@@ -24,6 +24,8 @@ public class StaffMapper {
 
     public void updateEntity(UpdateStaffDTO dto, Staff entity) {
         if (dto == null || entity == null) return;
+
+        // Note: socialSecurityNumber is handled separately in StaffService for encryption/hashing
         entity.setFirstName(dto.getFirstName());
         entity.setLastName(dto.getLastName());
         entity.setEmail(dto.getEmail());

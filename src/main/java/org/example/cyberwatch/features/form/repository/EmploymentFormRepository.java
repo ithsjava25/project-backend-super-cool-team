@@ -11,5 +11,6 @@ import java.util.List;
 public interface EmploymentFormRepository extends JpaRepository<EmploymentForm, Long> {
     List<EmploymentForm> findByStatus(ApprovalStatus status);
 
+    boolean existsBySsnHash(String ssnHash);
     boolean existsBySocialSecurityNumber(String socialSecurityNumber);
 }
