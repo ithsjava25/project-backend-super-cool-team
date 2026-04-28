@@ -20,6 +20,20 @@ async function initEmploymentPage() {
     }
 }
 
+function getInitialSsnHtml(id, type) {
+    return `
+        <div class="ssn-display-row">
+            <span class="ssn-label">SSN:</span>
+            <div class="ssn-wrapper">
+                <span class="ssn-placeholder">••••••-••••</span>
+                <button class="btn-ssn-action" onclick="toggleSsnView(${id}, '${type}')">
+                    VISA
+                </button>
+            </div>
+        </div>
+    `;
+}
+
 function setupEmploymentPageButtons() {
     const openBtn = document.getElementById("openCreateEmploymentBtn");
     const cancelBtn = document.getElementById("cancelCreateEmploymentBtn");
@@ -120,15 +134,62 @@ function renderEmploymentStaffList() {
             </div>
 
             <div class="employment-card-body">
-                <p><strong>ID:</strong> ${staff.id}</p>
                 <p><strong>Email:</strong> ${escapeHtml(staff.email || "-")}</p>
-                <p><strong>Telefon:</strong> ${escapeHtml(staff.phoneNumber || "-")}</p>
+                <p><strong>Phone:</strong> ${escapeHtml(staff.phoneNumber || "-")}</p>
                 <p><strong>Department:</strong> ${escapeHtml(staff.department || "-")}</p>
-                <p><strong>Personnummer:</strong> ${escapeHtml(staff.socialSecurityNumber || "-")}</p>
                 <p><strong>Status:</strong> ${escapeHtml(staff.status || "OFFLINE")}</p>
+                
+            <div id="ssn-container-${staff.id}" class="ssn-display">
+                    ${getInitialSsnHtml(staff.id, 'staff')}
+            </div>
             </div>
         </div>
     `).join("");
+}
+
+async function toggleSsnView(id, type) {
+    // Bestäm prefix och endpoint baserat på typen
+    const prefix = (type === 'staff') ? 'ssn' : 'form-ssn';
+    const endpoint = (type === 'staff') ? 'staff' : 'forms';
+
+    const container = document.getElementById(`${prefix}-container-${id}`);
+    if (!container) return;
+
+    container.innerHTML = "<em>Laddar...</em>";
+
+    try {
+        const res = await apiFetch(`/${endpoint}/${id}`);
+        if (!res.ok) throw new Error("Behörighet saknas");
+
+        const data = await res.json();
+
+        container.innerHTML = `
+    <div class="ssn-display-row">
+        <span class="ssn-label">SSN:</span>
+        <div class="ssn-wrapper">
+            <strong class="ssn-value">${escapeHtml(data.socialSecurityNumber)}</strong>
+            <button class="btn-ssn-action active" onclick="resetSsnView(${id}, '${type}')">
+                DÖLJ
+            </button>
+        </div>
+    </div>
+`;
+
+        // Maskera automatiskt efter 10 sekunder
+        setTimeout(() => resetSsnView(id, type), 10000);
+
+    } catch (e) {
+        container.innerHTML = "<span class='text-danger'>Kunde inte hämta data.</span>";
+        console.error(e);
+    }
+}
+
+function resetSsnView(id, type) {
+    const prefix = (type === 'staff') ? 'ssn' : 'form-ssn';
+    const container = document.getElementById(`${prefix}-container-${id}`);
+    if (container) {
+        container.innerHTML = getInitialSsnHtml(id, type);
+    }
 }
 
 async function submitEmploymentForm(e) {
@@ -200,11 +261,13 @@ async function loadPendingEmploymentForms() {
 
                 <div class="employment-card-body">
                     <p><strong>Email:</strong> ${escapeHtml(form.email)}</p>
-                    <p><strong>Telefon:</strong> ${escapeHtml(form.phoneNumber)}</p>
-                    <p><strong>Roll:</strong> ${escapeHtml(form.role)}</p>
+                    <p><strong>Phone:</strong> ${escapeHtml(form.phoneNumber)}</p>
+                    <p><strong>Role:</strong> ${escapeHtml(form.role)}</p>
                     <p><strong>Department:</strong> ${escapeHtml(form.department)}</p>
-                    <p><strong>Personnummer:</strong> ${escapeHtml(form.socialSecurityNumber)}</p>
-                </div>
+                <div id="form-ssn-container-${form.id}" class="ssn-display">
+                        ${getInitialSsnHtml(form.id, 'form')}
+                </div>               
+            </div>
 
                 <div style="margin-top: 1rem; display:flex; gap:0.75rem;">
             ${canApprove ? `

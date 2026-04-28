@@ -22,6 +22,10 @@ public class UpdateStaffDTO {
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
+    @Pattern(regexp = "^(19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])-\\d{4}$",
+            message = "Social security number must match format YYYYMMDD-NNNN")
+    private String socialSecurityNumber;
+
     @Email(message = "Email should be valid")
     @NotBlank(message = "Email cannot be blank")
     private String email;

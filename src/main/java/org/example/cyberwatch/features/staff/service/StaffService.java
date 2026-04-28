@@ -50,7 +50,7 @@ public class StaffService {
         if (user == null) {
             throw new IllegalArgumentException("Staff cannot be null");
         }
-        return toMaskedDto(user);
+        return toDtoWithSsnPolicy(user, user);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
@@ -71,6 +71,16 @@ public class StaffService {
             });
         }
 
+        // Hantera SSN separat för kryptering och hashning
+        String existingSsnPlain = encryptionService.decrypt(existingStaff.getSocialSecurityNumber());
+        String newSsnPlain = dto.getSocialSecurityNumber();
+
+        if (!existingSsnPlain.equals(newSsnPlain)) {
+            validateSsnNotExists(newSsnPlain);
+            existingStaff.setSocialSecurityNumber(encryptionService.encrypt(newSsnPlain));
+            existingStaff.setSsnHash(encryptionService.hmac(newSsnPlain));
+        }
+
         staffMapper.updateEntity(dto, existingStaff);
         Staff savedStaff = staffRepository.save(existingStaff);
 
@@ -88,6 +98,7 @@ public class StaffService {
         staffRepository.delete(existingStaff);
         logger.info("Staff {} deleted", staffId);
     }
+
 
     public List<StaffDTO> getStaffByRoleOrDepartment(Role role, Department department, Staff requester) {
 
@@ -124,23 +135,34 @@ public class StaffService {
         return toDtoWithSsnPolicy(savedStaff, requester); // Returnerar maskat SSN efter statusuppdatering
     }
 
+    private void validateSsnNotExists(String ssn) {
+        String ssnHash = encryptionService.hmac(ssn);
+
+        // Kontrollera om SSN redan finns i Staff
+        if (staffRepository.existsBySsnHash(ssnHash)) {
+            throw new IllegalStateException("An employee with this SSN already exists.");
+        }
+    }
 
     // ADMIN/HR får se hela, andra får se maskat.
     private StaffDTO toDtoWithSsnPolicy(Staff staff, Staff requester) {
         StaffDTO dto = staffMapper.toDto(staff);
         String rawEncryptedSsn = staff.getSocialSecurityNumber();
 
-        if (requester != null && (requester.getRole() == Role.ADMIN || requester.getRole() == Role.HR)) {
-            dto.setSocialSecurityNumber(encryptionService.decrypt(rawEncryptedSsn));
+        String plainText = encryptionService.decrypt(rawEncryptedSsn);
+
+        boolean isPrivileged = requester != null && (
+                requester.getRole() == Role.ADMIN ||
+                        requester.getRole() == Role.HR ||
+                        Objects.equals(requester.getId(), staff.getId())
+        );
+
+        if (isPrivileged) {
+            dto.setSocialSecurityNumber(plainText);
         } else {
-            dto.setSocialSecurityNumber(encryptionService.maskLastFour(rawEncryptedSsn));
+            dto.setSocialSecurityNumber(encryptionService.maskLastFour(plainText));
         }
         return dto;
     }
 
-    private StaffDTO toMaskedDto(Staff staff) {
-        StaffDTO dto = staffMapper.toDto(staff);
-        dto.setSocialSecurityNumber(encryptionService.maskLastFour(staff.getSocialSecurityNumber()));
-        return dto;
-    }
 }

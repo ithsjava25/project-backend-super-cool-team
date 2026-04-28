@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface StaffRepository extends JpaRepository<Staff, Long> {
     boolean existsBySocialSecurityNumber(String socialSecurityNumber);
 
+    boolean existsBySsnHash(String ssnHash);
+
     Optional<Staff> findByEmail(String email);
 
     List<Staff> findByRole(Role role);

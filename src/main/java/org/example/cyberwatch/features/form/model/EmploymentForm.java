@@ -14,9 +14,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-//Could it be an idea that the EmployeeForm needs to be approved by an Manager, like a signature on a paper form?
-// Then we could have a status field in the EmployeeForm with the following states:
-//DRAFT -> SUBMITTED -> APPROVED -> COMPLETED -> REJECTED
 @Getter
 @Setter
 @Entity
@@ -27,9 +24,13 @@ public class EmploymentForm {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "social_security_number", nullable = false, unique = true)
+    @Column(name = "social_security_number", nullable = false)
     @NotBlank(message = "Social security number cannot be blank")
     private String socialSecurityNumber;
+
+    @Column(name = "ssn_hash", length = 64, nullable = false, unique = true)
+    @NotBlank(message = "SSN hash cannot be blank")
+    private String ssnHash;
 
     @Column(name = "first_name")
     @NotBlank(message = "First name cannot be blank")

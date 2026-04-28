@@ -55,42 +55,39 @@ public class EmploymentFormService {
 
         validateSsnNotExists(form.getSocialSecurityNumber());
 
-        //NOTE: Set HR based on logged in HR-staff
         EmploymentForm formEntity = employmentMapper.toEntity(form);
-        // Set default status to PENDING
         formEntity.setStatus(ApprovalStatus.PENDING);
         formEntity.setCreatedBy(hrStaff);
-        formEntity.setSocialSecurityNumber(
-                encryptionService.encrypt(form.getSocialSecurityNumber())
-        );
+        String encryptedSsn = encryptionService.encrypt(form.getSocialSecurityNumber());
+        formEntity.setSocialSecurityNumber(encryptedSsn);
+        formEntity.setSsnHash(encryptionService.hmac(form.getSocialSecurityNumber()));
 
         EmploymentForm savedForm = employmentFormRepository.save(formEntity);
         logger.info("New employment form created with ID: {} by HR staffId={}", savedForm.getId(), hrStaff.getId());
 
-        return toSafeDto(savedForm);
+        return applySsnPolicy(savedForm);
     }
 
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public List<EmploymentFormDTO> getFormsByFilterApproval(ApprovalStatus status) {
-        // Om status är angiven (t.ex. PENDING eller APPROVED), filtrera på den
+        List<EmploymentForm> forms;
         if (status != null) {
-            return employmentFormRepository.findByStatus(status)
-                    .stream()
-                    .map(employmentMapper::toDTO)
-                    .toList();
+            forms = employmentFormRepository.findByStatus(status);
+        } else {
+            forms = employmentFormRepository.findAll();
         }
 
-        return getAllForms();
+        // Använd din nya policy-metod på varje element i listan!
+        return forms.stream()
+                .map(this::applySsnPolicy)
+                .toList();
     }
 
-    private List<EmploymentFormDTO> getAllForms() {
-        return employmentMapper.toDTOList(employmentFormRepository.findAll());
-    }
 
     // Get a single form by ID
     @PreAuthorize("hasAnyRole('HR', 'CEO', 'CTO', 'ADMIN')")
     public EmploymentFormDTO getFormById(Long formId) {
-        return toSafeDto(findFormById(formId));
+        return applySsnPolicy(findFormById(formId));
     }
 
     // Update form before approval (only PENDING forms can be updated)
@@ -124,12 +121,13 @@ public class EmploymentFormService {
         if (!existingSsnPlain.equals(newSsnPlain)) {
             validateSsnNotExists(newSsnPlain);
             existingForm.setSocialSecurityNumber(encryptionService.encrypt(newSsnPlain));
+            existingForm.setSsnHash(encryptionService.hmac(newSsnPlain));
         }
 
         employmentMapper.updateEntity(updatedForm, existingForm);
 
         logger.info("Form {} updated by staffId={}", formId, loggedInHr.getId());
-        return toSafeDto(employmentFormRepository.save(existingForm));
+        return applySsnPolicy(employmentFormRepository.save(existingForm));
     }
 
     // Reject a form (only PENDING forms can be rejected, and only by management)
@@ -235,31 +233,23 @@ public class EmploymentFormService {
     }
 
     private void validateSsnNotExists(String ssn) {
+        String ssnHash = encryptionService.hmac(ssn);
 
-        // TODO: Replace with SSN hash lookup when database schema is updated
-        // Current workaround: encrypt before searching (requires double encryption in createForm which is costly)
-        // Check employment forms by decrypting and comparing
-        List<EmploymentForm> existingForms = employmentFormRepository.findAll();
-        for (EmploymentForm form : existingForms) {
-            String decryptedSsn = encryptionService.decrypt(form.getSocialSecurityNumber());
-            if (decryptedSsn.equals(ssn)) {
-                throw new IllegalStateException("An application with this SSN already exists.");
-            }
+        // Kontrollera EmploymentForm
+        if (employmentFormRepository.existsBySsnHash(ssnHash)) {
+            throw new IllegalStateException("An application with this SSN already exists.");
         }
 
-        // Check staff by decrypting and comparing
-        List<Staff> existingStaff = staffRepository.findAll();
-        for (Staff staff : existingStaff) {
-            String decryptedSsn = encryptionService.decrypt(staff.getSocialSecurityNumber());
-            if (decryptedSsn.equals(ssn)) {
-                throw new IllegalStateException("An employee with this SSN already exists.");
-            }
+        // Kontrollera Staff
+        if (staffRepository.existsBySsnHash(ssnHash)) {
+            throw new IllegalStateException("An employee with this SSN already exists.");
         }
     }
 
-    private EmploymentFormDTO toSafeDto(EmploymentForm form) {
+    private EmploymentFormDTO applySsnPolicy(EmploymentForm form) {
         EmploymentFormDTO dto = employmentMapper.toDTO(form);
-        dto.setSocialSecurityNumber(encryptionService.maskLastFour(form.getSocialSecurityNumber()));
+        String decrypted = encryptionService.decrypt(form.getSocialSecurityNumber());
+        dto.setSocialSecurityNumber(decrypted);
         return dto;
     }
 
